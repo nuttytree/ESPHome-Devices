@@ -1,0 +1,3 @@
+platform: wifi_info
+ip_address:
+  name: ${device_name} IP Address

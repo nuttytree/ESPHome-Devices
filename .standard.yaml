@@ -1,0 +1,23 @@
+substitutions:
+  device_id: 
+  device_name: 
+  platform: 
+  board: 
+
+esphome:
+  <<: !include common/esphome.yaml
+
+<<: !include common/common.yaml
+<<: !include common/logger.yaml
+
+binary_sensor:
+  <<: !include common/binary_sensors.yaml
+
+sensor:
+  <<: !include common/sensors.yaml
+
+switch:
+  <<: !include common/switches.yaml
+
+text_sensor:
+  <<: !include common/text_sensors.yaml
