@@ -1,8 +1,8 @@
 substitutions:
   device_id: 
   device_name: 
-  platform: 
-  board: 
+  platform: ESP8266
+  board: esp01_1m
   ip_address: !secret _ip
   ota_pwd: !secret _ota_pwd
   api_pwd: !secret _api_pwd
@@ -11,8 +11,8 @@ substitutions:
 esphome:
   <<: !include common/esphome.yaml
 
-<<: !include common/common.yaml
-<<: !include common/logger/logger.yaml
+<<: !include common/common_tuya_feit_dimmer.yaml
+<<: !include common/logger/logger_tuya_no_log.yaml
 
 binary_sensor:
   - !include common/binary_sensor/status.yaml

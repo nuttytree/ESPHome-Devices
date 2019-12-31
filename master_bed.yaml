@@ -14,7 +14,7 @@ esphome:
   - bed_sensor.h
 
 <<: !include common/common.yaml
-<<: !include common/logger.yaml
+<<: !include common/logger/logger.yaml
 
 binary_sensor:
   - !include common/binary_sensor/status.yaml

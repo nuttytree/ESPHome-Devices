@@ -12,7 +12,7 @@ esphome:
   <<: !include common/esphome.yaml
 
 <<: !include common/common.yaml
-<<: !include common/logger.yaml
+<<: !include common/logger/logger.yaml
 
 binary_sensor:
   - !include common/binary_sensor/status.yaml

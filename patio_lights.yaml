@@ -1,12 +1,12 @@
 substitutions:
-  device_id: 
-  device_name: 
-  platform: 
-  board: 
-  ip_address: !secret _ip
-  ota_pwd: !secret _ota_pwd
-  api_pwd: !secret _api_pwd
-  ap_wifi_pwd: !secret _ap_wifi_pwd
+  device_id: patio_lights
+  device_name: Patio Lights
+  platform: ESP8266
+  board: d1_mini
+  ip_address: !secret patio_lights_ip
+  ota_pwd: !secret patio_lights_ota_pwd
+  api_pwd: !secret patio_lights_api_pwd
+  ap_wifi_pwd: !secret patio_lights_ap_wifi_pwd
 
 esphome:
   <<: !include common/esphome.yaml
@@ -23,6 +23,12 @@ sensor:
 
 switch:
   - !include common/switch/restart.yaml
+  - platform: gpio
+    id: patio_lights
+    name: "Patio Lights"
+    icon: mdi:lightbulb
+    pin: D1
+    inverted: false
 
 text_sensor:
   - !include common/text_sensor/version.yaml

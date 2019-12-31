@@ -1,0 +1,7 @@
+platform: "tuya"
+id: tuya_light
+name: ${device_name}
+dimmer_datapoint: 2
+switch_datapoint: 1
+min_value: 0
+max_value: 1000

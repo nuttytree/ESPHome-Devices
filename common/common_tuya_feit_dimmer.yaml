@@ -1,0 +1,11 @@
+<<: !include wifi.yaml
+<<: !include api.yaml
+<<: !include ota.yaml
+
+tuya:
+
+uart:
+  - !include uart/tuya_feit_dimmer.yaml
+
+light:
+  - !include light/tuya_feit_dimmer.yaml
