@@ -3,6 +3,10 @@ substitutions:
   device_name: 
   platform: 
   board: 
+  ip_address: !secret _ip
+  ota_pwd: !secret _ota_pwd
+  api_pwd: !secret _api_pwd
+  ap_wifi_pwd: !secret _ap_wifi_pwd
 
 esphome:
   <<: !include common/esphome.yaml
@@ -11,13 +15,15 @@ esphome:
 <<: !include common/logger.yaml
 
 binary_sensor:
-  <<: !include common/binary_sensors.yaml
+  - !include common/binary_sensor/status.yaml
 
 sensor:
-  <<: !include common/sensors.yaml
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
 
 switch:
-  <<: !include common/switches.yaml
+  - !include common/switch/restart.yaml
 
 text_sensor:
-  <<: !include common/text_sensors.yaml
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml

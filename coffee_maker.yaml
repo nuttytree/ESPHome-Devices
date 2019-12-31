@@ -3,6 +3,10 @@ substitutions:
   device_name: Coffee Maker
   platform: ESP8266
   board: nodemcuv2
+  ip_address: !secret coffee_maker_ip
+  ota_pwd: !secret coffee_maker_ota_pwd
+  api_pwd: !secret coffee_maker_api_pwd
+  ap_wifi_pwd: !secret coffee_maker_ap_wifi_pwd
 
 esphome:
   <<: !include common/esphome.yaml
@@ -11,7 +15,7 @@ esphome:
 <<: !include common/logger.yaml
 
 binary_sensor:
-  <<: !include common/binary_sensors.yaml
+  - !include common/binary_sensor/status.yaml
   - platform: gpio
     id: power_light
     pin:
@@ -80,13 +84,15 @@ interval:
           }
 
 sensor:
-  <<: !include common/sensors.yaml
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
 
 switch:
-  <<: !include common/switches.yaml
+  - !include common/switch/restart.yaml
   - platform: template
     id: power_switch
     name: "Coffee Maker"
+    icon: mdi:coffee
     lambda: 'return id(power_light).state;'
     turn_on_action:
       then:
@@ -113,6 +119,7 @@ switch:
   - platform: template
     id: bold_switch
     name: "Coffee Maker Bold Setting"
+    icon: mdi:coffee
     lambda: 'return id(bold_light).state;'
     turn_on_action:
       then:
@@ -138,4 +145,5 @@ switch:
     inverted: true
 
 text_sensor:
-  <<: !include common/text_sensors.yaml
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml

@@ -2,11 +2,11 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   manual_ip:
-    static_ip: !secret ${device_id}_ip
+    static_ip: ${ip_address}
     subnet: !secret ip_subnet
     gateway: !secret ip_gateway
   ap:
     ssid: ${device_id}
-    password: !secret ${device_id}_cp_pwd
+    password: ${ap_wifi_pwd}
 
 captive_portal:

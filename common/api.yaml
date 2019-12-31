@@ -1,2 +1,3 @@
 api:
-  password: !secret ${device_id}_api_pwd:
+  password: ${api_pwd}
+  

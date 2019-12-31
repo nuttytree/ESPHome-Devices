@@ -1,2 +1,2 @@
-- platform: version
-  name: ${device_name} Version
+platform: version
+name: ${device_name} Version

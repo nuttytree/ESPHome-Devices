@@ -3,6 +3,10 @@ substitutions:
   device_name: Master Bed
   platform: ESP8266
   board: nodemcuv2
+  ip_address: !secret master_bed_ip
+  ota_pwd: !secret master_bed_ota_pwd
+  api_pwd: !secret master_bed_api_pwd
+  ap_wifi_pwd: !secret master_bed_ap_wifi_pwd
 
 esphome:
   <<: !include common/esphome.yaml
@@ -13,7 +17,7 @@ esphome:
 <<: !include common/logger.yaml
 
 binary_sensor:
-  <<: !include common/binary_sensors.yaml
+  - !include common/binary_sensor/status.yaml
   - platform: custom
     lambda: |-
       auto bedSensor = new BedSensor();
@@ -31,7 +35,8 @@ binary_sensor:
       device_class: occupancy
 
 sensor:
-  <<: !include common/sensors.yaml
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
   - platform: template
     name: "Master Bed Count"
     id: master_bed_count
@@ -41,7 +46,8 @@ sensor:
       return id(melissa_in_bed).state + id(chris_in_bed).state + id(someone_in_bed).state;
 
 switch:
-  <<: !include common/switches.yaml
+  - !include common/switch/restart.yaml
 
 text_sensor:
-  <<: !include common/text_sensors.yaml
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml

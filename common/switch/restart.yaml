@@ -1,3 +1,3 @@
-  - platform: restart
-    id: restart
-    name: Restart ${device_name}
+platform: restart
+id: reboot
+name: Restart ${device_name}

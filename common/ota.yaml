@@ -1,2 +1,2 @@
 ota:
-  password: !secret ${device_id}_ota_pwd:
+  password: ${ota_pwd}
