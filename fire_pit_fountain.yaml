@@ -1,0 +1,65 @@
+substitutions:
+  device_id: fire_pit_fountain
+  device_name: Fire Pit and Fountain
+  platform: ESP8266
+  board: d1_mini_pro
+  ip_address: !secret fire_pit_fountain_ip
+  ota_pwd: !secret fire_pit_fountain_ota_pwd
+  api_pwd: !secret fire_pit_fountain_api_pwd
+  ap_wifi_pwd: !secret fire_pit_fountain_ap_wifi_pwd
+
+esphome:
+  <<: !include common/esphome.yaml
+
+<<: !include common/common.yaml
+<<: !include common/logger/logger.yaml
+
+binary_sensor:
+  - !include common/binary_sensor/status.yaml
+  - platform: gpio
+    id: fountain_toggle
+    pin:
+      number: D6
+      mode: INPUT_PULLUP
+      inverted: True
+    on_press:
+      then:
+        - switch.toggle: fountain
+  - platform: gpio
+    id: fire_pit_toggle
+    pin:
+      number: D7
+      mode: INPUT_PULLUP
+      inverted: True
+    on_multi_click:
+      - timing:
+          - ON for at least 5s
+        then:
+          - switch.toggle: fire_pit
+      - timing:
+          - ON for at most 5s
+        then:
+          - switch.turn_off: fire_pit
+
+sensor:
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
+
+switch:
+  - !include common/switch/restart.yaml
+  - platform: gpio
+    id: fountain
+    name: "Fountain"
+    icon: mdi:fountain
+    pin: D1
+    inverted: false
+  - platform: gpio
+    id: fire_pit
+    name: "Fire Pit"
+    icon: mdi:fire
+    pin: D2
+    inverted: false
+
+text_sensor:
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml
