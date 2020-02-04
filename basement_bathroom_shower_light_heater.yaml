@@ -1,0 +1,60 @@
+substitutions:
+  device_id: basement_bath_shower_light_heat
+  device_name: Basement Bathroom Shower Light and Heater
+  platform: ESP8266
+  board: esp01_1m
+  ip_address: !secret basement_bathroom_shower_light_heater_ip
+  ota_pwd: !secret basement_bathroom_shower_light_heater_ota_pwd
+  api_pwd: !secret basement_bathroom_shower_light_heater_api_pwd
+  ap_wifi_pwd: !secret basement_bathroom_shower_light_heater_ap_wifi_pwd
+
+esphome:
+  <<: !include common/esphome.yaml
+
+<<: !include common/common.yaml
+<<: !include common/logger/logger.yaml
+
+binary_sensor:
+  - !include common/binary_sensor/status.yaml
+  - platform: gpio
+    id: light_toggle
+    pin:
+      number: 12
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+        - switch.toggle: light
+  - platform: gpio
+    id: heater_toggle
+    pin:
+      number: 3
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+        - switch.toggle: heater
+
+sensor:
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
+
+status_led:
+  pin: 0
+
+switch:
+  - !include common/switch/restart.yaml
+  - platform: gpio
+    id: light
+    name: "Basement Shower Light"
+    icon: mdi:lightbulb
+    pin: 13
+    inverted: false
+  - platform: gpio
+    id: heater
+    name: "Basement Bathroom Heater"
+    icon: mdi:radiator
+    pin: 4
+    inverted: false
+
+text_sensor:
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml

@@ -1,0 +1,62 @@
+substitutions:
+  device_id: basement_bathroom_sensor
+  device_name: Basement Bathroom Sensor
+  platform: ESP8266
+  board: d1_mini
+  ip_address: !secret basement_bathroom_sensor_ip
+  ota_pwd: !secret basement_bathroom_sensor_ota_pwd
+  api_pwd: !secret basement_bathroom_sensor_api_pwd
+  ap_wifi_pwd: !secret basement_bathroom_sensor_ap_wifi_pwd
+
+esphome:
+  <<: !include common/esphome.yaml
+
+<<: !include common/common.yaml
+<<: !include common/logger/logger.yaml
+
+binary_sensor:
+  - !include common/binary_sensor/status.yaml
+  - platform: gpio
+    name: Basement Bathroom Motion
+    device_class: motion
+    pin:
+      number: D
+      mode: INPUT_PULLUP
+  - platform: gpio
+    name: Basement Bathroom Door
+    device_class: door
+    pin:
+      number: D
+      mode: INPUT_PULLUP
+
+sensor:
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
+  - platform: bme280
+    temperature:
+      id: temperature
+      name: "Basement Bathroom Temperature"
+    pressure:
+      id: pressure
+      name: "Basement Bathroom Pressure"
+    humidity:
+      id: humidity
+      name: "Basement Bathroom Humidity"
+    address: 0x77
+    update_interval: 30s
+  - platform: template
+    name: "Basement Bathroom Median Humidity"
+    lambda: return id(humidity).state
+    update_interval: 60s
+    filters:
+      - median:
+          window_size: 360
+          send_every: 1
+          send_first_at: 1
+
+switch:
+  - !include common/switch/restart.yaml
+
+text_sensor:
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml

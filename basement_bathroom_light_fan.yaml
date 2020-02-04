@@ -1,0 +1,81 @@
+substitutions:
+  device_id: basement_bathroom_light_fan
+  device_name: Basement Bathroom Light and Fan
+  platform: ESP8266
+  board: esp01_1m
+  ip_address: !secret basement_bathroom_light_fan_ip
+  ota_pwd: !secret basement_bathroom_light_fan_ota_pwd
+  api_pwd: !secret basement_bathroom_light_fan_api_pwd
+  ap_wifi_pwd: !secret basement_bathroom_light_fan_ap_wifi_pwd
+
+esphome:
+  <<: !include common/esphome.yaml
+
+<<: !include common/common.yaml
+<<: !include common/logger/logger.yaml
+
+binary_sensor:
+  - !include common/binary_sensor/status.yaml
+  - platform: gpio
+    id: light_toggle
+    pin:
+      number: 12
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+        - switch.toggle: light
+  - platform: gpio
+    id: fan_toggle
+    pin:
+      number: 3
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+        - fan.toggle: fan
+  - platform: homeassistant
+    id: motion
+    name: Motion
+    entity_id: binary_sensor.basement_bathroom_motion
+  - platform: homeassistant
+    id: door
+    name: Door
+    entity_id: binary_sensor.basement_bathroom_door
+
+fan:
+  - platform: binary
+    id: fan
+    output: fan_output
+    name: "Basement Bathroom Fan"
+
+output:
+  - platform: gpio
+    id: fan_output
+    pin: 4
+
+sensor:
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
+  - platform: homeassistant
+    id: humidity
+    name: Humidity
+    entity_id: sensor.basement_bathroom_humidity
+  - platform: homeassistant
+    id: median_humidity
+    name: Median Humidity
+    entity_id: sensor.basement_bathroom_median_humidity
+
+status_led:
+  pin: 0
+
+switch:
+  - !include common/switch/restart.yaml
+  - platform: gpio
+    id: light
+    name: "Basement Bathroom Light"
+    icon: mdi:lightbulb
+    pin: 13
+    inverted: false
+
+text_sensor:
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml

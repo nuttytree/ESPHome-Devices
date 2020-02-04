@@ -1,17 +1,24 @@
 # ESPHome-Devices
 A collection of my [ESPHome](https://ESPHome.io) configuration files and code for my various ESP8266 devices that integrate with [Home Assistant](https://www.home-assistant.io/).
 
-## ESPHome
-ESPHome is a system to control your ESP8266/ESP32 by simple yet powerful configuration files and control them remotely through Home Automation systems.  For more information checkout [ESPHome.io](https://ESPHome.io).
+    ## What is ESPHome
+    ESPHome is a system to control your ESP8266/ESP32 by simple yet powerful configuration files and control them remotely through Home Automation systems.  For more information checkout [ESPHome.io](https://ESPHome.io).
 
-## Home Assistant
-Home Assistant is open source home automation that puts local control and privacy first. Powered by a worldwide community of tinkerers and DIY enthusiasts. Perfect to run on a Raspberry Pi or a local server.  For more information check out [Home-Assistant.io](https://www.home-assistant.io/)
+    ## What is Home Assistant
+    Home Assistant is open source home automation that puts local control and privacy first. Powered by a worldwide community of tinkerers and DIY enthusiasts. Perfect to run on a Raspberry Pi or a local server.  For more information check out [Home-Assistant.io](https://www.home-assistant.io/)
+
+## Basement Bathroom Sensor
+This is a [WEMOS D1 Mini clone](https://www.amazon.com/gp/product/B076F52NQD/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that is connected to a [motion sensor](https://www.amazon.com/gp/product/B07GJDJV63/ref=ppx_yo_dt_b_asin_title_o06_s01?ie=UTF8&psc=1), a [temperature/humidity/pressure sensor](https://www.amazon.com/gp/product/B07KYJNFMD/ref=ppx_yo_dt_b_asin_title_o06_s01?ie=UTF8&psc=1), and a [door sensor](https://www.amazon.com/gp/product/B07YBGZNNW/ref=ppx_yo_dt_b_asin_title_o09_s00?ie=UTF8&psc=1) and is used to control the lights, fan, and heater (heat lamps in the fan) in my basement bathroom.
+
 
 ## Coffee Maker
 This is a [NodeMCU](https://www.amazon.com/gp/product/B010N1SPRK/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that I installed in my [Cuisinart Coffee Maker](https://www.amazon.com/gp/product/B01N6T5QNO/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1).  It has GPIO's connected to the indicator lights for the bold setting and power and has a couple of [relays](https://www.amazon.com/gp/product/B0057OC6D8/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) connected to the bold setting button and the power button.  Aside from the ability to trigger automations based on the state of the coffee maker and automate turning on the coffee maker I also added a "bloom" feature.  Coffee tastes better if you let the carbon dioxide escape (bloom) after getting the coffee grounds wet before continuing the brew cycle.
 
-## Feit Dimmers
-I have a couple of [Feit Dimmers](https://www.costco.com/feit-electric-smart-dimmer%2c-3-pack.product.100518151.html) (Kitchen Table and Office) I bought as a 2 pack at Costco.  This is a pretty basic config that replaces the original firmware.  I re-flashed these using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).
+## Feit Dimmer Devices
+I have a couple of [Feit Dimmers](https://www.costco.com/feit-electric-smart-dimmer%2c-3-pack.product.100518151.html) I bought as a 2 pack at Costco.  These are a pretty basic config that replaces the original firmware.  I re-flashed these using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).
+    
+    Kitchen Table Light
+    Office Light
 
 ## Fire Pit and Fountain
 
@@ -25,3 +32,10 @@ This is a [NodeMCU](https://www.amazon.com/gp/product/B010N1SPRK/ref=ppx_yo_dt_b
 
 ## Patio Lights
 This is a [WEMOS D1 Mini Pro](https://www.amazon.com/gp/product/B07G9HZ5LM/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that is connected to a [relay](https://www.amazon.com/gp/product/B00VRUAHLE/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) to control the power to the landscape lights around my patio.  I used the WEMOS D1 Mini Pro because it has an external antenna.  I initially used a [WEMOS D1 Mini clone](https://www.amazon.com/gp/product/B076F52NQD/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) but the power supply for my lights was to far from the house and I kept having connectivity issues.
+
+## SANA Dual Switches
+I have a couple of [SANA Switches](https://www.amazon.com/gp/product/B07QC5ZCHP/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&th=1) ( and ).  These are a pretty basic config that replaces the original firmware.  I re-flashed these using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).
+
+    Basement Bathroom Light and Fan
+    Basement Bathroom Shower Light and Heater
+
