@@ -36,7 +36,7 @@ This is a [NodeMCU](https://www.amazon.com/gp/product/B010N1SPRK/ref=ppx_yo_dt_b
 This is a [WEMOS D1 Mini Pro](https://www.amazon.com/gp/product/B07G9HZ5LM/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that is connected to a [relay](https://www.amazon.com/gp/product/B00VRUAHLE/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) to control the power to the landscape lights around my patio.  I used the WEMOS D1 Mini Pro because it has an external antenna.  I initially used a [WEMOS D1 Mini clone](https://www.amazon.com/gp/product/B076F52NQD/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) but the power supply for my lights was to far from the house and I kept having connectivity issues.
 
 ### SANA Dual Switches
-I have a couple of [SANA Switches](https://www.amazon.com/gp/product/B07QC5ZCHP/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&th=1) ( and ).  These are a pretty basic config that replaces the original firmware.  I re-flashed these using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).
+I have a couple of [SANA Dual Switches](https://www.amazon.com/gp/product/B07QC5ZCHP/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&th=1).  These are a pretty basic config that replaces the original firmware.  I re-flashed these using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).
 
     Basement Bathroom Light and Fan
     Basement Bathroom Shower Light and Heater
