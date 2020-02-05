@@ -17,7 +17,7 @@ esphome:
 binary_sensor:
   - !include common/binary_sensor/status.yaml
   - platform: gpio
-    id: light_toggle
+    id: light_button
     pin:
       number: 12
       mode: INPUT_PULLUP
@@ -25,7 +25,7 @@ binary_sensor:
       then:
         - switch.toggle: light
   - platform: gpio
-    id: heater_toggle
+    id: fan_button
     pin:
       number: 3
       mode: INPUT_PULLUP
@@ -38,7 +38,9 @@ sensor:
   - !include common/sensor/wifi.yaml
 
 status_led:
-  pin: 0
+  pin:
+    number: 0
+    inverted: true
 
 switch:
   - !include common/switch/restart.yaml

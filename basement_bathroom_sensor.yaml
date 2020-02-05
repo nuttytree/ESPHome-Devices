@@ -10,9 +10,17 @@ substitutions:
 
 esphome:
   <<: !include common/esphome.yaml
+  on_boot:
+    then:
+      - output.turn_on: motion_pwr
 
 <<: !include common/common.yaml
 <<: !include common/logger/logger.yaml
+
+i2c:
+  sda: D2
+  scl: D1
+  scan: true
 
 binary_sensor:
   - !include common/binary_sensor/status.yaml
@@ -20,14 +28,34 @@ binary_sensor:
     name: Basement Bathroom Motion
     device_class: motion
     pin:
-      number: D
-      mode: INPUT_PULLUP
+      number: D0
+      mode: INPUT_PULLDOWN_16
   - platform: gpio
     name: Basement Bathroom Door
     device_class: door
     pin:
-      number: D
+      number: D7
       mode: INPUT_PULLUP
+  - platform: homeassistant
+    id: day_night
+    entity_id: input_boolean.day_night
+  - platform: homeassistant
+    id: shower_light
+    entity_id: switch.basement_shower_light
+
+output:
+  - platform: gpio
+    pin: D3
+    id: bme_gnd
+  - platform: gpio
+    pin: D5
+    id: motion_gnd
+  - platform: gpio
+    pin: D6
+    id: motion_pwr
+  - platform: gpio
+    pin: D8
+    id: door_gnd
 
 sensor:
   - !include common/sensor/uptime.yaml
@@ -42,17 +70,24 @@ sensor:
     humidity:
       id: humidity
       name: "Basement Bathroom Humidity"
-    address: 0x77
-    update_interval: 30s
+    address: 0x76
+    update_interval: 15s
   - platform: template
     name: "Basement Bathroom Median Humidity"
-    lambda: return id(humidity).state
+    unit_of_measurement: '%'
+    icon: mdi:water-percent
+    lambda: return id(humidity).state;
     update_interval: 60s
     filters:
       - median:
           window_size: 360
-          send_every: 1
-          send_first_at: 1
+          send_every: 2
+          send_first_at: 2
+
+status_led:
+  pin:
+    number: D4
+    inverted: true
 
 switch:
   - !include common/switch/restart.yaml
