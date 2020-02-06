@@ -17,7 +17,7 @@ esphome:
 binary_sensor:
   - !include common/binary_sensor/status.yaml
   - platform: gpio
-    id: light_toggle
+    id: light_button
     pin:
       number: 12
       mode: INPUT_PULLUP
@@ -25,25 +25,17 @@ binary_sensor:
       then:
         - switch.toggle: light
   - platform: gpio
-    id: fan_toggle
+    id: fan_button
     pin:
       number: 3
       mode: INPUT_PULLUP
     on_press:
       then:
-        - fan.toggle: fan
-  - platform: homeassistant
-    id: motion
-    name: Motion
-    entity_id: binary_sensor.basement_bathroom_motion
-  - platform: homeassistant
-    id: door
-    name: Door
-    entity_id: binary_sensor.basement_bathroom_door
+        - fan.toggle: the_fan
 
 fan:
   - platform: binary
-    id: fan
+    id: the_fan
     output: fan_output
     name: "Basement Bathroom Fan"
 
@@ -55,17 +47,11 @@ output:
 sensor:
   - !include common/sensor/uptime.yaml
   - !include common/sensor/wifi.yaml
-  - platform: homeassistant
-    id: humidity
-    name: Humidity
-    entity_id: sensor.basement_bathroom_humidity
-  - platform: homeassistant
-    id: median_humidity
-    name: Median Humidity
-    entity_id: sensor.basement_bathroom_median_humidity
 
 status_led:
-  pin: 0
+  pin:
+    number: 0
+    inverted: true
 
 switch:
   - !include common/switch/restart.yaml
@@ -74,7 +60,6 @@ switch:
     name: "Basement Bathroom Light"
     icon: mdi:lightbulb
     pin: 13
-    inverted: false
 
 text_sensor:
   - !include common/text_sensor/version.yaml

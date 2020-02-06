@@ -25,7 +25,7 @@ binary_sensor:
       then:
         - switch.toggle: light
   - platform: gpio
-    id: fan_button
+    id: heater_button
     pin:
       number: 3
       mode: INPUT_PULLUP
@@ -49,13 +49,11 @@ switch:
     name: "Basement Shower Light"
     icon: mdi:lightbulb
     pin: 13
-    inverted: false
   - platform: gpio
     id: heater
     name: "Basement Bathroom Heater"
     icon: mdi:radiator
     pin: 4
-    inverted: false
 
 text_sensor:
   - !include common/text_sensor/version.yaml
