@@ -70,6 +70,22 @@ binary_sensor:
       - delayed_off: 30s
   
   - platform: template
+    id: motion_delay_5m
+    lambda: return id(motion).state;
+    filters:
+      - delayed_off: 5min
+    on_release:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_off: trigger_humidity
+            then:
+              - homeassistant.service:
+                  service: homeassistant.turn_off
+                  data:
+                    entity_id: fan.basement_bathroom_fan
+  
+  - platform: template
     id: motion_delay_20m
     lambda: return id(motion).state;
     filters:
@@ -84,6 +100,8 @@ binary_sensor:
       else {
         return id(motion_delay_20m).state;
       }
+    filters:
+      - delayed_off: 3s
     on_release:
       then:
         - homeassistant.service:
@@ -98,14 +116,6 @@ binary_sensor:
             service: homeassistant.turn_off
             data:
               entity_id: switch.basement_bathroom_heater
-        - if:
-            condition:
-              binary_sensor.is_off: trigger_humidity
-            then:
-              - homeassistant.service:
-                  service: homeassistant.turn_off
-                  data:
-                    entity_id: fan.basement_bathroom_fan
 
   - platform: template
     id: trigger_humidity
