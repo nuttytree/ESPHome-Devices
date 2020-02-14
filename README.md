@@ -16,12 +16,6 @@ This is a [WEMOS D1 Mini clone](https://www.amazon.com/gp/product/B076F52NQD/ref
 ### Coffee Maker
 This is a [NodeMCU](https://www.amazon.com/gp/product/B010N1SPRK/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that I installed in my [Cuisinart Coffee Maker](https://www.amazon.com/gp/product/B01N6T5QNO/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1).  It has GPIO's connected to the indicator lights for the bold setting and power and has a couple of [relays](https://www.amazon.com/gp/product/B0057OC6D8/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) connected to the bold setting button and the power button.  Aside from the ability to trigger automations based on the state of the coffee maker and automate turning on the coffee maker I also added a "bloom" feature.  Coffee tastes better if you let the carbon dioxide escape (bloom) after getting the coffee grounds wet before continuing the brew cycle.
 
-### Feit Dimmer Devices
-I have a couple of [Feit Dimmers](https://www.costco.com/feit-electric-smart-dimmer%2c-3-pack.product.100518151.html) I bought as a 2 pack at Costco.  These are a pretty basic config that replaces the original firmware.  I re-flashed these using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).
-    
-    Kitchen Table Light
-    Office Light
-
 ### Fire Pit and Fountain
 
 This is a [WEMOS D1 Mini Pro](https://www.amazon.com/gp/product/B07G9HZ5LM/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that is connected to a couple of [relays](https://www.amazon.com/gp/product/B0057OC6D8/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) and a couple of water proof push buttons [red](https://www.amazon.com/gp/product/B079GNNSRP/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) and [blue](https://www.amazon.com/gp/product/B079GK565N/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1).  The multi-click config on the fire pit switch is so that any press will turn it off but to turn it on you have to press it for 5 seconds (to try and prevent kids from turning it on).  This will be used to control the combination fire pit and fountain in my backyard when I am done rebuilding it.  I have done some testing at my desk but this is not fully hooked up yet so there may be some bugs (winter came to fast).  
@@ -35,9 +29,22 @@ This is a [NodeMCU](https://www.amazon.com/gp/product/B010N1SPRK/ref=ppx_yo_dt_b
 ### Patio Lights
 This is a [WEMOS D1 Mini Pro](https://www.amazon.com/gp/product/B07G9HZ5LM/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that is connected to a [relay](https://www.amazon.com/gp/product/B00VRUAHLE/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) to control the power to the landscape lights around my patio.  I used the WEMOS D1 Mini Pro because it has an external antenna.  I initially used a [WEMOS D1 Mini clone](https://www.amazon.com/gp/product/B076F52NQD/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) but the power supply for my lights was to far from the house and I kept having connectivity issues.
 
-### SANA Dual Switches
-I have a couple of [SANA Dual Switches](https://www.amazon.com/gp/product/B07QC5ZCHP/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&th=1).  These are a pretty basic config that replaces the original firmware.  I re-flashed these using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).
+### Switches
+I plan to use dimmer switches for anything that is dimmable just for consistency and you never know when you might want to have the ability to dim a light.  However there are times when a dimmer isn't an option.
+
+#### [SANA Dual Switches](https://www.amazon.com/gp/product/B07QC5ZCHP/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&th=1)
+My basement bathroom has 4 devices (main light, fan, shower light, heat lamps) but only 2 single gang boxes (and not enough room to swith to dual gang) so these were a perfect fit.  The prices is right, the buttons feel solid, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  They do seem to have corners that are squarer then typical so I had a little bit of trouble getting a standard cover to fit but nothing I couldn't fix with a file.
 
     Basement Bathroom Light and Fan
     Basement Bathroom Shower Light and Heater
+
+### Dimmer Switches
+I have been trying to find a dimmer switch I realy like to standardize on through out my home but haven't found it yet.  These are the dimmers I have tried so far.
+
+#### [Feit Dimmers](https://www.costco.com/feit-electric-smart-dimmer%2c-3-pack.product.100518151.html)
+I bought these as a 2 pack from Costco.  The price is right, they seem to be a fairly solid device, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  Things I don't like are the fact that you have to click repeatedly to change the brightness (can't hold to change) and all buttons are managed by the Tuya MCU so no ability to do things like double-taps or change the default brightness based on day/night mode.
+    
+    Kitchen Table Light
+    Office Light
+
 
