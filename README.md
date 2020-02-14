@@ -32,16 +32,19 @@ This is a [WEMOS D1 Mini Pro](https://www.amazon.com/gp/product/B07G9HZ5LM/ref=p
 ### Switches
 I plan to use dimmer switches for anything that is dimmable just for consistency and you never know when you might want to have the ability to dim a light.  However there are times when a dimmer isn't an option.
 
-#### [SANA Dual Switches](https://www.amazon.com/gp/product/B07QC5ZCHP/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&th=1)
+#### [SANA Dual Switch](https://www.amazon.com/gp/product/B07QC5ZCHP/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&th=1)
 My basement bathroom has 4 devices (main light, fan, shower light, heat lamps) but only 2 single gang boxes (and not enough room to swith to dual gang) so these were a perfect fit.  The prices is right, the buttons feel solid, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  They do seem to have corners that are squarer then typical so I had a little bit of trouble getting a standard cover to fit but nothing I couldn't fix with a file.
 
     Basement Bathroom Light and Fan
     Basement Bathroom Shower Light and Heater
 
+#### [SANA Triple Switch](https://www.amazon.com/gp/product/B07Q5XPRKD/ref=ox_sc_act_title_1?smid=A3EOKYTNCLEIKH&psc=1)
+COMING SOON!  I plan to use this in conjuction with a custom light component I wrote to turn on/off and change the color of my [TREO LED Pool Lights](https://www.amazon.com/gp/product/B06XTRLM5M/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) and control my [Patio Lights](#patio-lights) which currently I don't have a way to control other than through [Home Assistant](https://www.home-assistant.io/).
+
 ### Dimmer Switches
 I have been trying to find a dimmer switch I realy like to standardize on through out my home but haven't found it yet.  These are the dimmers I have tried so far.
 
-#### [Feit Dimmers](https://www.costco.com/feit-electric-smart-dimmer%2c-3-pack.product.100518151.html)
+#### [Feit Dimmer](https://www.costco.com/feit-electric-smart-dimmer%2c-3-pack.product.100518151.html)
 I bought these as a 2 pack from Costco.  The price is right, they seem to be a fairly solid device, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  Things I don't like are the fact that you have to click repeatedly to change the brightness (can't hold to change) and all buttons are managed by the Tuya MCU so no ability to do things like double-taps or change the default brightness based on day/night mode.
     
     Kitchen Table Light
