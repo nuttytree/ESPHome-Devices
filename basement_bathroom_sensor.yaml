@@ -15,7 +15,7 @@ esphome:
       - output.turn_on: motion_pwr
 
 <<: !include common/common.yaml
-<<: !include common/logger/logger.yaml
+<<: !include common/logger/logger_none.yaml
 
 i2c:
   sda: D2
