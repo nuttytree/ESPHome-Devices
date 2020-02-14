@@ -8,7 +8,7 @@
 > **What is Home Assistant**<br>
 > Home Assistant is open source home automation that puts local control and privacy first. Powered by a worldwide community of tinkerers and DIY enthusiasts. Perfect to run on a Raspberry Pi or a local server.  For more information check out [Home-Assistant.io](https://www.home-assistant.io/).
 
-## Devices
+## Custom Devices
 > ### Basement Bathroom Sensor
 > This is a [WEMOS D1 Mini clone](https://www.amazon.com/gp/product/B076F52NQD/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that is connected to a [motion sensor](https://www.amazon.com/gp/product/B07GJDJV63/ref=ppx_yo_dt_b_asin_title_o06_s01?ie=UTF8&psc=1), a [temperature/humidity/pressure sensor](https://www.amazon.com/gp/product/B07KYJNFMD/ref=ppx_yo_dt_b_asin_title_o06_s01?ie=UTF8&psc=1), and a [door sensor](https://www.amazon.com/gp/product/B07YBGZNNW/ref=ppx_yo_dt_b_asin_title_o09_s00?ie=UTF8&psc=1) and is used to control the lights, fan, and heater (heat lamps in the fan) in my basement bathroom.
 
@@ -28,23 +28,21 @@
 > ### Patio Lights
 > This is a [WEMOS D1 Mini Pro](https://www.amazon.com/gp/product/B07G9HZ5LM/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that is connected to a [relay](https://www.amazon.com/gp/product/B00VRUAHLE/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) to control the power to the landscape lights around my patio.  I used the WEMOS D1 Mini Pro because it has an external antenna.  I initially used a [WEMOS D1 Mini clone](https://www.amazon.com/gp/product/B076F52NQD/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) but the power supply for my lights was to far from the house and I kept having connectivity issues.
 
-> ### Switches
+## Switches
 > I plan to use dimmer switches for anything that is dimmable just for consistency and you never know when you might want to have the ability to dim a light.  However there are times when a dimmer isn't an option.
 
-> > #### [SANA Dual Switch](https://www.amazon.com/gp/product/B07QC5ZCHP/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&th=1)
-> > My basement bathroom has 4 devices (main light, fan, shower light, heat lamps) but only 2 single gang boxes (and not enough room to swith to dual gang) so these were a perfect fit.  The prices is right, the buttons feel solid, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  They do seem to have corners that are squarer then typical so I had a little bit of trouble getting a standard cover to fit but nothing I couldn't fix with a file.
+> ### [SANA Dual Switch](https://www.amazon.com/gp/product/B07QC5ZCHP/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&th=1)
+> My basement bathroom has 4 devices (main light, fan, shower light, heat lamps) but only 2 single gang boxes (and not enough room to swith to dual gang) so these were a perfect fit.  The prices is right, the buttons feel solid, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  They do seem to have corners that are squarer then typical so I had a little bit of trouble getting a standard cover to fit but nothing I couldn't fix with a file.
+> > * Basement Bathroom Light and Fan
+> > * Basement Bathroom Shower Light and Heater
 
-    Basement Bathroom Light and Fan
-    Basement Bathroom Shower Light and Heater
+> ### [SANA Triple Switch](https://www.amazon.com/gp/product/B07Q5XPRKD/ref=ox_sc_act_title_1?smid=A3EOKYTNCLEIKH&psc=1)
+> COMING SOON!  I plan to use this in conjuction with a custom light component I wrote to turn on/off and change the color of my [TREO LED Pool Lights](https://www.amazon.com/gp/product/B06XTRLM5M/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) and control my [Patio Lights](#patio-lights) which currently I don't have a way to control other than through [Home Assistant](https://www.home-assistant.io/).
 
-> > #### [SANA Triple Switch](https://www.amazon.com/gp/product/B07Q5XPRKD/ref=ox_sc_act_title_1?smid=A3EOKYTNCLEIKH&psc=1)
-> > COMING SOON!  I plan to use this in conjuction with a custom light component I wrote to turn on/off and change the color of my [TREO LED Pool Lights](https://www.amazon.com/gp/product/B06XTRLM5M/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) and control my [Patio Lights](#patio-lights) which currently I don't have a way to control other than through [Home Assistant](https://www.home-assistant.io/).
-
-> ### Dimmer Switches
+## Dimmer Switches
 > I have been trying to find a dimmer switch I realy like to standardize on through out my home but haven't found it yet.  These are the dimmers I have tried so far.
 
-> > #### [Feit Dimmer](https://www.costco.com/feit-electric-smart-dimmer%2c-3-pack.product.100518151.html)
-> > I bought these as a 2 pack from Costco.  The price is right, they seem to be a fairly solid device, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  Things I don't like are the fact that you have to click repeatedly to change the brightness (can't hold to change) and all buttons are managed by the Tuya MCU so no ability to do things like double-taps or change the default brightness based on day/night mode.
-    
-    Kitchen Table Light
-    Office Light
+> ### [Feit Dimmer](https://www.costco.com/feit-electric-smart-dimmer%2c-3-pack.product.100518151.html)
+> I bought these as a 2 pack from Costco.  The price is right, they seem to be a fairly solid device, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  Things I don't like are the fact that you have to click repeatedly to change the brightness (can't hold to change) and all buttons are managed by the Tuya MCU so no ability to do things like double-taps or change the default brightness based on day/night mode.
+> > * Kitchen Table Light
+> > * Office Light
