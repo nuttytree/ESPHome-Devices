@@ -1,0 +1,72 @@
+substitutions:
+  device_id: pool_and_patio_lights
+  device_name: Pool and Patio Lights
+  platform: ESP8266
+  board: esp01_1m
+  ip_address: !secret pool_and_patio_lights_ip
+  ota_pwd: !secret pool_and_patio_lights_ota_pwd
+  api_pwd: !secret pool_and_patio_lights_api_pwd
+  ap_wifi_pwd: !secret pool_and_patio_lights_ap_wifi_pwd
+
+esphome:
+  <<: !include common/esphome.yaml
+
+<<: !include common/common.yaml
+<<: !include common/logger/logger_none.yaml
+
+binary_sensor:
+  - !include common/binary_sensor/status.yaml
+  - platform: gpio
+    id: patio_lights_button
+    pin:
+      number: 12
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+        - homeassistant.service:
+            service: homeassistant.toggle
+            data:
+              entity_id: switch.patio_lights
+  - platform: gpio
+    id: pool_lights_button
+    pin:
+      number: 5
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+        - light.toggle: pool_lights
+  - platform: gpio
+    id: color_button
+    pin:
+      number: 3
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+        - lambda: |-
+            Treo->next_color();
+
+light:
+  - platform: custom
+    lambda: |-
+      Treo = new TreoLedPoolLight(15);
+      App.register_component(Treo);
+      return {Treo};
+    lights:
+      - id: pool_lights
+        name: "Pool Lights"
+
+sensor:
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
+
+status_led:
+  pin:
+    number: 0
+    inverted: true
+
+switch:
+  - !include common/switch/restart.yaml
+
+text_sensor:
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml
