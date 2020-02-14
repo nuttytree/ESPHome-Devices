@@ -46,3 +46,7 @@
 > I bought these as a 2 pack from Costco.  The price is right, they seem to be a fairly solid device, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  Things I don't like are the fact that you have to click repeatedly to change the brightness (can't hold to change) and all buttons are managed by the Tuya MCU so no ability to do things like double-taps or change the default brightness based on day/night mode.
 > > * Kitchen Table Light
 > > * Office Light
+
+> ### [MOES Dimmer](https://www.amazon.com/gp/product/B07PLCMR71/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
+> I bought one of these off Amazon.  The price is good, I like the ability to touch the level you want on the front (and even better you can change the level from the touch sensor before you turn the light on), and I was able to flash it using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  What I don't like is the loose feeling of the switch and the fact that the Tuya MCU is controlling everything o no ability to do things like double-taps or change the default brightness based on day/night mode.
+> > * Family Room Light

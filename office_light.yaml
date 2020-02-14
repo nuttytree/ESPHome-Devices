@@ -11,7 +11,7 @@ substitutions:
 esphome:
   <<: !include common/esphome.yaml
 
-<<: !include common/common_tuya_feit_dimmer.yaml
+<<: !include common/common_tuya_dimmer.yaml
 <<: !include common/logger/logger_none.yaml
 
 binary_sensor:

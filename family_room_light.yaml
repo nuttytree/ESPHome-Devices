@@ -1,12 +1,12 @@
 substitutions:
-  device_id: kitchen_table_light
-  device_name: Kitchen Table Light
+  device_id: family_room_light
+  device_name: Family Room Light
   platform: ESP8266
   board: esp01_1m
-  ip_address: !secret kitchen_table_light_ip
-  ota_pwd: !secret kitchen_table_light_ota_pwd
-  api_pwd: !secret kitchen_table_light_api_pwd
-  ap_wifi_pwd: !secret kitchen_table_light_ap_wifi_pwd
+  ip_address: !secret family_room_light_ip
+  ota_pwd: !secret family_room_light_ota_pwd
+  api_pwd: !secret family_room_light_api_pwd
+  ap_wifi_pwd: !secret family_room_light_ap_wifi_pwd
 
 esphome:
   <<: !include common/esphome.yaml
