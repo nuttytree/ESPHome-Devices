@@ -10,6 +10,8 @@ substitutions:
 
 esphome:
   <<: !include common/esphome.yaml
+  includes:
+    - TreoLedPoolLight.h
 
 <<: !include common/common.yaml
 <<: !include common/logger/logger_none.yaml
@@ -44,6 +46,15 @@ binary_sensor:
       then:
         - lambda: |-
             Treo->next_color();
+  - platform: homeassistant
+    id: patio_lights
+    entity_id: switch.patio_lights
+    on_press:
+      then:
+        - switch.turn_on: patio_lights_indicator
+    on_release:
+      then:
+        - switch.turn_off: patio_lights_indicator
 
 light:
   - platform: custom
@@ -66,6 +77,9 @@ status_led:
 
 switch:
   - !include common/switch/restart.yaml
+  - platform: gpio
+    id: patio_lights_indicator
+    pin: 13
 
 text_sensor:
   - !include common/text_sensor/version.yaml
