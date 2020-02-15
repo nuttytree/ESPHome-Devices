@@ -122,12 +122,6 @@ binary_sensor:
     lambda: return (id(humidity).state - id(median_humidity).state) > 5;
     filters:
       - delayed_off: 5min
-    on_press:
-      then:
-        - homeassistant.service:
-            service: homeassistant.turn_on
-            data:
-              entity_id: fan.basement_bathroom_fan
     on_release:
       then:
         - if:
@@ -191,6 +185,16 @@ sensor:
     icon: mdi:water-percent
     lambda: return id(humidity).state;
     update_interval: 60s
+    on_raw_value:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_on: trigger_humidity
+            then:
+              - homeassistant.service:
+                  service: homeassistant.turn_on
+                  data:
+                    entity_id: fan.basement_bathroom_fan
     filters:
       - median:
           window_size: 360
