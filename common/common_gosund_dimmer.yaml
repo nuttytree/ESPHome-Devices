@@ -1,0 +1,14 @@
+<<: !include wifi.yaml
+<<: !include api.yaml
+<<: !include ota.yaml
+
+<<: !include status_led/gosund_dimmer.yaml
+
+light:
+  - !include light/gosund_dimmer.yaml
+
+output:
+  - !include output/gosund_dimmer_led.yaml
+
+uart:
+  - !include uart/gosund_dimmer.yaml
