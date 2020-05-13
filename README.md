@@ -40,13 +40,22 @@
 > This switch will be installed in place of the switch that controls my [TREO LED Pool Lights](https://www.amazon.com/gp/product/B06XTRLM5M/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1).  These lights have the option to select different colors by briefly turning them off and back on again and they do remember the last color when turned on again.  The custom light component handles tracking the current color and exposes custom "effects" for each of the colors to [Home Assistant](https://www.home-assistant.io/).  I went with the triple switch so that I could use the third button to control my [Patio Lights](#patio-lights) which otherwise do not have a physical switch.  Note I have tested the code on a [WEMOS D1 Mini clone](https://www.amazon.com/gp/product/B076F52NQD/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) but I have not installed this on the switch yet or confirmed the timings actually work with the lights yet.
 
 ## Dimmer Switches
-> I have been trying to find a dimmer switch I realy like to standardize on through out my home but haven't found it yet.  These are the dimmers I have tried so far.
-
-> ### [Feit Dimmer](https://www.costco.com/feit-electric-smart-dimmer%2c-3-pack.product.100518151.html)
-> I bought these as a 2 pack from Costco.  The price is right, they seem to be a fairly solid device, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  Things I don't like are the fact that you have to click repeatedly to change the brightness (can't hold to change) and all buttons are managed by the Tuya MCU so no ability to do things like double-taps or change the default brightness based on day/night mode.
+> After trying several dimmers I finally decided to standardize on on the [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1).  I bought the first couple of these at Costco for a better price than Amazon but Costco doesn't seem to carry them anymore.  
+> Things I like about these switches:
+> > * Can be flashed using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert)
+> > * Have a solid feel to them
+> > * They can be linked via a traveler wire (this works even when flashed with ESPHome and while not mentioned in the documentation you can link more than 2 switches this way)
+> Things I don't like about these switches:
+> > * Have to click repeatedly to change the brightness (can't hold to change)
+> > * All buttons are managed by the Tuya MCU so no ability to do things like double-taps (although I may have a solution for this but haven't had a chance to do a POC)
+> I have created a custom component for these that should work with most (if not all) Tuya dimmers which provides the following extra features:
+> > * Resets the brightness level back to a default level when turned off so that it always comes on at the same level instead of the level it was at when turned off
+> > * The default level is configurable as different levels when my house is in "Day" mode vs "Night" mode (based on a binary sensor in Home Assistant)
+> > * Provides a service that I can dynamically change the current default brightness level
+> > * Allows you to "link" another light in Home Assistant that will be controlled by this dimmer
+> The following devices are Feit Dimmers:
+> > * Basement Stair Lights/Basement Stair Lights 2
+> > * Computer Light
+> > * Family Room Light
 > > * Kitchen Table Light
 > > * Office Light
-
-> ### [MOES Dimmer](https://www.amazon.com/gp/product/B07PLCMR71/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
-> I bought one of these off Amazon.  The price is good, I like the ability to touch the level you want on the front (and even better you can change the level from the touch sensor before you turn the light on), and I was able to flash it using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  What I don't like is the loose feeling of the switch and the fact that the Tuya MCU is controlling everything so no ability to do things like double-taps or change the default brightness based on day/night mode.
-> > * Family Room Light

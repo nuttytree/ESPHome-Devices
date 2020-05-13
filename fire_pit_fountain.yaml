@@ -33,11 +33,13 @@ binary_sensor:
       inverted: True
     on_multi_click:
       - timing:
-          - ON for at least 5s
+          - ON for at least 3s
+          - OFF for at least .1s
         then:
           - switch.toggle: fire_pit
       - timing:
-          - ON for at most 5s
+          - ON for at most 3s
+          - OFF for at least .1s
         then:
           - switch.turn_off: fire_pit
 
@@ -52,13 +54,13 @@ switch:
     name: "Fountain"
     icon: mdi:fountain
     pin: D1
-    inverted: false
+    inverted: true
   - platform: gpio
     id: fire_pit
     name: "Fire Pit"
     icon: mdi:fire
     pin: D2
-    inverted: false
+    inverted: true
 
 text_sensor:
   - !include common/text_sensor/version.yaml

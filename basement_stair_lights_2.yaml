@@ -1,0 +1,15 @@
+substitutions:
+  device_id: basement_stair_lights_2
+  device_name: Basement Stair Lights 2
+  platform: ESP8266
+  board: esp01_1m
+  ip_address: !secret basement_stair_lights_2_ip
+  ota_pwd: !secret basement_stair_lights_2_ota_pwd
+  api_pwd: !secret basement_stair_lights_2_api_pwd
+  ap_wifi_pwd: !secret basement_stair_lights_2_ap_wifi_pwd
+  day_brightness: "1"
+  night_brightness: ".03"
+  night_auto_off_time: 15min
+  linked_lights: "light.basement_stair_lights"
+
+<<: !include common/device_tuya_dimmer.yaml

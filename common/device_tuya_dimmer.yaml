@@ -1,0 +1,50 @@
+esphome:
+  <<: !include esphome.yaml
+  includes:
+    - tuya_light_control.h
+
+<<: !include common_tuya_dimmer.yaml
+<<: !include logger/logger_none.yaml
+
+interval:
+  - interval: 1min
+    then:
+      if:
+        condition:
+          and:
+            - binary_sensor.is_off: day_night
+            - for:
+                time: ${night_auto_off_time}
+                condition:
+                  light.is_on: tuya_light  
+        then:
+          - light.turn_off: tuya_light
+
+custom_component:
+  - lambda: |-
+      auto control = new TuyaLightControl();
+      control->set_switch_id(1);
+      control->set_dimmer_id(2);
+      control->set_min_value(0);
+      control->set_max_value(1000);
+      control->set_tuya_parent(tuya_tuya);
+      control->set_day_brightness(${day_brightness});
+      control->set_night_brightness(${night_brightness});
+      control->set_api_server(api_apiserver);
+      control->set_linked_lights("${linked_lights}");
+      return {control};
+
+binary_sensor:
+  - !include binary_sensor/status.yaml
+  - !include binary_sensor/day_night.yaml
+
+sensor:
+  - !include sensor/uptime.yaml
+  - !include sensor/wifi.yaml
+
+switch:
+  - !include switch/restart.yaml
+
+text_sensor:
+  - !include text_sensor/version.yaml
+  - !include text_sensor/wifi.yaml

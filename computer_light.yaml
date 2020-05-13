@@ -1,0 +1,15 @@
+substitutions:
+  device_id: computer_light
+  device_name: Computer Light
+  platform: ESP8266
+  board: esp01_1m
+  ip_address: !secret computer_light_ip
+  ota_pwd: !secret computer_light_ota_pwd
+  api_pwd: !secret computer_light_api_pwd
+  ap_wifi_pwd: !secret computer_light_ap_wifi_pwd
+  day_brightness: "1"
+  night_brightness: ".03"
+  night_auto_off_time: 15min
+  linked_lights: ""
+
+<<: !include common/device_tuya_dimmer.yaml
