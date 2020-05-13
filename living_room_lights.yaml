@@ -1,0 +1,44 @@
+substitutions:
+  device_id: living_room_lights
+  device_name: Living Room Lights
+  platform: ESP8266
+  board: esp01_1m
+  ip_address: !secret living_room_lights_ip
+  ota_pwd: !secret living_room_lights_ota_pwd
+  api_pwd: !secret living_room_lights_api_pwd
+  ap_wifi_pwd: !secret living_room_lights_ap_wifi_pwd
+
+  day_level: '100'
+  night_level: '10'
+
+esphome:
+  <<: !include common/esphome.yaml
+  includes:
+    - gosund_sw2_dimmer.h
+
+<<: !include common/common_gosund_dimmer.yaml
+<<: !include common/logger/logger_debug_no_serial.yaml
+
+binary_sensor:
+  - !include common/binary_sensor/status.yaml
+  - !include common/binary_sensor/day_night.yaml
+  - !include common/binary_sensor/gosund_dimmer_button.yaml
+
+sensor:
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
+
+switch:
+  - !include common/switch/restart.yaml
+
+text_sensor:
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml
+
+script:
+  - id: single_tap
+    then:
+      - logger.log: "Single Tap"
+  - id: double_tap
+    then:
+      - logger.log: "Double Tap"
