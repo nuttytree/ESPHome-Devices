@@ -60,6 +60,8 @@
 > The following devices are Feit Dimmers:
 > > * Basement Stair Lights/Basement Stair Lights 2
 > > * Computer Light
+> > * Dining Room Light
 > > * Family Room Light
+> > * Kitchen Bar Lights
 > > * Kitchen Table Light
 > > * Office Light

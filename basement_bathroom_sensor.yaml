@@ -56,12 +56,12 @@ binary_sensor:
                     - homeassistant.service:
                         service: homeassistant.turn_on
                         data:
-                          entity_id: switch.basement_bathroom_light
+                          entity_id: light.basement_bathroom_light
                   else:
                     - homeassistant.service:
                         service: homeassistant.turn_on
                         data:
-                          entity_id: switch.basement_shower_light
+                          entity_id: light.basement_shower_light
   
   - platform: template
     id: motion_delay_30s
@@ -107,11 +107,11 @@ binary_sensor:
         - homeassistant.service:
             service: homeassistant.turn_off
             data:
-              entity_id: switch.basement_bathroom_light
+              entity_id: light.basement_bathroom_light
         - homeassistant.service:
             service: homeassistant.turn_off
             data:
-              entity_id: switch.basement_shower_light
+              entity_id: light.basement_shower_light
         - homeassistant.service:
             service: homeassistant.turn_off
             data:
@@ -139,11 +139,11 @@ binary_sensor:
   
   - platform: homeassistant
     id: light
-    entity_id: switch.basement_bathroom_light
+    entity_id: light.basement_bathroom_light
 
   - platform: homeassistant
     id: shower_light
-    entity_id: switch.basement_shower_light
+    entity_id: light.basement_shower_light
 
   - platform: homeassistant
     id: heat

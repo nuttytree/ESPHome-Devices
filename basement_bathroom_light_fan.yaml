@@ -23,7 +23,7 @@ binary_sensor:
       mode: INPUT_PULLUP
     on_press:
       then:
-        - switch.toggle: light
+        - light.toggle: the_light
   - platform: gpio
     id: fan_button
     pin:
@@ -39,10 +39,19 @@ fan:
     output: fan_output
     name: "Basement Bathroom Fan"
 
+light:
+  - platform: binary
+    id: the_light
+    name: "Basement Bathroom Light"
+    output: light_output
+
 output:
   - platform: gpio
     id: fan_output
     pin: 4
+  - platform: gpio
+    id: light_output
+    pin: 13
 
 sensor:
   - !include common/sensor/uptime.yaml
@@ -55,11 +64,6 @@ status_led:
 
 switch:
   - !include common/switch/restart.yaml
-  - platform: gpio
-    id: light
-    name: "Basement Bathroom Light"
-    icon: mdi:lightbulb
-    pin: 13
 
 text_sensor:
   - !include common/text_sensor/version.yaml

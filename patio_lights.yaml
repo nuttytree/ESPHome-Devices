@@ -17,18 +17,22 @@ esphome:
 binary_sensor:
   - !include common/binary_sensor/status.yaml
 
+light:
+  - platform: binary
+    name: "Patio Lights"
+    output: patio_lights_output
+
+output:
+  - platform: gpio
+    id: patio_lights_output
+    pin: D1
+
 sensor:
   - !include common/sensor/uptime.yaml
   - !include common/sensor/wifi.yaml
 
 switch:
   - !include common/switch/restart.yaml
-  - platform: gpio
-    id: patio_lights
-    name: "Patio Lights"
-    icon: mdi:lightbulb
-    pin: D1
-    inverted: false
 
 text_sensor:
   - !include common/text_sensor/version.yaml

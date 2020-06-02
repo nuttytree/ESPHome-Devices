@@ -23,7 +23,7 @@ binary_sensor:
       mode: INPUT_PULLUP
     on_press:
       then:
-        - switch.toggle: light
+        - light.toggle: the_light
   - platform: gpio
     id: heater_button
     pin:
@@ -32,6 +32,17 @@ binary_sensor:
     on_press:
       then:
         - switch.toggle: heater
+
+light:
+  - platform: binary
+    id: the_light
+    name: "Basement Shower Light"
+    output: light_output
+
+output:
+  - platform: gpio
+    id: light_output
+    pin: 13
 
 sensor:
   - !include common/sensor/uptime.yaml
@@ -44,11 +55,6 @@ status_led:
 
 switch:
   - !include common/switch/restart.yaml
-  - platform: gpio
-    id: light
-    name: "Basement Shower Light"
-    icon: mdi:lightbulb
-    pin: 13
   - platform: gpio
     id: heater
     name: "Basement Bathroom Heater"

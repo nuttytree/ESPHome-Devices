@@ -28,7 +28,7 @@ binary_sensor:
         - homeassistant.service:
             service: homeassistant.toggle
             data:
-              entity_id: switch.patio_lights
+              entity_id: light.patio_lights
   - platform: gpio
     id: pool_lights_button
     pin:
@@ -48,7 +48,7 @@ binary_sensor:
             Treo->next_color();
   - platform: homeassistant
     id: patio_lights
-    entity_id: switch.patio_lights
+    entity_id: light.patio_lights
     on_press:
       then:
         - switch.turn_on: patio_lights_indicator
