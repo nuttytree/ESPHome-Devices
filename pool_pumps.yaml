@@ -1,0 +1,148 @@
+substitutions:
+  device_id: pool_pumps
+  device_name: Pool Pumps
+  platform: ESP8266
+  board: modwifi
+  ip_address: !secret pool_pumps_ip
+  ota_pwd: !secret pool_pumps_ota_pwd
+  api_pwd: !secret pool_pumps_api_pwd
+  ap_wifi_pwd: !secret pool_pumps_ap_wifi_pwd
+
+esphome:
+  <<: !include common/esphome.yaml
+
+<<: !include common/common.yaml
+<<: !include common/logger/logger_debug_no_serial.yaml
+
+binary_sensor:
+  - !include common/binary_sensor/status.yaml
+
+i2c:
+  sda: GPIO12
+  scl: GPIO14
+
+sensor:
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
+  - platform: ade7953
+    voltage:
+      name: ${device_name} Voltage
+    current_a:
+      name: Pool Cleaner Current
+    current_b:
+      name: Pool Pump Current
+    active_power_a:
+      name: Pool Cleaner Power
+      filters:
+        - multiply: -1
+    active_power_b:
+      name: Pool Pump Power
+      filters:
+        - multiply: -1
+    update_interval: 2s
+  - platform: ntc
+    sensor: temp_resistance_reading
+    name: ${device_name} Temperature
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    icon: "mdi:thermometer"
+    calibration:
+      b_constant: 3350
+      reference_resistance: 10kOhm
+      reference_temperature: 298.15K
+  - platform: resistance
+    id: temp_resistance_reading
+    sensor: temp_analog_reading
+    configuration: DOWNSTREAM
+    resistor: 32kOhm
+  - platform: adc
+    id: temp_analog_reading
+    pin: A0
+  - platform: template
+    name: "Pool Mode Id"
+    id: pool_mode_id
+    internal: true
+
+status_led:
+  pin:
+    number: GPIO0
+    inverted: yes
+
+switch:
+  - !include common/switch/restart.yaml
+  - platform: gpio
+    pin: GPIO4
+    name: "Pool Pump"
+    id: pool_pump
+    on_turn_off:
+      then:
+        - switch.turn_off: pool_cleaner
+  - platform: gpio
+    pin: GPIO15
+    name: "Pool Cleaner"
+    id: pool_cleaner
+    on_turn_on:
+      then:
+        - switch.turn_on: pool_pump
+
+text_sensor:
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml
+  - platform: homeassistant
+    name: "Pool Mode Text"
+    entity_id: input_select.pool_mode
+    on_value:
+      then:
+        - sensor.template.publish:
+            id: pool_mode_id
+            state: !lambda 'return x == "Off" ? 0 : x == "Normal" ? 1 : x == "Continuous Without Heat" ? 2 : x == "Continuous With Heat" ? 3 : id(pool_mode_id).state;'
+
+time:
+  - platform: homeassistant
+    id: the_time
+    on_time:
+      seconds: 0
+      minutes: 0,15,30,45
+      then:
+        lambda: |-
+          if (id(pool_mode_id).state == 1) {
+            auto now = id(the_time).now(); 
+            int hour = now.hour;
+            int minute = now.minute;
+
+            if (hour == 5 && minute == 0) {
+              auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver);
+              ha_service->set_service("switch.turn_off");
+              ha_service->set_data({api::KeyValuePair("entity_id", "switch.pool_heater")});
+              ha_service->play();
+              id(pool_pump).turn_on();
+              id(pool_cleaner).turn_on();
+            }
+            else if (hour == 7 && minute == 0) {
+              id(pool_pump).turn_on();
+              id(pool_cleaner).turn_off();
+              auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver);
+              ha_service->set_service("switch.turn_on");
+              ha_service->set_data({api::KeyValuePair("entity_id", "switch.pool_heater")});
+              ha_service->play();
+            }
+            else if (hour >= 8 && hour <= 21 && (minute == 0 || minute == 30)) {
+              id(pool_pump).turn_off();
+            }
+            else if (hour >= 8 && hour <= 21 && (minute == 15 || minute == 45)) {
+              id(pool_pump).turn_on();
+              id(pool_cleaner).turn_off();
+              auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver);
+              ha_service->set_service("switch.turn_on");
+              ha_service->set_data({api::KeyValuePair("entity_id", "switch.pool_heater")});
+              ha_service->play();
+            }
+            else if (hour == 22 && minute == 0) {
+              auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver);
+              ha_service->set_service("switch.turn_off");
+              ha_service->set_data({api::KeyValuePair("entity_id", "switch.pool_heater")});
+              ha_service->play();
+              id(pool_cleaner).turn_off();
+              id(pool_pump).turn_off();
+            }
+          }

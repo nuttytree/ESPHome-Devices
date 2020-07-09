@@ -40,6 +40,12 @@ binary_sensor:
     pin:
       number: D0
       mode: INPUT_PULLDOWN_16
+  
+  - platform: template
+    id: motion_delay_3s
+    lambda: return id(motion).state;
+    filters:
+      - delayed_off: 3s
     on_press:
       then:
         - if:
@@ -62,7 +68,7 @@ binary_sensor:
                         service: homeassistant.turn_on
                         data:
                           entity_id: light.basement_shower_light
-  
+
   - platform: template
     id: motion_delay_30s
     lambda: return id(motion).state;

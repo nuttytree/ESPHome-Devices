@@ -7,9 +7,8 @@ class BedSensor : public PollingComponent {
     const int sensorGpio = A0;
  
   public:
-    BinarySensor *melissaInBed = new BinarySensor();
-    BinarySensor *chrisInBed = new BinarySensor();
-    BinarySensor *someoneInBed = new BinarySensor();
+    Sensor *melissaBedSensor = new Sensor();
+    Sensor *chrisBedSensor = new Sensor();
 
     BedSensor() : PollingComponent(5000) { }
 
@@ -22,15 +21,12 @@ class BedSensor : public PollingComponent {
       digitalWrite(melissaGpio, HIGH);
       digitalWrite(chrisGpio, LOW);
       int melissaValue = analogRead(sensorGpio);
-      ESP_LOGD("bed_sensor_melissa", "The value of sensor is: %i", melissaValue);
-      melissaInBed->publish_state(melissaValue < 300);
 
       digitalWrite(melissaGpio, LOW);
       digitalWrite(chrisGpio, HIGH);
       int chrisValue = analogRead(sensorGpio);
-      ESP_LOGD("bed_sensor_chris", "The value of sensor is: %i", chrisValue);
-      chrisInBed->publish_state(chrisValue < 300);
 
-      someoneInBed->publish_state(!melissaInBed->state && !chrisInBed->state && melissaValue < 800 && chrisValue < 800);
+      melissaBedSensor->publish_state(melissaValue);
+      chrisBedSensor->publish_state(chrisValue);
     }
 };
