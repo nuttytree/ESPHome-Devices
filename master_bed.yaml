@@ -71,14 +71,11 @@ sensor:
             - sensor.template.publish:
                 id: chris_bed_percent
                 state: !lambda 'return (1024 - x) / 1024 * 100;'
-            - binary_sensor.template.publish:
-                id: someone_in_bed
-                state: !lambda 'return !id(melissa_in_bed).state && !id(chris_in_bed).state && id(melissa_bed_percent).state > 40 && id(chris_bed_percent).state > 40;'
 
   - platform: template
     name: "Melissa Bed Percent"
     id: melissa_bed_percent
-    icon: "mdi:hotel"
+    icon: "mdi:bed"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     on_value:
@@ -92,7 +89,7 @@ sensor:
   - platform: template
     name: "Chris Bed Percent"
     id: chris_bed_percent
-    icon: "mdi:hotel"
+    icon: "mdi:bed"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     on_value:
@@ -108,7 +105,7 @@ sensor:
     name: "Master Bed Count"
     id: master_bed_count
     accuracy_decimals: 0
-    icon: "mdi:hotel"
+    icon: "mdi:bed"
     on_value:
       then:
         - text_sensor.template.publish:
@@ -138,4 +135,4 @@ text_sensor:
   - platform: template
     name: "Master Bed Status"
     id: master_bed_status
-    icon: "mdi:hotel"
+    icon: "mdi:bed"
