@@ -1,0 +1,15 @@
+substitutions:
+  device_id: master_bath_lights
+  device_name: Master Bathroom Lights
+  platform: ESP8266
+  board: esp01_1m
+  ip_address: !secret master_bath_lights_ip
+  ota_pwd: !secret master_bath_lights_ota_pwd
+  api_pwd: !secret master_bath_lights_api_pwd
+  ap_wifi_pwd: !secret master_bath_lights_ap_wifi_pwd
+  day_brightness: "1"
+  night_brightness: ".05"
+  night_auto_off_time: 15min
+  linked_lights: ""
+
+<<: !include common/device_tuya_dimmer.yaml

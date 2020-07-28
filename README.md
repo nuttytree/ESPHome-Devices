@@ -37,7 +37,7 @@
 > > * Basement Bathroom Shower Light and Heater
 
 > ### [SANA Triple Switch](https://www.amazon.com/gp/product/B07Q5XPRKD/ref=ox_sc_act_title_1?smid=A3EOKYTNCLEIKH&psc=1)
-> This is installed in place of the switch that controled my [TREO LED Pool Lights](https://www.amazon.com/gp/product/B06XTRLM5M/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1).  These lights have the option to select different colors by briefly turning them off and back on again and they do remember the last color when turned on again.  The custom light component handles tracking the current color and exposes custom "effects" for each of the colors to [Home Assistant](https://www.home-assistant.io/).  I went with the triple switch so that I could use the third button to control my [Patio Lights](#patio-lights) which otherwise do not have a physical switch.  Note I have this hooked up but have not confirmed the timings actually work with the lights yet because the cover is still on the pool.
+> This is installed in place of the switch that controled my [TREO LED Pool Lights](https://www.amazon.com/gp/product/B06XTRLM5M/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1).  These lights have the option to select different colors by briefly turning them off and back on again and they do remember the last color when turned on again.  The custom light component handles tracking the current color and exposes custom "effects" for each of the colors to [Home Assistant](https://www.home-assistant.io/).  I went with the triple switch so that I could use the third button to control my [Patio Lights](#patio-lights) which otherwise do not have a physical switch.  The one issue I am having with this is occasionally the "effect" on the switch gets out of sync with the actual color of the lights.  It has only happened a couple of times so I haven't gotten around to investigating why it happens.
 
 ## Dimmer Switches
 > ### [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1)
@@ -64,4 +64,5 @@
 > > * Family Room Light
 > > * Kitchen Bar Lights
 > > * Kitchen Table Light
+> > * Master Bathroom Lights
 > > * Office Light
