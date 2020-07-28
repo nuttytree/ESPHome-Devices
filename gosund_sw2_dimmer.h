@@ -27,7 +27,7 @@ LightTraits GosundSW2Light::get_traits() {
 
 void GosundSW2Light::write_state(light::LightState *state) {
   float brightness;
-  state->current_values_as_brightness(&brightness);
+  state->current_values.as_brightness(&brightness);
   uint8_t command;
 
   if (brightness == 0.0f) {
