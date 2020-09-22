@@ -1,0 +1,56 @@
+substitutions:
+  device_id: master_bath_fan
+  device_name: Master Bathroom Fan
+  platform: ESP8266
+  board: esp01_1m
+  ip_address: !secret master_bath_fan_ip
+  ota_pwd: !secret master_bath_fan_ota_pwd
+  api_pwd: !secret master_bath_fan_api_pwd
+  ap_wifi_pwd: !secret master_bath_fan_ap_wifi_pwd
+
+esphome:
+  <<: !include common/esphome.yaml
+
+<<: !include common/common.yaml
+<<: !include common/logger/logger_none.yaml
+
+binary_sensor:
+  - !include common/binary_sensor/status.yaml
+  - platform: gpio
+    id: fan_button
+    pin:
+      number: 13
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+        - fan.toggle: the_fan
+
+fan:
+  - platform: binary
+    id: the_fan
+    output: fan_output
+    name: ${device_name}
+
+output:
+  - platform: gpio
+    id: fan_output
+    pin: 12
+  - platform: gpio
+    id: button_led
+    pin: 4
+
+sensor:
+  - !include common/sensor/uptime.yaml
+  - !include common/sensor/wifi.yaml
+
+status_led:
+  pin:
+    number: 5
+    inverted: true
+
+switch:
+  - !include common/switch/restart.yaml
+
+text_sensor:
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi.yaml

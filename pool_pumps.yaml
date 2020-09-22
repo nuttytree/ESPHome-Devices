@@ -32,15 +32,39 @@ sensor:
     current_a:
       name: Pool Cleaner Current
       filters:
-        - lambda: "return x < .1 ? 0 : x;"
+        - lambda: |-
+            // Filter the initial high current spike when the motor starts to prevent tripping the on_value_range logic
+            static float last_cleaner_current = 0.0;
+            if (isnan(x))
+            {
+              return {};
+            }
+            if (last_cleaner_current <= 7 && x > 7)
+            {
+              last_cleaner_current = x;
+              return {};
+            }
+            return last_cleaner_current = x < .1 ? 0.0 : x;
       on_value_range:
-        above: 10
+        above: 7
         then:
           - switch.turn_off: pool_cleaner
     current_b:
       name: Pool Pump Current
       filters:
-        - lambda: "return x < .1 ? 0 : x;"
+        - lambda: |-
+            // Filter the initial high current spike when the motor starts to prevent tripping the on_value_range logic
+            static float last_pump_current = 0.0;
+            if (isnan(x))
+            {
+              return {};
+            }
+            if (last_pump_current <= 8 && x > 8)
+            {
+              last_pump_current = x;
+              return {};
+            }
+            return last_pump_current = x < .1 ? 0.0 : x;
       on_value_range:
         above: 8
         then:
