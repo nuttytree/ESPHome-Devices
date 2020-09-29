@@ -9,7 +9,16 @@ substitutions:
   ap_wifi_pwd: !secret front_lights_ap_wifi_pwd
   day_brightness: "1"
   night_brightness: "1"
-  night_auto_off_time: 15min
+  day_auto_off_minutes: "30"
+  night_auto_off_minutes: "15"
   linked_lights: ""
+  double_tap_on_stays_on: "true"
 
-<<: !include common/device_tuya_dimmer.yaml
+script:
+  - id: startup
+    then:
+      - lambda: |-
+          TuyaLight->add_double_tap_on_callback([]() { TuyaLight->set_auto_off_minutes(0); });
+
+<<: !include ../core/device_tuya_dimmer.yaml
+

@@ -1,0 +1,2 @@
+platform: uptime
+name: ${device_name} Uptime

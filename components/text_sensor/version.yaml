@@ -1,0 +1,2 @@
+platform: version
+name: ${device_name} Version
