@@ -1,5 +1,8 @@
+substitutions:
+  platform: ESP8266
+  board: esp01_1m
+
 esphome:
-  <<: !include esphome.yaml
   includes:
     - ../custom/tuya_light_plus.h
   on_boot:
@@ -7,15 +10,13 @@ esphome:
     then:
       - script.execute: startup
 
-<<: !include ../components/logger/logger_none.yaml
+packages:
+  device_base: !include device_base.yaml
 
-<<: !include wifi_api_ota.yaml
-
-binary_sensor:
-  - !include ../components/binary_sensor/status.yaml
+<<: !include ../components/logger/logger_no_serial.yaml
 
 light:
-  # We need this dummy light to get the base tuya_light code to get pulled in to the build folder
+  # We need this dummy light to get the base tuya_light code pulled in to the build folder
   - platform: "tuya"
     id: dummy_light
     switch_datapoint: 255
@@ -42,17 +43,6 @@ light:
         name: ${device_name}
         gamma_correct: 1.0
         default_transition_length: 0s
-
-sensor:
-  - !include ../components/sensor/uptime.yaml
-  - !include ../components/sensor/wifi.yaml
-
-switch:
-  - !include ../components/switch/restart.yaml
-
-text_sensor:
-  - !include ../components/text_sensor/version.yaml
-  - !include ../components/text_sensor/wifi.yaml
 
 tuya:
 

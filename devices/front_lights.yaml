@@ -1,8 +1,6 @@
 substitutions:
   device_id: front_lights
   device_name: Front Lights
-  platform: ESP8266
-  board: esp01_1m
   ip_address: !secret front_lights_ip
   ota_pwd: !secret front_lights_ota_pwd
   api_pwd: !secret front_lights_api_pwd
@@ -20,5 +18,6 @@ script:
       - lambda: |-
           TuyaLight->add_double_tap_on_callback([]() { TuyaLight->set_auto_off_minutes(0); });
 
-<<: !include ../core/device_tuya_dimmer.yaml
+packages:
+  feit_dimmer: !include ../packages/feit_dimmer.yaml
 

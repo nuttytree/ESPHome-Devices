@@ -1,0 +1,35 @@
+substitutions:
+  log_level: none
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+  ip_subnet: !secret ip_subnet
+  ip_gateway: !secret ip_gateway
+
+esphome:
+  name: ${device_id}
+  platform: ${platform}
+  board: ${board}
+  arduino_version: latest
+  build_path: ../build/${device_id}
+
+<<: !include ../components/wifi/wifi.yaml
+
+<<: !include ../components/api/api.yaml
+
+<<: !include ../components/ota/ota.yaml
+
+<<: !include ../components/logger/logger.yaml
+
+binary_sensor:
+  - !include ../components/binary_sensor/status.yaml
+
+sensor:
+  - !include ../components/sensor/uptime.yaml
+  - !include ../components/sensor/wifi.yaml
+
+switch:
+  - !include ../components/switch/restart.yaml
+
+text_sensor:
+  - !include ../components/text_sensor/version.yaml
+  - !include ../components/text_sensor/wifi.yaml

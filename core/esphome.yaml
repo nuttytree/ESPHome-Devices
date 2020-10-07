@@ -1,5 +1,0 @@
-name: ${device_id}
-platform: ${platform}
-board: ${board}
-arduino_version: latest
-build_path: ../build/${device_id}
