@@ -8,22 +8,14 @@ substitutions:
   api_pwd: !secret pool_pumps_api_pwd
   ap_wifi_pwd: !secret pool_pumps_ap_wifi_pwd
 
-esphome:
-  <<: !include common/esphome.yaml
-
-<<: !include common/common.yaml
-<<: !include common/logger/logger_debug_no_serial.yaml
-
-binary_sensor:
-  - !include common/binary_sensor/status.yaml
+packages:
+  device_base: !include ../packages/device_base.yaml
 
 i2c:
   sda: GPIO12
   scl: GPIO14
 
 sensor:
-  - !include common/sensor/uptime.yaml
-  - !include common/sensor/wifi.yaml
   - platform: ade7953
     voltage:
       name: ${device_name} Voltage
@@ -107,7 +99,6 @@ status_led:
     inverted: yes
 
 switch:
-  - !include common/switch/restart.yaml
   - platform: gpio
     pin: GPIO4
     name: "Pool Pump"
@@ -126,8 +117,6 @@ switch:
         - switch.turn_on: pool_pump
 
 text_sensor:
-  - !include common/text_sensor/version.yaml
-  - !include common/text_sensor/wifi.yaml
   - platform: homeassistant
     name: "Pool Mode Text"
     entity_id: input_select.pool_mode

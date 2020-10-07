@@ -8,14 +8,8 @@ substitutions:
   api_pwd: !secret patio_lights_api_pwd
   ap_wifi_pwd: !secret patio_lights_ap_wifi_pwd
 
-esphome:
-  <<: !include common/esphome.yaml
-
-<<: !include common/common.yaml
-<<: !include common/logger/logger_none.yaml
-
-binary_sensor:
-  - !include common/binary_sensor/status.yaml
+packages:
+  device_base: !include ../packages/device_base.yaml
 
 light:
   - platform: binary
@@ -26,14 +20,3 @@ output:
   - platform: gpio
     id: patio_lights_output
     pin: D1
-
-sensor:
-  - !include common/sensor/uptime.yaml
-  - !include common/sensor/wifi.yaml
-
-switch:
-  - !include common/switch/restart.yaml
-
-text_sensor:
-  - !include common/text_sensor/version.yaml
-  - !include common/text_sensor/wifi.yaml

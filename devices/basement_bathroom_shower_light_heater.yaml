@@ -8,14 +8,10 @@ substitutions:
   api_pwd: !secret basement_bathroom_shower_light_heater_api_pwd
   ap_wifi_pwd: !secret basement_bathroom_shower_light_heater_ap_wifi_pwd
 
-esphome:
-  <<: !include common/esphome.yaml
-
-<<: !include common/common.yaml
-<<: !include common/logger/logger_none.yaml
+packages:
+  device_base: !include ../packages/device_base.yaml
 
 binary_sensor:
-  - !include common/binary_sensor/status.yaml
   - platform: gpio
     id: light_button
     pin:
@@ -44,23 +40,14 @@ output:
     id: light_output
     pin: 13
 
-sensor:
-  - !include common/sensor/uptime.yaml
-  - !include common/sensor/wifi.yaml
-
 status_led:
   pin:
     number: 0
     inverted: true
 
 switch:
-  - !include common/switch/restart.yaml
   - platform: gpio
     id: heater
     name: "Basement Bathroom Heater"
     icon: mdi:radiator
     pin: 4
-
-text_sensor:
-  - !include common/text_sensor/version.yaml
-  - !include common/text_sensor/wifi.yaml

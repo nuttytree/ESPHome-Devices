@@ -8,23 +8,15 @@ substitutions:
   api_pwd: !secret basement_bathroom_sensor_api_pwd
   ap_wifi_pwd: !secret basement_bathroom_sensor_ap_wifi_pwd
 
+packages:
+  device_base: !include ../packages/device_base.yaml
+
 esphome:
-  <<: !include common/esphome.yaml
   on_boot:
     then:
       - output.turn_on: motion_pwr
 
-<<: !include common/common.yaml
-<<: !include common/logger/logger_none.yaml
-
-i2c:
-  sda: D2
-  scl: D1
-  scan: true
-
 binary_sensor:
-  - !include common/binary_sensor/status.yaml
-  
   - platform: gpio
     name: Basement Bathroom Door
     id: door
@@ -155,6 +147,11 @@ binary_sensor:
     id: heat
     entity_id: switch.basement_bathroom_heater
 
+i2c:
+  sda: D2
+  scl: D1
+  scan: true
+
 output:
   - platform: gpio
     pin: D3
@@ -170,8 +167,6 @@ output:
     id: door_gnd
 
 sensor:
-  - !include common/sensor/uptime.yaml
-  - !include common/sensor/wifi.yaml
   - platform: bme280
     temperature:
       id: temperature
@@ -211,10 +206,3 @@ status_led:
   pin:
     number: D4
     inverted: true
-
-switch:
-  - !include common/switch/restart.yaml
-
-text_sensor:
-  - !include common/text_sensor/version.yaml
-  - !include common/text_sensor/wifi.yaml

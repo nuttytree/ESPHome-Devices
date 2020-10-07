@@ -1,8 +1,0 @@
-platform: custom
-lambda: |-
-  auto gosund_light = new GosundSW2Light(gosund_uart, gosund_dimmer_led);
-  App.register_component(gosund_light);
-  return {gosund_light};
-lights:
-  - id: gosund_light
-    name: ${device_name}

@@ -1,5 +1,0 @@
-platform: gpio
-id: gosund_dimmer_led
-pin:
-  number: GPIO13
-  inverted: true

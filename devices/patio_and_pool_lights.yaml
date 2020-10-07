@@ -8,16 +8,14 @@ substitutions:
   api_pwd: !secret pool_and_patio_lights_api_pwd
   ap_wifi_pwd: !secret pool_and_patio_lights_ap_wifi_pwd
 
-esphome:
-  <<: !include common/esphome.yaml
-  includes:
-    - TreoLedPoolLight.h
+packages:
+  device_base: !include ../packages/device_base.yaml
 
-<<: !include common/common.yaml
-<<: !include common/logger/logger_none.yaml
+esphome:
+  includes:
+    - ../custom/TreoLedPoolLight.h
 
 binary_sensor:
-  - !include common/binary_sensor/status.yaml
   - platform: gpio
     id: patio_lights_button
     pin:
@@ -66,21 +64,12 @@ light:
       - id: pool_lights
         name: "Pool Lights"
 
-sensor:
-  - !include common/sensor/uptime.yaml
-  - !include common/sensor/wifi.yaml
-
 status_led:
   pin:
     number: 0
     inverted: true
 
 switch:
-  - !include common/switch/restart.yaml
   - platform: gpio
     id: patio_lights_indicator
     pin: 13
-
-text_sensor:
-  - !include common/text_sensor/version.yaml
-  - !include common/text_sensor/wifi.yaml

@@ -8,14 +8,10 @@ substitutions:
   api_pwd: !secret garage_fridge_api_pwd
   ap_wifi_pwd: !secret garage_fridge_ap_wifi_pwd
 
-esphome:
-  <<: !include common/esphome.yaml
-
-<<: !include common/common.yaml
-<<: !include common/logger/logger_none.yaml
+packages:
+  device_base: !include ../packages/device_base.yaml
 
 binary_sensor:
-  - !include common/binary_sensor/status.yaml
   - platform: template
     id: fridge_heater
     name: "Garage Fridge Heater"
@@ -48,8 +44,6 @@ script:
           }
 
 sensor:
-  - !include common/sensor/uptime.yaml
-  - !include common/sensor/wifi.yaml
   - platform: dallas
     id: fridge_temp
     name: "Garage Fridge Temperature"
@@ -101,7 +95,6 @@ sensor:
         - script.execute: fridge_heater_control
 
 switch:
-  - !include common/switch/restart.yaml
   - platform: gpio
     id: fridge_heater_switch
     pin: D0
@@ -110,7 +103,3 @@ switch:
     id: compressor_heater_switch
     pin: D1
     inverted: true
-
-text_sensor:
-  - !include common/text_sensor/version.yaml
-  - !include common/text_sensor/wifi.yaml

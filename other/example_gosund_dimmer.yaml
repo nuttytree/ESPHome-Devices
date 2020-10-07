@@ -1,0 +1,93 @@
+# I had a couple of Gosund SW2 dimmers for a while but I wasn't very happy with them.
+# I did develop a custom light component for them so I wanted to preserve the code for others to use.
+substitutions:
+  day_level: '100'
+  night_level: '10'
+
+esphome:
+  name: example_gosund_dimmer
+  platform: ESP8266
+  board: esp01_1m
+  arduino_version: latest
+  includes:
+    - gosund_sw2_dimmer.h
+
+wifi:
+  ssid: MyHomeNetwork
+  password: VerySafePassword
+
+api:
+  password: VerySafePassword
+
+logger:
+  level: INFO
+  baud_rate: 0  # This must be 0 to prevent conflicts with the dimmer
+
+status_led:
+  pin:
+    number: GPIO12
+    inverted: true
+
+light:
+  - platform: custom
+    lambda: |-
+      auto gosund_light = new GosundSW2Light(gosund_uart, gosund_dimmer_led);
+      App.register_component(gosund_light);
+      return {gosund_light};
+    lights:
+      - id: gosund_light
+        name: Example Gosund Dimmer
+
+output:
+  - platform: gpio
+    id: gosund_dimmer_led
+    pin:
+      number: GPIO13
+      inverted: true
+
+uart:
+  - id: gosund_uart
+    rx_pin: GPIO3
+    tx_pin: GPIO1
+    baud_rate: 115200
+
+binary_sensor:
+  - platform: homeassistant
+    id: day_night
+    entity_id: input_boolean.day_night
+  - platform: gpio
+    pin:
+      number: GPIO4
+      inverted: true
+    id: gosund_button
+    on_multi_click:
+      - timing:
+          - ON for at most 1s
+          - OFF for at most .4s
+          - ON for at most 1s
+          - OFF for at least 0.1s
+        then:
+          - script.execute: double_tap
+      - timing:
+          - ON for at most 1s
+          - OFF for at least 0.4s
+        then:
+          - if:
+              condition:
+                light.is_off: gosund_light
+              then:
+                - light.turn_on:
+                    id: gosund_light
+                    brightness: !lambda |-
+                      return (id(day_night) ? ${day_level} : ${night_level}) / 100.0;
+              else:
+                - light.turn_off: gosund_light
+          - script.execute: single_tap
+
+script:
+  - id: single_tap
+    then:
+      - logger.log: "Single Tap"
+  - id: double_tap
+    then:
+      - logger.log: "Double Tap"

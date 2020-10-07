@@ -8,14 +8,10 @@ substitutions:
   api_pwd: !secret fire_pit_fountain_api_pwd
   ap_wifi_pwd: !secret fire_pit_fountain_ap_wifi_pwd
 
-esphome:
-  <<: !include common/esphome.yaml
-
-<<: !include common/common.yaml
-<<: !include common/logger/logger_debug.yaml
+packages:
+  device_base: !include ../packages/device_base.yaml
 
 binary_sensor:
-  - !include common/binary_sensor/status.yaml
   - platform: gpio
     id: fountain_toggle
     pin:
@@ -43,12 +39,7 @@ binary_sensor:
         then:
           - switch.turn_off: fire_pit
 
-sensor:
-  - !include common/sensor/uptime.yaml
-  - !include common/sensor/wifi.yaml
-
 switch:
-  - !include common/switch/restart.yaml
   - platform: gpio
     id: fountain
     name: "Fountain"
@@ -61,7 +52,3 @@ switch:
     icon: mdi:fire
     pin: D2
     inverted: true
-
-text_sensor:
-  - !include common/text_sensor/version.yaml
-  - !include common/text_sensor/wifi.yaml

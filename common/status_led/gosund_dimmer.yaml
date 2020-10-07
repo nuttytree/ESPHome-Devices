@@ -1,4 +1,0 @@
-status_led:
-  pin:
-    number: GPIO12
-    inverted: true

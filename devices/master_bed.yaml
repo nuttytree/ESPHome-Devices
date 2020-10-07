@@ -8,17 +8,14 @@ substitutions:
   api_pwd: !secret master_bed_api_pwd
   ap_wifi_pwd: !secret master_bed_ap_wifi_pwd
 
-esphome:
-  <<: !include common/esphome.yaml
-  includes:
-  - bed_sensor.h
+packages:
+  device_base: !include ../packages/device_base.yaml
 
-<<: !include common/common.yaml
-<<: !include common/logger/logger_none.yaml
+esphome:
+  includes:
+  - ../custom/bed_sensor.h
 
 binary_sensor:
-  - !include common/binary_sensor/status.yaml
-  
   - platform: template
     name: "Melissa is in Bed"
     id: melissa_in_bed
@@ -48,9 +45,6 @@ binary_sensor:
             state: !lambda 'return id(melissa_in_bed).state + id(chris_in_bed).state + id(someone_in_bed).state;'
 
 sensor:
-  - !include common/sensor/uptime.yaml
-  - !include common/sensor/wifi.yaml
-
   - platform: custom
     lambda: |-
       auto bedSensor = new BedSensor();
@@ -125,13 +119,7 @@ sensor:
                 return "Unknown";
               }
 
-switch:
-  - !include common/switch/restart.yaml
-
 text_sensor:
-  - !include common/text_sensor/version.yaml
-  - !include common/text_sensor/wifi.yaml
-
   - platform: template
     name: "Master Bed Status"
     id: master_bed_status

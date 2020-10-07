@@ -8,14 +8,10 @@ substitutions:
   api_pwd: !secret coffee_maker_api_pwd
   ap_wifi_pwd: !secret coffee_maker_ap_wifi_pwd
 
-esphome:
-  <<: !include common/esphome.yaml
-
-<<: !include common/common.yaml
-<<: !include common/logger/logger_none.yaml
+packages:
+  device_base: !include ../packages/device_base.yaml
 
 binary_sensor:
-  - !include common/binary_sensor/status.yaml
   - platform: gpio
     id: power_light
     pin:
@@ -83,12 +79,7 @@ interval:
             brewStage = 0;
           }
 
-sensor:
-  - !include common/sensor/uptime.yaml
-  - !include common/sensor/wifi.yaml
-
 switch:
-  - !include common/switch/restart.yaml
   - platform: template
     id: power_switch
     name: "Coffee Maker"
@@ -143,7 +134,3 @@ switch:
     id: bold_switch_physical
     pin: D1
     inverted: true
-
-text_sensor:
-  - !include common/text_sensor/version.yaml
-  - !include common/text_sensor/wifi.yaml
