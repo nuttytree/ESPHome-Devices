@@ -1,5 +1,5 @@
 # Gitignore settings for ESPHome
-/.esphome/
+**/.esphome/
 /.vscode/
 **/.pioenvs/
 **/.piolibdeps/

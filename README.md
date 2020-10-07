@@ -1,6 +1,6 @@
 # ESPHome-Devices
 ## Overview
-> This is a collection of [ESPHome](https://ESPHome.io) configuration files and code for my various ESP8266 devices that integrate with [Home Assistant](https://www.home-assistant.io/).
+> This is a collection of [ESPHome](https://ESPHome.io) configuration files and code for my various ESP8266 devices that integrate with [Home Assistant](https://www.home-assistant.io/).  I am using includes and packages pretty extensively in order to prevent duplication and allow for easy changing of common settings.
 
 > **What is ESPHome**<br>
 > ESPHome is a system to control your ESP8266/ESP32 by simple yet powerful configuration files and control them remotely through Home Automation systems.  For more information checkout [ESPHome.io](https://ESPHome.io).
@@ -28,6 +28,9 @@
 > ### Patio Lights
 > This is a [WEMOS D1 Mini Pro](https://www.amazon.com/gp/product/B07G9HZ5LM/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that is connected to a [relay](https://www.amazon.com/gp/product/B00VRUAHLE/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) to control the power to the landscape lights around my patio.  I used the WEMOS D1 Mini Pro because it has an external antenna.  I initially used a [WEMOS D1 Mini clone](https://www.amazon.com/gp/product/B076F52NQD/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) but the power supply for my lights was to far from the house and I kept having connectivity issues.
 
+> ### Scripture of the Day
+> This is a project I just started working on (and I am still waiting on the hardware to arrive from China).  I am planning on building 2 of them as Christmas presents for my wife and son.  It will consist of a [ESP8266 e-Paper Panel Driver Board](https://www.waveshare.com/e-paper-esp8266-driver-board.htm) powered by a [lithium battery](https://www.amazon.com/dp/B0867KDMY7/?coliid=IE0LBNACFHG4U&colid=1LOK862UA8LA0&psc=1&ref_=lv_ov_lig_dp_it) and [TP4056 lithium battery charger module](https://www.amazon.com/dp/B06XQRQR3Q/?coliid=I1B2ELKKLLKAK0&colid=1LOK862UA8LA0&psc=1&ref_=lv_ov_lig_dp_it) and driving a [Waveshare 7.5inch 800×480 E-Ink display](https://www.waveshare.com/7.5inch-e-paper.htm) all mounted inside a picture frame.  The plan is to have it sit in deep-sleep most of the time but wake up every night, grab a random scripture from the [Our Manna Daily Verses API](http://www.ourmanna.com/verses/api/), update the display with the verse, and go back to sleep.
+
 ## Switches
 > I plan to use dimmer switches for anything that is dimmable just for consistency and you never know when you might want to have the ability to dim a light.  However there are times when a dimmer isn't an option.
 
@@ -53,20 +56,24 @@
 
 > Things I don't like about these switches:
 > > * Have to click repeatedly to change the brightness (can't hold to change)
-> > * All buttons are managed by the Tuya MCU so no ability to do things like double-taps (although I may have a solution for this but haven't had a chance to do a POC)
+> > * All buttons are managed by the Tuya MCU so adding things like double-taps is kind of a hack
 
-> I have created a custom component for these that should work with most (if not all) Tuya dimmers which provides the following extra features:
+> I have created a custom [component](https://github.com/nuttytree/ESPHome-Devices/blob/master/custom/tuya_light_plus.h) for these that extends the standard Tuya Light component that should work with most (if not all) Tuya dimmers and provides the following extra features:
 > > * Resets the brightness level back to a default level when turned off so that it always comes on at the same level instead of the level it was at when turned off
-> > * The default level is configurable as different levels when my house is in "Day" mode vs "Night" mode (based on a binary sensor in Home Assistant)
-> > * Provides a service that I can dynamically change the current default brightness level
-> > * Allows you to "link" another light in Home Assistant that will be controlled by this dimmer
+> > * The default level is configurable as different levels when my house is in "Day" mode vs "Night" mode (based on a binary sensor in Home Assistant) and via a service in Home Assistant
+> > * Provides an option to auto turn off the light after a period of time
+> > * The auto turn off time is configurable to be different when my house is in "Day" mode vs "Night" mode (based on a binary sensor in Home Assistant) and via a service in Home Assistant
+> > * Adds ability to specify a function to call when the switch is double tapped
+> > * Allows you to "link" other light(s) in Home Assistant that will be controlled by this dimmer
 
 > The following devices are Feit Dimmers:
-> > * Basement Stair Lights/Basement Stair Lights 2
-> > * Computer Light
-> > * Dining Room Light
-> > * Family Room Light
-> > * Kitchen Bar Lights
-> > * Kitchen Table Light
-> > * Master Bathroom Lights/Master Bathroom Lights 2
-> > * Office Light
+> > * [Basement Stair Lights](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/basement_stair_lights_1.yaml)/[Basement Stair Lights 2](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/basement_stair_lights_2.yaml)
+> > * [Computer Light](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/computer_light.yaml)
+> > * [Dining Room Light](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/dining_room_light.yaml)
+> > * [Family Room Light](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/family_room_light.yaml)
+> > * [Front Lights](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/front_lights.yaml)
+> > * [Kitchen Bar Lights](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/kitchen_bar_lights.yaml)
+> > * [Kitchen Table Light](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/kitchen_table_light.yaml)
+> > * [Living Room Lights](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/living_room_lights.yaml)
+> > * [Master Bathroom Lights](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/master_bath_lights_1.yaml)/[Master Bathroom Lights 2](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/master_bath_lights_2.yaml)
+> > * [Office Light](https://github.com/nuttytree/ESPHome-Devices/blob/master/devices/office_light.yaml)
