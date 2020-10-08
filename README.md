@@ -75,6 +75,7 @@
 > > * [Computer Light](./devices/computer_light.yaml)
 > > * [Dining Room Light](./devices/dining_room_light.yaml)
 > > * [Family Room Light](./devices/family_room_light.yaml)
+> > * [Front Entry Lights](./devices/front_entry_lights_1.yaml)/[Front Entry Lights 2](./devices/front_entry_lights_2.yaml)
 > > * [Front Lights](./devices/front_lights.yaml)
 > > * [Kitchen Bar Lights](./devices/kitchen_bar_lights.yaml)
 > > * [Kitchen Table Light](./devices/kitchen_table_light.yaml)
