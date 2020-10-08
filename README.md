@@ -64,9 +64,9 @@
 
 > I have created a custom [tuya_light_plus.h](./custom/tuya_light_plus.h) component for these that extends the standard Tuya Light component that should work with most (if not all) Tuya dimmers and provides the following extra features:
 > > * Resets the brightness level back to a default level when turned off so that it always comes on at the same level instead of the level it was at when turned off
-> > * The default level is configurable as different levels when my house is in "Day" mode vs "Night" mode (based on a binary sensor in Home Assistant) and via a service in Home Assistant
+> > * The default level is configurable as different levels when my house is in "Day" mode vs "Night" mode (based on a sensor in Home Assistant) and via a service in Home Assistant
 > > * Provides an option to auto turn off the light after a period of time
-> > * The auto turn off time is configurable to be different when my house is in "Day" mode vs "Night" mode (based on a binary sensor in Home Assistant) and via a service in Home Assistant
+> > * The auto turn off time is configurable to be different when my house is in "Day" mode vs "Night" mode (based on a sensor in Home Assistant) and via a service in Home Assistant
 > > * Adds ability to specify a function to call when the switch is double tapped
 > > * Allows you to "link" other light(s) in Home Assistant that will be controlled by this dimmer
 
