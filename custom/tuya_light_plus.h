@@ -312,12 +312,12 @@ void TuyaLightPlus::update_current_state(bool state)
 
 void TuyaLightPlus::update_current_brightness(float brightness)
 {
+  auto call = state_->make_call();
+  call.set_brightness(brightness);
+  call.perform();
+
   if (is_on())
   {
-    auto call = state_->make_call();
-    call.set_brightness(brightness);
-    call.perform();
-
     update_linked_lights();
   }
 }
