@@ -1,0 +1,75 @@
+substitutions:
+  platform: ESP32
+  board: esp32dev
+  log_level: none
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+
+esphome:
+  name: ${device_id}
+  platform: ${platform}
+  board: ${board}
+  arduino_version: latest
+  build_path: ../build/${device_id}
+  includes:
+    - ../custom/scripture_of_the_day.h
+#  on_boot:
+#    priority: -100
+#    then:
+#      - delay: 4s
+#      - lambda: Scripture->update_scripture();
+
+<<: !include ../components/wifi/wifi_dhcp.yaml
+
+<<: !include ../components/logger/logger.yaml
+
+custom_component:
+- lambda: |-
+    Scripture = new ScriptureOfTheDay();
+    Scripture->set_http_request(http_cmp);
+    Scripture->set_display(the_display);
+    Scripture->set_deep_sleep(deep_sleep_cmp);
+    Scripture->set_sntp(sntp_cmp);
+    Scripture->set_fonts(verse_font, reference_font);
+    return {Scripture};
+
+# Setting run duration to 15s, if we aren't done by then something went wrong so we restart to save battery
+# Setting a default sleep time of 15min that will only apply if we forced a shutdown after the 15s run duration
+deep_sleep:
+  id: deep_sleep_cmp
+  run_duration: 15s
+  sleep_duration: 15min
+
+display:
+  - platform: waveshare_epaper
+    id: the_display
+    cs_pin: 15
+    dc_pin: 27
+    busy_pin: 25
+    reset_pin: 26
+    update_interval: 600s
+    model: 7.50inV2
+    lambda: |-
+      Scripture->display_scripture();
+
+font:
+  - file: "c:/windows/fonts/segoeprb.ttf"
+    id: verse_font
+    size: 35
+    glyphs: "~!&-;:\"',.?’—“”0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz"
+  - file: "c:/windows/fonts/segoeprb.ttf"
+    id: reference_font
+    size: 30
+    glyphs: "-:0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz"
+    
+http_request:
+  id: http_cmp
+
+spi:
+  clk_pin: 13
+  mosi_pin: 14
+
+time:
+  - platform: sntp
+    id: sntp_cmp
+    timezone: America/Chicago

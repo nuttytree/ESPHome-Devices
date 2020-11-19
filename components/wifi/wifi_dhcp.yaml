@@ -1,0 +1,9 @@
+wifi:
+  ssid: ${wifi_ssid}
+  password: ${wifi_password}
+  fast_connect: true
+  power_save_mode: none
+  ap:
+    ssid: ${device_id}
+
+captive_portal:
