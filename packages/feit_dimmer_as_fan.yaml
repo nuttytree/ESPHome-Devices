@@ -1,0 +1,38 @@
+substitutions:
+  platform: ESP8266
+  board: esp01_1m
+
+esphome:
+  includes:
+    - ../custom/tuya_dimmer_as_binary_fan_output.h
+
+packages:
+  device_base: !include device_base.yaml
+
+<<: !include ../components/logger/logger_no_serial.yaml
+
+fan:
+  - platform: binary
+    id: the_fan
+    output: tuya_fan_output
+    name: ${device_name}
+
+output:
+  - platform: custom
+    type: binary
+    lambda: |-
+      TuyaFanOutput = new TuyaDimmerBinaryFanOutput();
+      TuyaFanOutput->set_switch_id(1);
+      TuyaFanOutput->set_dimmer_id(2);
+      TuyaFanOutput->set_max_value(1000);
+      TuyaFanOutput->set_tuya_parent(tuya_tuya);
+      TuyaFanOutput->set_fan(the_fan);
+      App.register_component(TuyaFanOutput);
+      return {TuyaFanOutput};
+    outputs:
+      id: tuya_fan_output
+
+tuya:
+
+uart:
+  - !include ../components/uart/tuya.yaml

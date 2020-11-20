@@ -54,7 +54,7 @@
 
 ## Dimmer Switches
 > ### [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1)
-> After trying several dimmers I finally decided to standardize on on the Feit Dimmers.  I bought the first couple of these at Costco for a better price than Amazon but Costco doesn't seem to carry them anymore.  
+> After trying several dimmers I finally decided to standardize on on the Feit dimmers.  I bought the first couple of these at Costco for a better price than Amazon but Costco doesn't seem to carry them anymore.  
 > Things I like about these switches:
 > > * Can be flashed using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert)
 > > * Have a solid feel to them
@@ -84,3 +84,11 @@
 > > * [Living Room Lights](./devices/living_room_lights.yaml)
 > > * [Master Bathroom Lights](./devices/master_bath_lights_1.yaml)/[Master Bathroom Lights 2](./devices/master_bath_lights_2.yaml)
 > > * [Office Light](./devices/office_light.yaml)
+
+## Dimmer Switches as On/Off Switches
+> ### [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1)
+> I tried to find an on/off switch that looked/felt like the Feit dimmers but didn't find anything so I decided to use the Feit dimmers.
+
+> #### Fans
+> I created a custom [tuya_dimmer_as_binary_fan_output.h](./custom/tuya_dimmer_as_binary_fan_output.h) component that prevents the dimmer from being dimmed (always changes it right back to 100%) and can report the change in on/off status back to a fan component.
+> > * [Master Bath Fan](./devices/master_bath_fan.yaml)
