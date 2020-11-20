@@ -39,10 +39,6 @@
 ## Switches
 > I plan to use dimmer switches for anything that is dimmable just for consistency and you never know when you might want to have the ability to dim a light.  However there are times when a dimmer isn't an option.
 
-> ### [Laghten Smart Switch](https://www.amazon.com/gp/product/B07VMDQ3WT/ref=ppx_yo_dt_b_asin_title_o06_s00?ie=UTF8&psc=1)
-> This is not my favorite device, I was going for a switch to control a couple of non-light devices that looked/felt similar to the [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) I am using for most of my lights.  This was about as close as I could get, the light is significantly dimmer and I don't care for the loose feeling of the button but it works, I really wish Feit made a switch to match their dimmers.
-> > * [Master Bathroom Fan](./devices/master_bath_fan.yaml)
-
 > ### [SANA Dual Switch](https://www.amazon.com/gp/product/B07QC5ZCHP/ref=ppx_yo_dt_b_asin_title_o03_s01?ie=UTF8&th=1)
 > My basement bathroom has 4 devices (main light, fan, shower light, heat lamps) but only 2 single gang boxes (and not enough room to swith to dual gang) so these were a perfect fit.  The prices is right, the buttons feel solid, and I was able to flash them using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  They do seem to have corners that are squarer then typical so I had a little bit of trouble getting a standard cover to fit but nothing I couldn't fix with a file.
 > > * [Basement Bathroom Light and Fan](./devices/basement_bathroom_light_fan.yaml)
