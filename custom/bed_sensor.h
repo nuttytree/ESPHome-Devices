@@ -1,5 +1,7 @@
 #include "esphome.h"
 
+using namespace esphome;
+
 class BedSensor : public PollingComponent {
   private:
     const int melissaGpio = D0;

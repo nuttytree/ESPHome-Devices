@@ -1,17 +1,15 @@
-#pragma once
 #include "esphome.h"
-#include "esphome/components/light/light_state.h"
-#include "esphome/components/light/light_output.h"
-#include "esphome/components/light/light_effect.h"
+
+using namespace esphome;
 
 class TreoColorLightEffect;
 
-class TreoLedPoolLight : public Component, public LightOutput {
+class TreoLedPoolLight : public Component, public light::LightOutput {
   public:
     TreoLedPoolLight(int gpio);
-    LightTraits get_traits() override;
-    void setup_state(LightState *state) override;
-    void write_state(LightState *state) override;
+    light::LightTraits get_traits() override;
+    void setup_state(light::LightState *state) override;
+    void write_state(light::LightState *state) override;
     void next_color();
     void reset();
 
@@ -23,7 +21,7 @@ class TreoLedPoolLight : public Component, public LightOutput {
     int relayGpio;
     int currentColor;
     ESPPreferenceObject rtc;
-    LightState *parent;
+    light::LightState *parent;
     TreoColorLightEffect *effectSlow;
     TreoColorLightEffect *effectWhite;
     TreoColorLightEffect *effectBlue;
@@ -34,7 +32,7 @@ class TreoLedPoolLight : public Component, public LightOutput {
     TreoColorLightEffect *effectFast;
 };
 
-class TreoColorLightEffect : public LightEffect {
+class TreoColorLightEffect : public light::LightEffect {
   public:
     TreoColorLightEffect(TreoLedPoolLight *treo, const std::string &name, const uint32_t color);
     void apply() override;
@@ -44,10 +42,10 @@ class TreoColorLightEffect : public LightEffect {
     uint32_t effectColor;
 };
 
-TreoLedPoolLight::TreoLedPoolLight(int gpio) : LightOutput(), relayGpio(gpio) {}
+TreoLedPoolLight::TreoLedPoolLight(int gpio) : light::LightOutput(), relayGpio(gpio) {}
 
-LightTraits TreoLedPoolLight::get_traits() {
-  auto traits = LightTraits();
+light::LightTraits TreoLedPoolLight::get_traits() {
+  auto traits = light::LightTraits();
   traits.set_supports_brightness(false);
   traits.set_supports_rgb(false);
   traits.set_supports_rgb_white_value(false);
@@ -55,7 +53,7 @@ LightTraits TreoLedPoolLight::get_traits() {
   return traits;
 }
 
-void TreoLedPoolLight::setup_state(LightState *state) {
+void TreoLedPoolLight::setup_state(light::LightState *state) {
   pinMode(this->relayGpio, OUTPUT);
   this->rtc = global_preferences.make_preference<int>(1944399030U ^ 12345);
   this->rtc.load(&this->currentColor);
@@ -73,7 +71,7 @@ void TreoLedPoolLight::setup_state(LightState *state) {
   state->add_effects({ this->effectSlow, this->effectWhite , this->effectBlue , this->effectGreen , this->effectRed , this->effectAmber , this->effectMagenta , this->effectFast });
 }
 
-void TreoLedPoolLight::write_state(LightState *state) {
+void TreoLedPoolLight::write_state(light::LightState *state) {
   bool currentState;
   state->current_values_as_binary(&currentState);
   digitalWrite(relayGpio, currentState);
@@ -126,7 +124,7 @@ void TreoLedPoolLight::set_color(int color) {
 }
 
 TreoColorLightEffect::TreoColorLightEffect(TreoLedPoolLight *treo, const std::string &name, const uint32_t color)
-  : LightEffect(name), treoLight(treo), effectColor(color) {}
+  : light::LightEffect(name), treoLight(treo), effectColor(color) {}
 
 void TreoColorLightEffect::apply() {
   this->treoLight->set_color(this->effectColor);
