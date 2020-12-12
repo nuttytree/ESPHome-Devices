@@ -13,11 +13,6 @@ esphome:
   build_path: ../build/${device_id}
   includes:
     - ../custom/scripture_of_the_day.h
-#  on_boot:
-#    priority: -100
-#    then:
-#      - delay: 4s
-#      - lambda: Scripture->update_scripture();
 
 <<: !include ../components/wifi/wifi_dhcp.yaml
 
@@ -33,11 +28,11 @@ custom_component:
     Scripture->set_fonts(verse_font, reference_font);
     return {Scripture};
 
-# Setting run duration to 15s, if we aren't done by then something went wrong so we restart to save battery
-# Setting a default sleep time of 15min that will only apply if we forced a shutdown after the 15s run duration
+# Setting run duration to 30s, if we aren't done by then something went wrong so we shutdown to save battery
+# Setting a default sleep time of 15min that will only apply if we forced a shutdown after the 30s run duration
 deep_sleep:
   id: deep_sleep_cmp
-  run_duration: 15s
+  run_duration: 30s
   sleep_duration: 15min
 
 display:

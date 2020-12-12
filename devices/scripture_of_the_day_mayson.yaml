@@ -1,7 +1,6 @@
 substitutions:
   device_id: scripture_of_the_day_mayson
   device_name: Scripture of the Day Mayson
-  log_level: debug
 
 packages:
   device_base: !include ../packages/scripture_of_the_day.yaml

@@ -14,7 +14,7 @@ using namespace esphome;
 class ScriptureOfTheDay : public Component {
   public:
     float get_setup_priority() const override { return setup_priority::LATE; }
-    void setup() override { update_at_ = millis() + 4000; }
+    void setup() override { update_at_ = millis() + 6000; }
     void loop() override;
 
     void set_http_request(http_request::HttpRequestComponent *http_request) { http_request_ = http_request; }
@@ -43,7 +43,7 @@ class ScriptureOfTheDay : public Component {
 
 void ScriptureOfTheDay::loop()
 {
-  // If we try to make the request to soon it fails so we delay 4 seconds
+  // If we try to make the request to soon it fails so we delay 6 seconds
   if (millis() > update_at_)
   {
     // If we get an especially long verse that won't fit on the display we try again.
@@ -60,6 +60,7 @@ void ScriptureOfTheDay::loop()
 
 void ScriptureOfTheDay::display_scripture()
 {
+  // Don't do anything if we haven't gotten the new scripture yet
   if (scripture_.size() == 0)
   {
     return;
@@ -69,7 +70,6 @@ void ScriptureOfTheDay::display_scripture()
   int currentPosition = STARTING_POSITION + (SPACE_BETWEEN_LINES / 2) * (MAX_VERSE_LINES - verseLineCount);
   for (int i = 0; i < verseLineCount; i++)
   {
-    ESP_LOGD("Nuttytree", scripture_[i].c_str());
     display_->print(400, currentPosition, verse_font_, TextAlign::CENTER, scripture_[i].c_str());
     currentPosition += SPACE_BETWEEN_LINES;
   }
