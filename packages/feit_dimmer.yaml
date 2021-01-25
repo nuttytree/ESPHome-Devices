@@ -16,10 +16,6 @@ packages:
 <<: !include ../components/logger/logger_no_serial.yaml
 
 light:
-  # We need this dummy light to get the base tuya_light code pulled in to the build folder
-  - platform: "tuya"
-    id: dummy_light
-    switch_datapoint: 255
   - platform: custom
     lambda: |-
       TuyaLight = new TuyaLightPlus();
@@ -35,7 +31,7 @@ light:
       TuyaLight->set_night_auto_off_minutes(${night_auto_off_minutes});
       TuyaLight->set_api_server(api_apiserver);
       TuyaLight->set_linked_lights("${linked_lights}");
-      TuyaLight->set_double_tap_on_stays_on(${double_tap_on_stays_on});
+      TuyaLight->set_double_tap_while_off_stays_on(${double_tap_while_off_stays_on});
       App.register_component(TuyaLight);
       return {TuyaLight};
     lights:

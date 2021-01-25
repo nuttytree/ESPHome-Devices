@@ -1,41 +1,55 @@
 #include "esphome.h"
 
-class TuyaLightPlus : public tuya::TuyaLight, public CustomAPIDevice
+using namespace esphome;
+
+#define DOUBLE_TAP_TIMEOUT 300
+
+class TuyaLightPlus : public Component, public light::LightOutput, public api::CustomAPIDevice
 {
   public:
     void setup() override;
-    void loop() override;
+    void set_dimmer_id(uint8_t dimmer_id) { this->dimmer_id_ = dimmer_id; }
+    void set_switch_id(uint8_t switch_id) { this->switch_id_ = switch_id; }
+    void set_tuya_parent(tuya::Tuya *parent) { this->parent_ = parent; }
+    void set_min_value(uint32_t min_value) { this->min_value_ = min_value; }
+    void set_max_value(uint32_t max_value) { this->max_value_ = max_value; }
+    light::LightTraits get_traits() override;
+    void setup_state(light::LightState *state) override;
     void write_state(light::LightState *state) override;
+    void loop() override;
 
-    void set_day_default_brightness(float brightness) { day_default_brightness_ = brightness; }
-    void set_night_default_brightness(float brightness) { night_default_brightness_ = brightness; }
-    void set_day_auto_off_minutes(uint32_t minutes) { day_auto_off_time_ = minutes * 60 * 1000; }
-    void set_night_auto_off_minutes(uint32_t minutes) { night_auto_off_time_ = minutes * 60 * 1000; }
-    void set_api_server(api::APIServer *api_server) { api_server_ = api_server; };
+    void set_day_default_brightness(float brightness) { this->day_default_brightness_ = brightness; }
+    void set_night_default_brightness(float brightness) { this->night_default_brightness_ = brightness; }
+    void set_day_auto_off_minutes(uint32_t minutes) { this->day_auto_off_time_ = minutes * 60 * 1000; }
+    void set_night_auto_off_minutes(uint32_t minutes) { this->night_auto_off_time_ = minutes * 60 * 1000; }
+    void set_api_server(api::APIServer *api_server) { this->api_server_ = api_server; };
     void set_day_night_sensor(const std::string day_night_sensor);
     void set_linked_lights(const std::string linked_lights);
-    void add_double_tap_off_callback(const std::function<void()> &func);
-    void add_double_tap_on_callback(const std::function<void()> &func);
-    void set_double_tap_on_stays_on(bool stays_on) { double_tap_on_stays_on_ = stays_on; }
+    void add_double_tap_while_on_callback(const std::function<void()> &func);
+    void add_double_tap_while_off_callback(const std::function<void()> &func);
+    void set_double_tap_while_off_stays_on(bool stays_on) { this->double_tap_while_off_stays_on_ = stays_on; }
     void add_double_tap_callback(const std::function<void()> &func);
 
     void set_default_brightness(float brightness);
-    void set_auto_off_minutes(int minutes) { current_auto_off_time_ = minutes * 60 * 1000; }
+    void set_auto_off_minutes(int minutes) { this->current_auto_off_time_ = minutes * 60 * 1000; }
 
   protected:
-    float tuya_level_to_brightness(uint32_t level) { return float(level) / max_value_; }
-    uint32_t brightness_to_tuya_level(float brightness) { return static_cast<uint32_t>(brightness * max_value_); }
-    bool is_on() { return state_->current_values.is_on(); }
-    float brightness_pct() { return static_cast<uint32_t>(state_->current_values.get_brightness() * 100); }
+    float tuya_level_to_brightness(uint32_t level) { return static_cast<float>(level) / static_cast<float>(this->max_value_); }
+    uint32_t brightness_to_tuya_level(float brightness) { return static_cast<uint32_t>(brightness * this->max_value_); }
+    float brightness_pct() { return static_cast<uint32_t>(this->state_->current_values.get_brightness() * 100); }
     void on_day_night_changed(std::string state);
-    void handle_tuya_datapoint(esphome::tuya::TuyaDatapoint datapoint);
+    void handle_tuya_datapoint(tuya::TuyaDatapoint datapoint);
     void set_tuya_state(bool state);
     void set_tuya_level(uint32_t level);
-    void update_tuya_level();
-    void update_current_state(bool state);
-    void update_current_brightness(float brightness);
     void update_linked_lights();
-    void set_default_auto_off_time(int time) { default_auto_off_time_ = time; current_auto_off_time_ = time; }
+    void set_default_auto_off_time(int time) { this->default_auto_off_time_ = time; this->current_auto_off_time_ = time; }
+
+    tuya::Tuya *parent_;
+    optional<uint8_t> dimmer_id_{};
+    optional<uint8_t> switch_id_{};
+    uint32_t min_value_ = 0;
+    uint32_t max_value_ = 255;
+    light::LightState *state_{nullptr};
 
     float day_default_brightness_ = 1;
     float night_default_brightness_ = .03;
@@ -48,92 +62,116 @@ class TuyaLightPlus : public tuya::TuyaLight, public CustomAPIDevice
     api::APIServer *api_server_;
     api::HomeAssistantServiceCallAction<> *linked_lights_turn_on_action_;
     api::HomeAssistantServiceCallAction<> *linked_lights_turn_off_action_;
-    bool has_double_tap_off_ = false;
-    std::vector<std::function<void()>> double_tap_off_callbacks_;
-    bool has_double_tap_on_ = false;
-    std::vector<std::function<void()>> double_tap_on_callbacks_;
-    bool double_tap_on_stays_on_ = true;
+    bool has_double_tap_while_on_ = false;
+    std::vector<std::function<void()>> double_tap_while_on_callbacks_;
+    bool has_double_tap_while_off_ = false;
+    std::vector<std::function<void()>> double_tap_while_off_callbacks_;
+    bool double_tap_while_off_stays_on_ = true;
 
+    bool tuya_state_;
     unsigned long state_changed_at_;
-    bool is_software_state_change_;
-    bool is_reported_state_change_;
-    unsigned long double_tap_off_timeout_;
-    bool was_double_tapped_off_;
-    unsigned long double_tap_on_timeout_;
-    bool was_double_tapped_on_;
+    unsigned long double_tap_while_on_timeout_;
+    bool was_double_tapped_while_on_;
+    unsigned long double_tap_while_off_timeout_;
+    bool was_double_tapped_while_off_;
 };
 
 void TuyaLightPlus::setup()
 {
-  parent_->register_listener(*switch_id_, [this](esphome::tuya::TuyaDatapoint datapoint) { handle_tuya_datapoint(datapoint); });
+  this->parent_->register_listener(*this->switch_id_, [this](tuya::TuyaDatapoint datapoint) { this->handle_tuya_datapoint(datapoint); });
 
-  parent_->register_listener(*dimmer_id_, [this](esphome::tuya::TuyaDatapoint datapoint) { handle_tuya_datapoint(datapoint); });
+  this->parent_->register_listener(*this->dimmer_id_, [this](tuya::TuyaDatapoint datapoint) { this->handle_tuya_datapoint(datapoint); });
 
-  register_service(&TuyaLightPlus::set_auto_off_minutes, "set_auto_off_minutes", {"minutes"});
+  this->register_service(&TuyaLightPlus::set_auto_off_minutes, "set_auto_off_minutes", {"minutes"});
 
-  register_service(&TuyaLightPlus::set_default_brightness, "set_default_brightness", {"brightness"});
+  this->register_service(&TuyaLightPlus::set_default_brightness, "set_default_brightness", {"brightness"});
 }
 
-void TuyaLightPlus::loop()
+light::LightTraits TuyaLightPlus::get_traits() {
+  auto traits = light::LightTraits();
+  traits.set_supports_brightness(this->dimmer_id_.has_value());
+  return traits;
+}
+
+void TuyaLightPlus::setup_state(light::LightState *state)
 {
-  if (double_tap_off_timeout_ != 0 && millis() > double_tap_off_timeout_)
-  {
-    double_tap_off_timeout_ = 0;
-  }
-
-  if (was_double_tapped_off_)
-  {
-    was_double_tapped_off_ = false;
-    for (auto &callback : this->double_tap_off_callbacks_)
-    {
-      callback();
-    }
-  }
-
-  if (double_tap_on_timeout_ != 0 && millis() > double_tap_on_timeout_)
-  {
-    if (!is_on())
-    {
-      is_software_state_change_ = true;
-      set_tuya_state(true);
-    }
-    
-    double_tap_on_timeout_ = 0;
-  }
-
-  if (was_double_tapped_on_)
-  {
-    was_double_tapped_on_ = false;
-    for (auto &callback : this->double_tap_on_callbacks_)
-    {
-      callback();
-    }
-  }
-
-  if (current_auto_off_time_ != 0 && is_on() && millis() >= state_changed_at_ + current_auto_off_time_)
-  {
-    set_tuya_state(false);
-  }
+  this->state_ = state;
+  this->tuya_state_ = this->state_->current_values.is_on();
 }
 
 void TuyaLightPlus::write_state(light::LightState *state)
 {
-  if (!is_reported_state_change_) {
-    is_software_state_change_ = true;
+  float brightness;
+  state->current_values_as_brightness(&brightness);
+
+  if (brightness == 0.0f)
+  {
+    this->set_tuya_state(false);
+  }
+  else if (this->tuya_state_)
+  {
+    // The light is already on so just set the brightness
+    this->set_tuya_level(this->brightness_to_tuya_level(brightness));
   }
   else
   {
-    is_reported_state_change_ = false;
+    // If the light is currently off only turn it on, we will set the brightness in the datapoint handler
+    this->set_tuya_state(true);
   }
-  
-  TuyaLight::write_state(state);
+}
+
+void TuyaLightPlus::loop()
+{
+  // Double tap while on timed out
+  if (this->double_tap_while_on_timeout_ != 0 && millis() > this->double_tap_while_on_timeout_)
+  {
+    ESP_LOGD("loop", "Double tap while on timed out");
+    this->double_tap_while_on_timeout_ = 0;
+  }
+
+  // Handle double tap while on callbacks
+  if (this->was_double_tapped_while_on_)
+  {
+    ESP_LOGD("loop", "Handle double tap while on callbacks");
+    this->was_double_tapped_while_on_ = false;
+    for (auto &callback : this->double_tap_while_on_callbacks_)
+    {
+      callback();
+    }
+  }
+
+  // Double tap while off timed out, turn the light on
+  if (this->double_tap_while_off_timeout_ != 0 && millis() > this->double_tap_while_off_timeout_)
+  {
+    ESP_LOGD("loop", "Double tap while off timed out");
+    this->double_tap_while_off_timeout_ = 0;
+    this->set_tuya_state(true);
+  }
+
+  // Handle double tap while off callbacks
+  if (this->was_double_tapped_while_off_)
+  {
+    ESP_LOGD("loop", "Handle double tap while off callbacks");
+    this->was_double_tapped_while_off_ = false;
+    for (auto &callback : this->double_tap_while_off_callbacks_)
+    {
+      callback();
+    }
+  }
+
+  // Handle auto turn off
+  if (this->current_auto_off_time_ != 0 && this->tuya_state_ && millis() >= this->state_changed_at_ + this->current_auto_off_time_)
+  {
+    ESP_LOGD("loop", "auto turn off");
+    this->set_tuya_state(false);
+  }
 }
 
 void TuyaLightPlus::set_day_night_sensor(const std::string day_night_sensor)
 {
   if (day_night_sensor != "")
   {
-    subscribe_homeassistant_state(&TuyaLightPlus::on_day_night_changed, day_night_sensor);
+    this->subscribe_homeassistant_state(&TuyaLightPlus::on_day_night_changed, day_night_sensor);
   }
 }
 
@@ -141,198 +179,205 @@ void TuyaLightPlus::set_linked_lights(const std::string linked_lights)
 {
   if (linked_lights != "")
   {
-    has_linked_lights_ = true;
+    this->has_linked_lights_ = true;
 
-    linked_lights_turn_on_action_ = new api::HomeAssistantServiceCallAction<>(api_server_, false);
-    linked_lights_turn_on_action_->set_service("light.turn_on");
-    linked_lights_turn_on_action_->add_data("entity_id", linked_lights);
-    linked_lights_turn_on_action_->add_variable("brightness_pct", [=]() { return brightness_pct(); });
-    linked_lights_turn_on_action_->add_data_template("brightness_pct", "{{ brightness_pct }}");
+    this->linked_lights_turn_on_action_ = new api::HomeAssistantServiceCallAction<>(this->api_server_, false);
+    this->linked_lights_turn_on_action_->set_service("light.turn_on");
+    this->linked_lights_turn_on_action_->add_data("entity_id", linked_lights);
+    this->linked_lights_turn_on_action_->add_variable("brightness_pct", [=]() { return this->brightness_pct(); });
+    this->linked_lights_turn_on_action_->add_data_template("brightness_pct", "{{ brightness_pct }}");
 
-    linked_lights_turn_off_action_ = new api::HomeAssistantServiceCallAction<>(api_server_, false);
-    linked_lights_turn_off_action_->set_service("light.turn_off");
-    linked_lights_turn_off_action_->add_data("entity_id", linked_lights);
+    this->linked_lights_turn_off_action_ = new api::HomeAssistantServiceCallAction<>(this->api_server_, false);
+    this->linked_lights_turn_off_action_->set_service("light.turn_off");
+    this->linked_lights_turn_off_action_->add_data("entity_id", linked_lights);
   }
 }
 
-void TuyaLightPlus::add_double_tap_off_callback(const std::function<void()> &func)
+void TuyaLightPlus::add_double_tap_while_on_callback(const std::function<void()> &func)
 {
-  has_double_tap_off_ = true;
-  this->double_tap_off_callbacks_.push_back(func);
+  this->has_double_tap_while_on_ = true;
+  this->double_tap_while_on_callbacks_.push_back(func);
 }
 
-void TuyaLightPlus::add_double_tap_on_callback(const std::function<void()> &func)
+void TuyaLightPlus::add_double_tap_while_off_callback(const std::function<void()> &func)
 {
-  has_double_tap_on_ = true;
-  this->double_tap_on_callbacks_.push_back(func);
+  this->has_double_tap_while_off_ = true;
+  this->double_tap_while_off_callbacks_.push_back(func);
 }
 
 void TuyaLightPlus::add_double_tap_callback(const std::function<void()> &func)
 {
-  add_double_tap_on_callback(func);
-  add_double_tap_off_callback(func);
+  this->add_double_tap_while_off_callback(func);
+  this->add_double_tap_while_on_callback(func);
 }
 
 void TuyaLightPlus::set_default_brightness(float brightness)
 {
-  default_brightness_ = brightness > 1 ? 1 : brightness;
-  update_tuya_level();
+  this->default_brightness_ = brightness > 1 ? 1 : brightness;
+
+  // If the light is off update the brightness in the state and publish so regardless of how the light is turned on the brightness will be the default
+  if (!this->tuya_state_)
+  {
+    this->state_->current_values.set_brightness(this->default_brightness_);
+    this->state_->remote_values = this->state_->current_values;
+    this->state_->publish_state();
+  }
 }
 
 void TuyaLightPlus::on_day_night_changed(std::string state)
 {
   if (state == "Day")
   {
-    set_default_brightness(day_default_brightness_);
-    set_default_auto_off_time(day_auto_off_time_);
+    this->set_default_brightness(day_default_brightness_);
+    this->set_default_auto_off_time(day_auto_off_time_);
   }
   else if (state == "Night")
   {
-    set_default_brightness(night_default_brightness_);
-    set_default_auto_off_time(night_auto_off_time_);
+    this->set_default_brightness(night_default_brightness_);
+    this->set_default_auto_off_time(night_auto_off_time_);
   }
 }
 
-void TuyaLightPlus::handle_tuya_datapoint(esphome::tuya::TuyaDatapoint datapoint)
+void TuyaLightPlus::handle_tuya_datapoint(tuya::TuyaDatapoint datapoint)
 {
-  if (datapoint.id == *switch_id_)
+  ESP_LOGD("handle_tuya_datapoint", "Start");
+  if (datapoint.id == *this->switch_id_)
   {
-    bool new_state = datapoint.value_bool;
-
-    if (!is_software_state_change_)
+    ESP_LOGD("handle_tuya_datapoint", "Datapoint state value: %s", ONOFF(datapoint.value_bool));
+    // Light turned on
+    if (datapoint.value_bool)
     {
-      if (has_double_tap_off_)
+      // Turned on with the physical button
+      if (!this->tuya_state_)
       {
-        if (is_on() and !new_state)
+        if (this->has_double_tap_while_on_)
         {
-          double_tap_off_timeout_ = millis() + 400;
-        }
-        else if (new_state && double_tap_off_timeout_ >= millis())
-        {
-          set_tuya_state(false);
-          new_state = false;
-          double_tap_off_timeout_ = 0;
-          was_double_tapped_off_ = true;
-        }
-      }
-
-      if (has_double_tap_on_)
-      {
-        if (!is_on() && new_state)
-        {
-          if (double_tap_on_timeout_ == 0)
+          // We are in a double tap while on timeout period so this is a double tap
+          if (this->double_tap_while_on_timeout_ != 0)
           {
-            set_tuya_state(false);
-            new_state = false;
-            double_tap_on_timeout_ = millis() + 400;
-            update_tuya_level();
+            // Double tap while on always stays off otherwise it results in weird flashing behavior
+            this->set_tuya_state(false);
+            this->double_tap_while_on_timeout_ = 0;
+            this->was_double_tapped_while_on_ = true;
+            return;
           }
+        }
+        if (this->has_double_tap_while_off_)
+        {
+          // We are not in a double tap while off timeout period
+          if (this->double_tap_while_off_timeout_ == 0)
+          {
+            // Turn the light back off and wait to see if we get a double tap
+            this->set_tuya_state(false);
+            this->double_tap_while_off_timeout_ = millis() + DOUBLE_TAP_TIMEOUT;
+            return;
+          }
+          // We are in a double tap while off timeout period so this is a double tap
           else
           {
-            double_tap_on_timeout_ = 0;
-            if (!double_tap_on_stays_on_)
+            this->double_tap_while_off_timeout_ = 0;
+            this->was_double_tapped_while_off_ = true;
+            
+            // If double tap while off triggers an event but does not turn on the light then turn it back off
+            if (!this->double_tap_while_off_stays_on_)
             {
-              set_tuya_state(false);
-              new_state = false;
+              this->set_tuya_state(false);
+              return;
             }
-
-            was_double_tapped_on_ = true;
           }
         }
+      
+        // We got through all the double tap logic and the light is still on so update the Tuya state
+        this->tuya_state_ = true;
       }
+
+      // Set the brightness to the correct level (it currently is at 0)
+      this->set_tuya_level(this->brightness_to_tuya_level(this->state_->current_values.get_brightness()));
     }
-
-    is_software_state_change_ = false;
-
-    if (new_state != is_on())
+    // Light turned off
+    else
     {
-      is_reported_state_change_ = true;
-      update_current_state(new_state);
+      // Turned off with physical button
+      if (this->tuya_state_)
+      {
+        if (has_double_tap_while_on_)
+        {
+          // Start the double tap while on timeout
+          this->double_tap_while_on_timeout_ = millis() + DOUBLE_TAP_TIMEOUT;
+        }
+
+        // Update the Tuya state
+        this->tuya_state_ = false;
+      }
+
+      // Set the Tuya level to 0 to prevent flashes during double taps
+      this->set_tuya_level(0);
+
+      // Set the current brightness to the default so that it will turn on at the default brightness
+      this->state_->current_values.set_brightness(this->default_brightness_);
+    }
+
+    // Update the current values state
+    this->state_->current_values.set_state(this->tuya_state_);
+  }
+  else if (datapoint.id == *this->dimmer_id_)
+  {
+    ESP_LOGD("handle_tuya_datapoint", "Datapoint level value: %u", datapoint.value_uint);
+
+    // Only react to dimmer level changes if the light is on
+    if(this->tuya_state_)
+    {
+      this->state_->current_values.set_brightness(tuya_level_to_brightness(datapoint.value_uint));
     }
   }
-  else if (datapoint.id == *dimmer_id_)
+
+  // Update state changed at time
+  this->state_changed_at_ = millis();
+
+  // If the remote values do not reflect the current values update and publish the values
+  if (this->state_->current_values != this->state_->remote_values)
   {
-    is_reported_state_change_ = true;
-    update_current_brightness(tuya_level_to_brightness(datapoint.value_uint));
+    this->state_->remote_values = this->state_->current_values;
+    this->state_->publish_state();
   }
+
+  // Update any linked lights
+  this->update_linked_lights();
+  ESP_LOGD("handle_tuya_datapoint", "Finish");
 }
 
 void TuyaLightPlus::set_tuya_state(bool state)
 {
-  is_software_state_change_ = true;
-  esphome::tuya::TuyaDatapoint datapoint{};
-  datapoint.id = *switch_id_;
-  datapoint.type = esphome::tuya::TuyaDatapointType::BOOLEAN;
+  ESP_LOGD("set_tuya_state", "Current state: %s", ONOFF(this->tuya_state_));
+  this->tuya_state_ = state;
+  tuya::TuyaDatapoint datapoint{};
+  datapoint.id = *this->switch_id_;
+  datapoint.type = tuya::TuyaDatapointType::BOOLEAN;
   datapoint.value_bool = state;
-  parent_->set_datapoint_value(datapoint);
+  this->parent_->set_datapoint_value(datapoint);
+  ESP_LOGD("set_tuya_state", "New state: %s", ONOFF(this->tuya_state_));
 }
 
 void TuyaLightPlus::set_tuya_level(uint32_t level)
 {
-  esphome::tuya::TuyaDatapoint datapoint{};
-  datapoint.id = *dimmer_id_;
-  datapoint.type = esphome::tuya::TuyaDatapointType::INTEGER;
-  datapoint.value_uint = std::max(level, min_value_);
-  parent_->set_datapoint_value(datapoint);
-}
-
-void TuyaLightPlus::update_tuya_level()
-{
-  if (!is_on())
-  {
-    if (double_tap_off_timeout_ != 0)
-    {
-      set_tuya_level(1);
-    }
-    else if (has_double_tap_on_ && double_tap_on_timeout_ == 0)
-    {
-      set_tuya_level(1);
-    }
-    else
-    {
-      set_tuya_level(brightness_to_tuya_level(default_brightness_));
-    }
-  }
-}
-
-void TuyaLightPlus::update_current_state(bool state)
-{
-  state_changed_at_ = millis();
-
-  auto call = state_->make_call();
-  call.set_state(state);
-  call.perform();
-    
-  update_linked_lights();
-
-  update_tuya_level();
-
-  current_auto_off_time_ = default_auto_off_time_;
-}
-
-void TuyaLightPlus::update_current_brightness(float brightness)
-{
-  auto call = state_->make_call();
-  call.set_brightness(brightness);
-  call.perform();
-
-  if (is_on())
-  {
-    update_linked_lights();
-  }
+  tuya::TuyaDatapoint datapoint{};
+  datapoint.id = *this->dimmer_id_;
+  datapoint.type = tuya::TuyaDatapointType::INTEGER;
+  datapoint.value_uint = std::max(level, this->min_value_);
+  this->parent_->set_datapoint_value(datapoint);
 }
 
 void TuyaLightPlus::update_linked_lights()
 {
-  if (has_linked_lights_)
+  if (this->has_linked_lights_)
   {
-    if (is_on())
+    if (this->state_->current_values.is_on())
     {
-      linked_lights_turn_on_action_->play();
+      this->linked_lights_turn_on_action_->play();
     }
     else
     {
-      linked_lights_turn_off_action_->play();
+      this->linked_lights_turn_off_action_->play();
     }
   }
 }
