@@ -10,7 +10,7 @@ substitutions:
   day_auto_off_minutes: "0"
   night_auto_off_minutes: "15"
   linked_lights: ""
-  double_tap_on_stays_on: "true"
+  double_tap_while_off_stays_on: "true"
 
 script:
   - id: startup

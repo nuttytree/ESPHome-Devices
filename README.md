@@ -51,12 +51,12 @@
 ## Dimmer Switches
 > ### [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1)
 > After trying several dimmers I finally decided to standardize on on the Feit dimmers.  I bought the first couple of these at Costco for a better price than Amazon but Costco doesn't seem to carry them anymore.  
-> Things I like about these switches:
-> > * Can be flashed using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert)
+> Things I like about these dimmers:
+> > * ~~Can be flashed using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert)~~ Unfortunately Feit has started shipping these with updated firmware that does not currently work with Tuya Convert. Hopefully the excellent Tuya Convert team can figure out how to work around the new firmware. Until then I did find this [tutorial](https://community.smartthings.com/t/costco-cheap-feit-smart-dimmer-wifi/208142) on flashing these devices (I have not tried this yet).
 > > * Have a solid feel to them
 > > * They can be linked via a traveler wire (this works even when flashed with ESPHome and while not mentioned in the documentation you can link more than 2 switches this way)
 
-> Things I don't like about these switches:
+> Things I don't like about these dimmers:
 > > * Have to click repeatedly to change the brightness (can't hold to change)
 > > * All buttons are managed by the Tuya MCU so adding things like double-taps is kind of a hack
 
@@ -65,8 +65,12 @@
 > > * The default level is configurable as different levels when my house is in "Day" mode vs "Night" mode (based on a sensor in Home Assistant) and via a service in Home Assistant
 > > * Provides an option to auto turn off the light after a period of time
 > > * The auto turn off time is configurable to be different when my house is in "Day" mode vs "Night" mode (based on a sensor in Home Assistant) and via a service in Home Assistant
-> > * Adds ability to specify a function to call when the switch is double tapped
+> > * Adds ability to specify a function to call when the dimmer is double tapped while off
+> > * Double tapping while off can be configured to leave the light in an off or on state
+> > * Adds ability to specify a function to call when the dimmer is double tapped while on
 > > * Allows you to "link" other light(s) in Home Assistant that will be controlled by this dimmer
+
+> Details on using the [tuya_light_plus.h](./custom/tuya_light_plus.h) component can be found [here](TuyaLightPlus.md).
 
 > The following devices are Feit Dimmers:
 > > * [Basement Stair Lights](./devices/basement_stair_lights_1.yaml)/[Basement Stair Lights 2](./devices/basement_stair_lights_2.yaml)
@@ -83,7 +87,7 @@
 
 ## Dimmer Switches as On/Off Switches
 > ### [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1)
-> I tried to find an on/off switch that looked/felt like the Feit dimmers but didn't find anything so I decided to use the Feit dimmers.
+> I tried to find an on/off switch that looked/felt like the Feit dimmers but didn't find anything so I decided to use the Feit dimmers as switches.
 
 > #### Fans
 > I created a custom [tuya_dimmer_as_binary_fan_output.h](./custom/tuya_dimmer_as_binary_fan_output.h) component that prevents the dimmer from being dimmed (always changes it right back to 100%) and can report the change in on/off status back to a fan component.
