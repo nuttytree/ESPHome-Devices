@@ -16,7 +16,7 @@ script:
   - id: startup
     then:
       - lambda: |-
-          TuyaLight->add_double_tap_while_on_callback([]() { TuyaLight->set_auto_off_minutes(0); });
+          TuyaLight->add_double_tap_while_off_callback([]() { TuyaLight->set_auto_off_minutes(0); });
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml
