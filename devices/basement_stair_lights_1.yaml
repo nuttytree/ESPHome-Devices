@@ -10,12 +10,20 @@ substitutions:
   day_auto_off_minutes: "0"
   night_auto_off_minutes: "15"
   linked_lights: "light.basement_stair_lights_2"
-  double_tap_while_off_stays_on: "true"
+  double_tap_while_off_stays_on: "false"
 
 script:
   - id: startup
     then:
       - lambda: |-
+          TuyaLight->add_double_tap_callback([]() { double_tap->execute(); });
+
+  - id: double_tap
+    then:
+      - homeassistant.service:
+          service: homeassistant.turn_off
+          data:
+            entity_id: switch.basement_tv, switch.xbox, light.basement_tv, light.basement, light.bar, switch.pool_table_light, light.basement_bathroom_light, light.basement_shower_light
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml

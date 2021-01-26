@@ -125,14 +125,12 @@ void TuyaLightPlus::loop()
   // Double tap while on timed out
   if (this->double_tap_while_on_timeout_ != 0 && millis() > this->double_tap_while_on_timeout_)
   {
-    ESP_LOGD("loop", "Double tap while on timed out");
     this->double_tap_while_on_timeout_ = 0;
   }
 
   // Handle double tap while on callbacks
   if (this->was_double_tapped_while_on_)
   {
-    ESP_LOGD("loop", "Handle double tap while on callbacks");
     this->was_double_tapped_while_on_ = false;
     for (auto &callback : this->double_tap_while_on_callbacks_)
     {
@@ -143,7 +141,6 @@ void TuyaLightPlus::loop()
   // Double tap while off timed out, turn the light on
   if (this->double_tap_while_off_timeout_ != 0 && millis() > this->double_tap_while_off_timeout_)
   {
-    ESP_LOGD("loop", "Double tap while off timed out");
     this->double_tap_while_off_timeout_ = 0;
     this->set_tuya_state(true);
   }
@@ -151,7 +148,6 @@ void TuyaLightPlus::loop()
   // Handle double tap while off callbacks
   if (this->was_double_tapped_while_off_)
   {
-    ESP_LOGD("loop", "Handle double tap while off callbacks");
     this->was_double_tapped_while_off_ = false;
     for (auto &callback : this->double_tap_while_off_callbacks_)
     {
@@ -162,7 +158,6 @@ void TuyaLightPlus::loop()
   // Handle auto turn off
   if (this->current_auto_off_time_ != 0 && this->tuya_state_ && millis() >= this->state_changed_at_ + this->current_auto_off_time_)
   {
-    ESP_LOGD("loop", "auto turn off");
     this->set_tuya_state(false);
   }
 }
@@ -240,10 +235,8 @@ void TuyaLightPlus::on_day_night_changed(std::string state)
 
 void TuyaLightPlus::handle_tuya_datapoint(tuya::TuyaDatapoint datapoint)
 {
-  ESP_LOGD("handle_tuya_datapoint", "Start");
   if (datapoint.id == *this->switch_id_)
   {
-    ESP_LOGD("handle_tuya_datapoint", "Datapoint state value: %s", ONOFF(datapoint.value_bool));
     // Light turned on
     if (datapoint.value_bool)
     {
@@ -322,8 +315,6 @@ void TuyaLightPlus::handle_tuya_datapoint(tuya::TuyaDatapoint datapoint)
   }
   else if (datapoint.id == *this->dimmer_id_)
   {
-    ESP_LOGD("handle_tuya_datapoint", "Datapoint level value: %u", datapoint.value_uint);
-
     // Only react to dimmer level changes if the light is on
     if(this->tuya_state_)
     {
@@ -343,19 +334,16 @@ void TuyaLightPlus::handle_tuya_datapoint(tuya::TuyaDatapoint datapoint)
 
   // Update any linked lights
   this->update_linked_lights();
-  ESP_LOGD("handle_tuya_datapoint", "Finish");
 }
 
 void TuyaLightPlus::set_tuya_state(bool state)
 {
-  ESP_LOGD("set_tuya_state", "Current state: %s", ONOFF(this->tuya_state_));
   this->tuya_state_ = state;
   tuya::TuyaDatapoint datapoint{};
   datapoint.id = *this->switch_id_;
   datapoint.type = tuya::TuyaDatapointType::BOOLEAN;
   datapoint.value_bool = state;
   this->parent_->set_datapoint_value(datapoint);
-  ESP_LOGD("set_tuya_state", "New state: %s", ONOFF(this->tuya_state_));
 }
 
 void TuyaLightPlus::set_tuya_level(uint32_t level)
