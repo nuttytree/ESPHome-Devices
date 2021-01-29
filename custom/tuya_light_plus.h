@@ -54,10 +54,10 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
     float day_default_brightness_ = 1;
     float night_default_brightness_ = .03;
     float default_brightness_ = 1;
-    uint32_t day_auto_off_time_;
-    uint32_t night_auto_off_time_;
-    uint32_t default_auto_off_time_;
-    uint32_t current_auto_off_time_;
+    uint32_t day_auto_off_time_ = 0;
+    uint32_t night_auto_off_time_ = 0;
+    uint32_t default_auto_off_time_ = 0;
+    uint32_t current_auto_off_time_ = 0;
     bool has_linked_lights_;
     api::APIServer *api_server_;
     api::HomeAssistantServiceCallAction<> *linked_lights_turn_on_action_;
@@ -69,10 +69,10 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
     bool double_tap_while_off_stays_on_ = true;
 
     bool tuya_state_;
-    unsigned long state_changed_at_;
-    unsigned long double_tap_while_on_timeout_;
+    unsigned long state_changed_at_ = 0;
+    unsigned long double_tap_while_on_timeout_ = 0;
     bool was_double_tapped_while_on_;
-    unsigned long double_tap_while_off_timeout_;
+    unsigned long double_tap_while_off_timeout_ = 0;
     bool was_double_tapped_while_off_;
 };
 
