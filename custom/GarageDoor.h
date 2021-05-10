@@ -133,14 +133,22 @@ void GarageDoor::loop()
 {
   if (this->closed_pin_->digital_read())
   {
+    this->internal_state_ = STATE_CLOSED;
+    this->position = COVER_CLOSED;
+    this->current_operation = COVER_OPERATION_IDLE;
   }
   else if (this->open_pin_->digital_read())
   {
+    this->internal_state_ = STATE_OPEN;
+    this->position = COVER_OPEN;
+    this->current_operation = COVER_OPERATION_IDLE;
   }
   else
   {
     // TODO: Calculate position
   }
+
+  // TODO: Handle Button Clicks/target_operation_ 
 }
 
 void GarageDoor::set_next_state_(bool is_automation)
@@ -194,6 +202,10 @@ void GarageDoor::set_next_state_(bool is_automation)
   if (this->internal_state_ != STATE_CLOSE_WARNING)
   {
     // "click" the button
+  }
+  else
+  {
+    // BEEP, BEEP
   }
 
   this->set_current_operation_();
