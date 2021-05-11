@@ -8,52 +8,62 @@ const uint32_t MAX_OPEN_DURATION = NORMAL_OPEN_DURATION * 2;
 const uint32_t NORMAL_CLOSE_DURATION = 5000;
 const uint32_t MAX_CLOSE_DURATION = NORMAL_OPEN_DURATION * 2;
 
-// Special ESPHome states
-const uint8_t COVER_OPERATION_UNKNOWN = 100;
-const uint8_t COVER_OPERATION_SET_POSITION = 200;
+// Special ESPHome cover operation states
+const cover::CoverOperation COVER_OPERATION_UNKNOWN = static_cast<cover::CoverOperation>(100);
+const cover::CoverOperation COVER_OPERATION_SET_POSITION = static_cast<cover::CoverOperation>(200);
 
-// Internal states
-const uint8_t STATE_UNKNOWN         = 0;
-const uint8_t STATE_MOVING          = 1;
-const uint8_t STATE_LOCKED          = 2;
-const uint8_t STATE_CLOSED          = 3;
-const uint8_t STATE_OPENING         = 4;
-const uint8_t STATE_STOPPED_OPENING = 5;
-const uint8_t STATE_OPEN            = 6;
-const uint8_t STATE_CLOSE_WARNING   = 7;
-const uint8_t STATE_CLOSING         = 8;
-const uint8_t STATE_STOPPED_CLOSING = 9;
+enum InternalState : uint8_t {
+  // On startup the state is unknown
+  STATE_UNKNOWN = 0,
+  // The door is moving from an unknown state so which direction it is moving is unknown
+  STATE_MOVING,
+  // The door is "locked" which is the same as closed but will not open for remotes (but buttons and Home Assistant can open or unlock it)
+  STATE_LOCKED,
+  // The door is closed
+  STATE_CLOSED,
+  // The door is opening
+  STATE_OPENING,
+  // The door was stopped while it was opening
+  STATE_STOPPED_OPENING,
+  // The door is open
+  STATE_OPEN,
+  // The door is currently at least partially open but was requested closed by Home Assistant so we are waiting to close after an alert (beeper)
+  STATE_CLOSE_WARNING,
+  // The door is closing
+  STATE_CLOSING,
+  // The door was stopped while it was closing
+  STATE_STOPPED_CLOSING
+};
 
-class GarageDoor : public cover::Cover, public Component, public CustomAPIDevice
+class GarageDoor : public cover::Cover, public Component, public api::CustomAPIDevice
 {
   public:
     GarageDoor(uint8_t closed_pin, uint8_t open_pin, uint8_t control_pin);
     float get_setup_priority() const override { return setup_priority::DATA; }
     void setup() override;
-    CoverTraits get_traits() override;
-    void control(const CoverCall &call) override;
+    cover::CoverTraits get_traits() override;
+    void control(const cover::CoverCall &call) override;
     void loop() override;
 
   private:
     GPIOPin *closed_pin_;
-    GPIOPin *opened_pin_;
+    GPIOPin *open_pin_;
     GPIOPin *control_pin_;
 
-    uint8_t internal_state_{STATE_UNKNOWN};
+    InternalState internal_state_{STATE_UNKNOWN};
     bool lock_requested_{false};
     float target_position_{0};
     uint32_t started_moving_time_{0};
-    uint8_t target_operation_{COVER_OPERATION_IDLE};
+    cover::CoverOperation target_operation_{COVER_OPERATION_IDLE};
 
     void set_next_state_(bool is_automation);
     void set_current_operation_();
-}
+};
 
-GarageDoor::GarageDoor(uint8_t closed_pin, uint8_t opened_pin, uint8_t control_pin) :
-  StateMachine(ST_MAX_STATES)
+GarageDoor::GarageDoor(uint8_t closed_pin, uint8_t open_pin, uint8_t control_pin)
 {
   this->closed_pin_ = new GPIOPin(closed_pin, INPUT);
-  this->opened_pin_ = new GPIOPin(opened_pin, INPUT);
+  this->open_pin_ = new GPIOPin(open_pin, INPUT);
   this->control_pin_ = new GPIOPin(control_pin, OUTPUT);
 }
 
@@ -63,24 +73,24 @@ void GarageDoor::setup()
   {
     this->internal_state_ = STATE_CLOSED;
     this->current_operation = COVER_OPERATION_IDLE;
-    this->postion = COVER_CLOSED;
+    this->position = COVER_CLOSED;
   }
   else if (this->open_pin_->digital_read())
   {
     this->internal_state_ = STATE_OPEN;
     this->current_operation = COVER_OPERATION_IDLE;
-    this->postion = COVER_OPEN;
+    this->position = COVER_OPEN;
   }
   else
   {
     // We make some assumptions about the current state reported to Home Assistant
     this->internal_state_ = STATE_UNKNOWN;
     this->current_operation = COVER_OPERATION_UNKNOWN;
-    this->postion = 0.5f;
+    this->position = 0.5f;
   }
 }
 
-GarageDoor::CoverTraits get_traits() {
+cover::CoverTraits GarageDoor::get_traits() {
   auto traits = CoverTraits();
   traits.set_is_assumed_state(false);
   traits.set_supports_position(true);
@@ -88,7 +98,7 @@ GarageDoor::CoverTraits get_traits() {
   return traits;
 }
 
-void GarageDoor::control(const CoverCall &call)
+void GarageDoor::control(const cover::CoverCall &call)
 {
   // Control doesn't support the lock function so any control request will clear a lock request
   this->lock_requested_ = false;

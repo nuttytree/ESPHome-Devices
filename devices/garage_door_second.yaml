@@ -1,0 +1,26 @@
+substitutions:
+  device_id: second_garage_door
+  device_name: Second Garage Door
+  platform: ESP8266
+  board: nodemcuv2
+  ip_address: !secret master_bed_ip
+  ota_pwd: !secret master_bed_ota_pwd
+  api_pwd: !secret master_bed_api_pwd
+  ap_wifi_pwd: !secret master_bed_ap_wifi_pwd
+
+packages:
+  device_base: !include ../packages/device_base.yaml
+
+esphome:
+  includes:
+  - ../custom/GarageDoor.h
+
+cover:
+- platform: custom
+  lambda: |-
+    auto garageDoor = new GarageDoor(1, 2, 3);
+    App.register_component(garageDoor);
+    return {garageDoor};
+
+  covers:
+    - name: ${device_name}
