@@ -4,9 +4,9 @@ using namespace esphome;
 
 // Open/Close durations
 const uint32_t NORMAL_OPEN_DURATION = 5000;
-const uint32_t MAX_OPEN_DURATION = NORMAL_OPEN_DURATION * 2;
+const uint32_t FAILED_OPEN_DURATION = NORMAL_OPEN_DURATION * 2;
 const uint32_t NORMAL_CLOSE_DURATION = 5000;
-const uint32_t MAX_CLOSE_DURATION = NORMAL_OPEN_DURATION * 2;
+const uint32_t FAILED_CLOSE_DURATION = NORMAL_CLOSE_DURATION * 2;
 
 // Special ESPHome cover operation states
 const cover::CoverOperation COVER_OPERATION_UNKNOWN = static_cast<cover::CoverOperation>(100);
@@ -45,6 +45,8 @@ class GarageDoor : public cover::Cover, public Component, public api::CustomAPID
     void control(const cover::CoverCall &call) override;
     void loop() override;
 
+  // TODO: Add lock/unlock status sensor and services
+
   private:
     GPIOPin *closed_pin_;
     GPIOPin *open_pin_;
@@ -53,11 +55,12 @@ class GarageDoor : public cover::Cover, public Component, public api::CustomAPID
     InternalState internal_state_{STATE_UNKNOWN};
     bool lock_requested_{false};
     float target_position_{0};
-    uint32_t started_moving_time_{0};
+    uint32_t last_state_change_time_{0};
     cover::CoverOperation target_operation_{COVER_OPERATION_IDLE};
+    uint32_t last_publish_time_{0};
 
-    void set_next_state_(bool is_automation);
-    void set_current_operation_();
+    void change_to_next_state_(bool is_automation);
+    void set_current_operation_(bool set_target_also = false);
 };
 
 GarageDoor::GarageDoor(uint8_t closed_pin, uint8_t open_pin, uint8_t control_pin)
@@ -83,8 +86,8 @@ void GarageDoor::setup()
   }
   else
   {
-    // We make some assumptions about the current state reported to Home Assistant
     this->internal_state_ = STATE_UNKNOWN;
+    this->target_operation_ = COVER_OPERATION_UNKNOWN;
     this->current_operation = COVER_OPERATION_UNKNOWN;
     this->position = 0.5f;
   }
@@ -108,7 +111,7 @@ void GarageDoor::control(const cover::CoverCall &call)
     this->target_operation_ = COVER_OPERATION_IDLE;
     if (this->current_operation != COVER_OPERATION_IDLE)
     {
-      this->set_next_state_(true);
+      this->change_to_next_state_(true);
     }
   }
   else if (call.get_position().has_value())
@@ -123,45 +126,117 @@ void GarageDoor::control(const cover::CoverCall &call)
       if (this->internal_state_ == STATE_UNKNOWN)
       {
         this->target_operation_ = COVER_OPERATION_SET_POSITION;
-        this->set_next_state_(true);
+        this->change_to_next_state_(true);
       }
     }
     else if (this->target_position_ < this->position)
     {
       this->target_operation_ = COVER_OPERATION_CLOSING;
-      this->set_next_state_(true);
+      this->change_to_next_state_(true);
     }
     else if (this->target_position_ > this->position)
     {
       this->target_operation_ = COVER_OPERATION_OPENING;
-      this->set_next_state_(true);
+      this->change_to_next_state_(true);
     }
   }
 }
 
 void GarageDoor::loop()
 {
-  if (this->closed_pin_->digital_read())
+  this->control_pin_->digital_write(false);
+
+  if (this->internal_state_ == STATE_CLOSE_WARNING)
+  {
+    // TODO: If done with warning change to closing as the target operation
+  }
+  else if (this->closed_pin_->digital_read())
   {
     this->internal_state_ = STATE_CLOSED;
     this->position = COVER_CLOSED;
     this->current_operation = COVER_OPERATION_IDLE;
+    this->publish_state(false);
+    if (this->target_operation_ == COVER_OPERATION_SET_POSITION && this->target_position_ != COVER_CLOSED)
+    {
+      this->target_operation_ = COVER_OPERATION_OPENING;
+    }
+    else
+    {
+      this->target_operation_ = COVER_OPERATION_IDLE;
+    }
   }
   else if (this->open_pin_->digital_read())
   {
     this->internal_state_ = STATE_OPEN;
     this->position = COVER_OPEN;
     this->current_operation = COVER_OPERATION_IDLE;
+    this->publish_state(false);
+    if (this->target_operation_ == COVER_OPERATION_SET_POSITION && this->target_position_ != COVER_OPEN)
+    {
+      this->target_operation_ = COVER_OPERATION_CLOSING;
+    }
+    else
+    {
+      this->target_operation_ = COVER_OPERATION_IDLE;
+    }
   }
-  else
+  else if (this->current_operation == COVER_OPERATION_OPENING || this->current_operation == COVER_OPERATION_CLOSING)
   {
-    // TODO: Calculate position
+    float direction;
+    float normal_duration;
+    float failed_duration;
+    if (this->current_operation == COVER_OPERATION_OPENING)
+    {
+      direction = 1.0f;
+      normal_duration = NORMAL_OPEN_DURATION;
+      failed_duration = FAILED_OPEN_DURATION;
+    }
+    else
+    {
+      direction = -1.0f;
+      normal_duration = NORMAL_CLOSE_DURATION;
+      failed_duration = FAILED_CLOSE_DURATION;
+    }
+
+    const uint32_t now = millis();
+    const uint32_t current_duration = now - this->last_state_change_time_;
+    if (current_duration >= failed_duration)
+    {
+      // This should never happen but if it does we go into an unknown state
+      this->internal_state_ = STATE_UNKNOWN;
+      this->target_operation_ = COVER_OPERATION_UNKNOWN;
+      this->current_operation = COVER_OPERATION_UNKNOWN;
+      this->position = 0.5f;
+    }
+    else
+    {
+      this->position = direction * current_duration / normal_duration;
+      this->position = clamp(this->position, 0.01f, 0.99f);
+
+      if ((direction == 1.0f && this->position >= this->target_position_)
+        || (direction == -1.0f && this->position <= this->target_position_))
+      {
+        this->target_operation_ = COVER_OPERATION_IDLE;
+      }
+    }
+
+    if (now - this->last_publish_time_ > 1000) {
+      this->publish_state(false);
+      this->last_publish_time_ = now;
+    }
   }
 
-  // TODO: Handle Button Clicks/target_operation_ 
+  if (this->target_operation_ != this->current_operation)
+  {
+    this->change_to_next_state_(true);
+  }
+
+  // TODO: Check for local (door, lock, light) button clicks
+
+  // TODO: Check for remote (door, light) button clicks
 }
 
-void GarageDoor::set_next_state_(bool is_automation)
+void GarageDoor::change_to_next_state_(bool is_automation)
 {
   switch (this->internal_state_)
   {
@@ -209,19 +284,20 @@ void GarageDoor::set_next_state_(bool is_automation)
       break;
   }
 
+  this->set_current_operation_();
+
+  this->last_state_change_time_ = millis();
   if (this->internal_state_ != STATE_CLOSE_WARNING)
   {
-    // "click" the button
+    this->control_pin_->digital_write(true);
   }
   else
   {
-    // BEEP, BEEP
+    // TODO: Add BEEP, BEEP, BEEP, ....
   }
-
-  this->set_current_operation_();
 }
 
-void GarageDoor::set_current_operation_()
+void GarageDoor::set_current_operation_(bool set_target_also)
 {
   if (this->internal_state_ == STATE_UNKNOWN 
     || this->internal_state_ == STATE_MOVING)
@@ -244,6 +320,11 @@ void GarageDoor::set_current_operation_()
   else if (this->internal_state_ == STATE_CLOSING)
   {
     this->current_operation = COVER_OPERATION_CLOSING;
+  }
+
+  if (set_target_also)
+  {
+    this->target_operation_ = this->current_operation;
   }
 
   this->publish_state();
