@@ -18,9 +18,18 @@ esphome:
 cover:
 - platform: custom
   lambda: |-
-    auto garageDoor = new GarageDoor(1, 2, 3);
-    App.register_component(garageDoor);
-    return {garageDoor};
-
+    GarageDoorDevice = new GarageDoor(1, 2, 3);
+    App.register_component(GarageDoorDevice);
+    return {GarageDoorDevice};
   covers:
     - name: ${device_name}
+
+binary_sensor:
+  - platform: custom
+    lambda: |-
+      auto lock = GarageDoorDevice->get_lock_sensor();
+      App.register_component(lock);
+      return {lock};
+    binary_sensors:
+      name: ${device_name}
+      device_class: lock
