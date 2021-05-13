@@ -3,9 +3,9 @@
 using namespace esphome;
 
 // Open/Close durations
-const uint32_t NORMAL_OPEN_DURATION = 5000;
+const uint32_t NORMAL_OPEN_DURATION = 10000;
 const uint32_t FAILED_OPEN_DURATION = NORMAL_OPEN_DURATION * 2;
-const uint32_t NORMAL_CLOSE_DURATION = 5000;
+const uint32_t NORMAL_CLOSE_DURATION = 10000;
 const uint32_t FAILED_CLOSE_DURATION = NORMAL_CLOSE_DURATION * 2;
 
 // Close warning
@@ -47,7 +47,7 @@ enum LocalButtonsState : uint8_t {
   LOCAL_BUTTON_DOOR,
   LOCAL_BUTTON_LOCK,
   LOCAL_BUTTON_LIGHT
-}
+};
 
 class GarageDoorLock;
 
@@ -106,11 +106,12 @@ class GarageDoorLock : public binary_sensor::BinarySensor, public Component
 
 GarageDoorCover::GarageDoorCover(uint8_t closed_pin, uint8_t open_pin, uint8_t control_pin, uint8_t remote_pin, uint8_t remote_light_pin)
 {
-  this->closed_pin_ = new GPIOPin(closed_pin, INPUT);
-  this->open_pin_ = new GPIOPin(open_pin, INPUT);
+  this->set_device_class("garage");
+  this->closed_pin_ = new GPIOPin(closed_pin, INPUT_PULLUP);
+  this->open_pin_ = new GPIOPin(open_pin, INPUT_PULLUP);
   this->control_pin_ = new GPIOPin(control_pin, OUTPUT);
-  this->remote_pin_ = new GPIOPin(remote_pin, INPUT);
-  this->remote_light_pin_ = new GPIOPin(remote_light_pin, INPUT);
+  this->remote_pin_ = new GPIOPin(remote_pin, INPUT_PULLUP);
+  this->remote_light_pin_ = new GPIOPin(remote_light_pin, INPUT_PULLUP);
   this->lock_sensor_ = new GarageDoorLock();
 }
 
@@ -131,8 +132,8 @@ void GarageDoorCover::setup()
     this->set_state_(STATE_UNKNOWN, true);
   }
 
-  this->register_service(&GarageDoor::lock_, "lock");
-  this->register_service(&GarageDoor::unlock_, "unlock");
+  this->register_service(&GarageDoorCover::lock_, "lock");
+  this->register_service(&GarageDoorCover::unlock_, "unlock");
 }
 
 cover::CoverTraits GarageDoorCover::get_traits() {
@@ -196,14 +197,14 @@ void GarageDoorCover::loop()
       this->change_to_next_state_();
     }
   }
-  else if (this->closed_pin_->digital_read())
-  {
-    this->handle_closed_position_();
-  }
-  else if (this->open_pin_->digital_read())
-  {
-    this->handle_open_position_();
-  }
+  // else if (this->closed_pin_->digital_read())
+  // {
+  //   this->handle_closed_position_();
+  // }
+  // else if (this->open_pin_->digital_read())
+  // {
+  //   this->handle_open_position_();
+  // }
   else if (this->current_operation == COVER_OPERATION_OPENING || this->current_operation == COVER_OPERATION_CLOSING)
   {
     this->determine_current_position_();
@@ -254,12 +255,12 @@ void GarageDoorCover::handle_closed_position_()
 {
   if (this->lock_requested_)
   {
-    this->set_state_(STATE_CLOSED);
+    this->set_state_(STATE_LOCKED);
     this->lock_requested_ = false;
   }
   else
   {
-    this->set_state_(STATE_CLOSED)
+    this->set_state_(STATE_CLOSED);
   }
 
   if (this->target_operation_ == COVER_OPERATION_SET_POSITION)
@@ -305,8 +306,11 @@ void GarageDoorCover::determine_current_position_()
   }
   else
   {
-    this->position = direction * current_duration / normal_duration;
-    this->position = clamp(this->position, 0.01f, 0.99f);
+    float new_position = clamp(direction * current_duration / normal_duration, 0.01f, 0.99f);
+    if (new_position == this->position);
+    {
+      return;
+    }
 
     if ((direction == 1.0f && this->position >= this->target_position_)
       || (direction == -1.0f && this->position <= this->target_position_))
@@ -314,7 +318,7 @@ void GarageDoorCover::determine_current_position_()
       this->target_operation_ = COVER_OPERATION_IDLE;
       this->change_to_next_state_();
     }
-    else if (now - this->last_publish_time_ > 1000) 
+    else if (now - this->last_publish_time_ > 500) 
     {
       this->publish_state(false);
       this->last_publish_time_ = now;
@@ -324,55 +328,55 @@ void GarageDoorCover::determine_current_position_()
 
 bool GarageDoorCover::check_local_buttons_()
 {
-  // This is an initial guess on how the local buttons state will get read
-  float buttonValue = analogRead(A0) / 1024.0f;
+  // // This is an initial guess on how the local buttons state will get read
+  // float buttonValue = analogRead(A0) / 1024.0f;
 
-  LocalButtonsState currentButton;
-  if (buttonValue > 0 && buttonValue <= .25)
-  {
-    currentButton = LOCAL_BUTTON_DOOR;
-  }
-  else if (buttonValue > .25 && buttonValue <= .5)
-  {
-    currentButton = LOCAL_BUTTON_LOCK;
-  }
-  else if (buttonValue > .5 && buttonValue <= .75)
-  {
-    currentButton = LOCAL_BUTTON_LIGHT;
-  }
-  else
-  {
-    currentButton = LOCAL_BUTTON_NONE;
-  }
+  // LocalButtonsState currentButton;
+  // if (buttonValue > 0 && buttonValue <= .25)
+  // {
+  //   currentButton = LOCAL_BUTTON_DOOR;
+  // }
+  // else if (buttonValue > .25 && buttonValue <= .5)
+  // {
+  //   currentButton = LOCAL_BUTTON_LOCK;
+  // }
+  // else if (buttonValue > .5 && buttonValue <= .75)
+  // {
+  //   currentButton = LOCAL_BUTTON_LIGHT;
+  // }
+  // else
+  // {
+  //   currentButton = LOCAL_BUTTON_NONE;
+  // }
 
-  if (this->last_local_button_ != currentButton)
-  {
-    this->last_local_button_ = currentButton;
-    switch (currentButton)
-    {
-      case LOCAL_BUTTON_DOOR:
-        this->change_to_next_state_(true);
-        return true;
+  // if (this->last_local_button_ != currentButton)
+  // {
+  //   this->last_local_button_ = currentButton;
+  //   switch (currentButton)
+  //   {
+  //     case LOCAL_BUTTON_DOOR:
+  //       this->change_to_next_state_(true);
+  //       return true;
 
-      case LOCAL_BUTTON_LOCK:
-        if (this->get_state_() == STATE_LOCKED)
-        {
-          this->unlock_();
-        }
-        else
-        {
-          this->lock_();
-        }
-        return true;
+  //     case LOCAL_BUTTON_LOCK:
+  //       if (this->get_state_() == STATE_LOCKED)
+  //       {
+  //         this->unlock_();
+  //       }
+  //       else
+  //       {
+  //         this->lock_();
+  //       }
+  //       return true;
 
-      case LOCAL_BUTTON_LIGHT:
-        // Toggle the light
-        break;
+  //     case LOCAL_BUTTON_LIGHT:
+  //       this->fire_homeassistant_event("second_garage_door_local_light_button");
+  //       break;
 
-      default:
-        break;
-    }
-  }
+  //     default:
+  //       break;
+  //   }
+  // }
 
   return false;
 }
@@ -385,7 +389,7 @@ bool GarageDoorCover::check_remote_buttons_()
     last_remote_light_state_ = currentRemoteLightState;
     if (currentRemoteLightState)
     {
-      // Toggle the lights
+      this->fire_homeassistant_event("second_garage_door_remote_light_button");
     }
   }
 
@@ -393,7 +397,7 @@ bool GarageDoorCover::check_remote_buttons_()
   if (currentRemoteState != this->last_remote_state_)
   {
     last_remote_state_ = currentRemoteState;
-    if (currentRemoteState && this->get_state_ != STATE_LOCKED)
+    if (currentRemoteState && this->get_state_() != STATE_LOCKED)
     {
       this->change_to_next_state_(true);
       return true;
@@ -469,6 +473,11 @@ void GarageDoorCover::change_to_next_state_(bool is_from_button_press)
 
 void GarageDoorCover::set_state_(InternalState state, bool is_initial_state)
 {
+  if (this->internal_state_ == state)
+  {
+    return;
+  }
+
   this->internal_state_ = state;
 
   if (state == STATE_UNKNOWN)
@@ -501,7 +510,7 @@ void GarageDoorCover::set_state_(InternalState state, bool is_initial_state)
     this->position = COVER_OPEN;
     this->current_operation = COVER_OPERATION_IDLE;
   }
-  else if (this->state == STATE_CLOSING)
+  else if (state == STATE_CLOSING)
   {
     this->current_operation = COVER_OPERATION_CLOSING;
   }
