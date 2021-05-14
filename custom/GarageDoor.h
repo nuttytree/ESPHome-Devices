@@ -74,6 +74,7 @@ class GarageDoorCover : public cover::Cover, public Component, public api::Custo
     bool lock_requested_{false};
     float target_position_{0};
     cover::CoverOperation target_operation_{COVER_OPERATION_IDLE};
+    bool control_pin_is_active_{false};
     uint32_t last_state_change_time_{0};
     uint32_t last_position_time_{0};
     uint32_t last_publish_time_{0};
@@ -194,24 +195,36 @@ void GarageDoorCover::control(const cover::CoverCall &call)
 
 void GarageDoorCover::loop()
 {
-  // "Release" the control "button"
-  // this->control_pin_->digital_write(false);
+  if (this->control_pin_is_active_)
+  {
+    this->control_pin_->digital_write(false);
+    this->control_pin_is_active_ = false;
+    return;
+  }
 
-  // if (this->get_state_() == STATE_CLOSE_WARNING)
-  // {
-  //   if (!this->buzzer_->is_playing())
-  //   {
-  //     this->change_to_next_state_();
-  //   }
-  // }
-  // else if (this->closed_pin_->digital_read())
-  // {
-  //   this->handle_closed_position_();
-  // }
-  // else if (this->open_pin_->digital_read())
-  // {
-  //   this->handle_open_position_();
-  // }
+  InternalState current_state = this->get_state_();
+
+  if (current_state == STATE_CLOSE_WARNING)
+  {
+    if (!this->buzzer_->is_playing())
+    {
+      this->change_to_next_state_();
+    }
+    return;
+  }
+
+  if (current_state != STATE_CLOSED && current_state != STATE_LOCKED && this->closed_pin_->digital_read())
+  {
+    this->handle_closed_position_();
+    return;
+  }
+
+  if (current_state != STATE_OPEN && this->open_pin_->digital_read())
+  {
+    this->handle_open_position_();
+    return;
+  }
+
   // else if (this->current_operation == COVER_OPERATION_OPENING || this->current_operation == COVER_OPERATION_CLOSING)
   // {
   //   this->determine_current_position_();
@@ -225,10 +238,11 @@ void GarageDoorCover::loop()
   // {
   //   return;
   // }
-  // else if (this->target_operation_ != this->current_operation)
-  // {
-  //   this->change_to_next_state_();
-  // }
+  
+  if (this->target_operation_ != this->current_operation)
+  {
+    this->change_to_next_state_();
+  }
 }
 
 void GarageDoorCover::lock_()
@@ -471,6 +485,7 @@ void GarageDoorCover::change_to_next_state_(bool is_from_button_press)
   {
     // "Press" the control "button"
     this->control_pin_->digital_write(true);
+    this->control_pin_is_active_ = true;
   }
   else
   {
