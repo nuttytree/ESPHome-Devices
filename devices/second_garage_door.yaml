@@ -1,4 +1,5 @@
 substitutions:
+  log_level: debug
   device_id: second_garage_door
   device_name: Second Garage Door
   platform: ESP8266
@@ -32,22 +33,21 @@ cover:
 
   - platform: custom
     lambda: |-
-      GarageDoor = new GarageDoorCover(D1, D2, D5, D6, D7);
       GarageDoor->set_rtttl_buzzer(rtttl_rtttl);
       App.register_component(GarageDoor);
       return {GarageDoor};
     covers:
       - name: ${device_name}
 
-# binary_sensor:
-#   - platform: custom
-#     lambda: |-
-#       auto lock = GarageDoor->get_lock_sensor();
-#       App.register_component(lock);
-#       return {lock};
-#     binary_sensors: 
-#       name: ${device_name}
-#       device_class: lock
+binary_sensor:
+  - platform: custom
+    lambda: |-
+      auto lock = GarageDoor->get_lock_sensor();
+      App.register_component(lock);
+      return {lock};
+    binary_sensors: 
+      name: ${device_name}
+      device_class: lock
 
 output:
   - platform: esp8266_pwm

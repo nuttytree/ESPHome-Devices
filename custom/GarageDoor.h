@@ -4,9 +4,7 @@ using namespace esphome;
 
 // Open/Close durations
 const uint32_t NORMAL_OPEN_DURATION = 10000;
-const uint32_t FAILED_OPEN_DURATION = NORMAL_OPEN_DURATION * 2;
 const uint32_t NORMAL_CLOSE_DURATION = 10000;
-const uint32_t FAILED_CLOSE_DURATION = NORMAL_CLOSE_DURATION * 2;
 
 // Close warning
 const std::string CLOSE_WARNING_RTTTL = "Imperial:d=4, o=5, b=100:e, e, e, 8c, 16p, 16g, e, 8c, 16p, 16g, e, p, b, b, b, 8c6, 16p, 16g, d#, 8c, 16p, 16g, e, 8p";
@@ -75,8 +73,9 @@ class GarageDoorCover : public cover::Cover, public Component, public api::Custo
     InternalState internal_state_{STATE_UNKNOWN};
     bool lock_requested_{false};
     float target_position_{0};
-    uint32_t last_state_change_time_{0};
     cover::CoverOperation target_operation_{COVER_OPERATION_IDLE};
+    uint32_t last_state_change_time_{0};
+    uint32_t last_position_time_{0};
     uint32_t last_publish_time_{0};
     LocalButtonsState last_local_button_{LOCAL_BUTTON_NONE};
     bool last_remote_state_{false};
@@ -93,6 +92,7 @@ class GarageDoorCover : public cover::Cover, public Component, public api::Custo
     void change_to_next_state_(bool is_from_button_press = false);
     void set_state_(InternalState state, bool is_initial_state = false);
     InternalState get_state_() { return this->internal_state_; }
+    const char *internal_state_to_str_(InternalState state);
 };
 
 class GarageDoorLock : public binary_sensor::BinarySensor, public Component
@@ -107,16 +107,22 @@ class GarageDoorLock : public binary_sensor::BinarySensor, public Component
 GarageDoorCover::GarageDoorCover(uint8_t closed_pin, uint8_t open_pin, uint8_t control_pin, uint8_t remote_pin, uint8_t remote_light_pin)
 {
   this->set_device_class("garage");
-  this->closed_pin_ = new GPIOPin(closed_pin, INPUT_PULLUP);
-  this->open_pin_ = new GPIOPin(open_pin, INPUT_PULLUP);
+  this->closed_pin_ = new GPIOPin(closed_pin, INPUT_PULLUP, true);
+  this->open_pin_ = new GPIOPin(open_pin, INPUT_PULLUP, true);
   this->control_pin_ = new GPIOPin(control_pin, OUTPUT);
-  this->remote_pin_ = new GPIOPin(remote_pin, INPUT_PULLUP);
-  this->remote_light_pin_ = new GPIOPin(remote_light_pin, INPUT_PULLUP);
+  this->remote_pin_ = new GPIOPin(remote_pin, INPUT_PULLUP, true);
+  this->remote_light_pin_ = new GPIOPin(remote_light_pin, INPUT_PULLUP, true);
   this->lock_sensor_ = new GarageDoorLock();
 }
 
 void GarageDoorCover::setup()
 {
+  this->closed_pin_->setup();
+  this->open_pin_->setup();
+  this->control_pin_->setup();
+  this->remote_pin_->setup();
+  this->remote_light_pin_->setup();
+
   this->lock_sensor_->publish_initial_state(LOCK_STATE_UNLOCKED);
 
   if (this->closed_pin_->digital_read())
@@ -129,7 +135,8 @@ void GarageDoorCover::setup()
   }
   else
   {
-    this->set_state_(STATE_UNKNOWN, true);
+    // this->set_state_(STATE_UNKNOWN, true);
+    this->set_state_(STATE_OPEN, true);
   }
 
   this->register_service(&GarageDoorCover::lock_, "lock");
@@ -188,15 +195,15 @@ void GarageDoorCover::control(const cover::CoverCall &call)
 void GarageDoorCover::loop()
 {
   // "Release" the control "button"
-  this->control_pin_->digital_write(false);
+  // this->control_pin_->digital_write(false);
 
-  if (this->get_state_() == STATE_CLOSE_WARNING)
-  {
-    if (!this->buzzer_->is_playing())
-    {
-      this->change_to_next_state_();
-    }
-  }
+  // if (this->get_state_() == STATE_CLOSE_WARNING)
+  // {
+  //   if (!this->buzzer_->is_playing())
+  //   {
+  //     this->change_to_next_state_();
+  //   }
+  // }
   // else if (this->closed_pin_->digital_read())
   // {
   //   this->handle_closed_position_();
@@ -205,23 +212,23 @@ void GarageDoorCover::loop()
   // {
   //   this->handle_open_position_();
   // }
-  else if (this->current_operation == COVER_OPERATION_OPENING || this->current_operation == COVER_OPERATION_CLOSING)
-  {
-    this->determine_current_position_();
-  }
+  // else if (this->current_operation == COVER_OPERATION_OPENING || this->current_operation == COVER_OPERATION_CLOSING)
+  // {
+  //   this->determine_current_position_();
+  // }
 
-  if (this->check_local_buttons_())
-  {
-    return;
-  }
-  else if (this->check_remote_buttons_())
-  {
-    return;
-  }
-  else if (this->target_operation_ != this->current_operation)
-  {
-    this->change_to_next_state_();
-  }
+  // if (this->check_local_buttons_())
+  // {
+  //   return;
+  // }
+  // else if (this->check_remote_buttons_())
+  // {
+  //   return;
+  // }
+  // else if (this->target_operation_ != this->current_operation)
+  // {
+  //   this->change_to_next_state_();
+  // }
 }
 
 void GarageDoorCover::lock_()
@@ -283,37 +290,37 @@ void GarageDoorCover::determine_current_position_()
 {
   float direction;
   float normal_duration;
-  float failed_duration;
   if (this->current_operation == COVER_OPERATION_OPENING)
   {
     direction = 1.0f;
     normal_duration = NORMAL_OPEN_DURATION;
-    failed_duration = FAILED_OPEN_DURATION;
   }
   else
   {
     direction = -1.0f;
     normal_duration = NORMAL_CLOSE_DURATION;
-    failed_duration = FAILED_CLOSE_DURATION;
   }
 
   const uint32_t now = millis();
   const uint32_t current_duration = now - this->last_state_change_time_;
-  if (current_duration >= failed_duration)
+  if (current_duration > normal_duration * 2)
   {
     // This should never happen but if it does we go into an unknown state
     this->set_state_(STATE_UNKNOWN);
   }
   else
   {
-    float new_position = clamp(direction * current_duration / normal_duration, 0.01f, 0.99f);
+    float new_position = clamp(this->position + direction * (now - this->last_position_time_) / normal_duration, 0.01f, 0.99f);
     if (new_position == this->position);
     {
       return;
     }
 
-    if ((direction == 1.0f && this->position >= this->target_position_)
-      || (direction == -1.0f && this->position <= this->target_position_))
+    this->position = new_position;
+    this->last_position_time_ = now;
+
+    if ((direction == 1.0f && new_position >= this->target_position_)
+      || (direction == -1.0f && new_position <= this->target_position_))
     {
       this->target_operation_ = COVER_OPERATION_IDLE;
       this->change_to_next_state_();
@@ -383,26 +390,26 @@ bool GarageDoorCover::check_local_buttons_()
 
 bool GarageDoorCover::check_remote_buttons_()
 {
-  bool currentRemoteLightState = this->remote_light_pin_->digital_read();
-  if (currentRemoteLightState != this->last_remote_light_state_)
-  {
-    last_remote_light_state_ = currentRemoteLightState;
-    if (currentRemoteLightState)
-    {
-      this->fire_homeassistant_event("second_garage_door_remote_light_button");
-    }
-  }
+  // bool currentRemoteLightState = this->remote_light_pin_->digital_read();
+  // if (currentRemoteLightState != this->last_remote_light_state_)
+  // {
+  //   last_remote_light_state_ = currentRemoteLightState;
+  //   if (currentRemoteLightState)
+  //   {
+  //     this->fire_homeassistant_event("second_garage_door_remote_light_button");
+  //   }
+  // }
 
-  bool currentRemoteState = this->remote_pin_->digital_read();
-  if (currentRemoteState != this->last_remote_state_)
-  {
-    last_remote_state_ = currentRemoteState;
-    if (currentRemoteState && this->get_state_() != STATE_LOCKED)
-    {
-      this->change_to_next_state_(true);
-      return true;
-    }
-  }
+  // bool currentRemoteState = this->remote_pin_->digital_read();
+  // if (currentRemoteState != this->last_remote_state_)
+  // {
+  //   last_remote_state_ = currentRemoteState;
+  //   if (currentRemoteState && this->get_state_() != STATE_LOCKED)
+  //   {
+  //     this->change_to_next_state_(true);
+  //     return true;
+  //   }
+  // }
 
   return false;
 }
@@ -478,6 +485,8 @@ void GarageDoorCover::set_state_(InternalState state, bool is_initial_state)
     return;
   }
 
+  ESP_LOGD("NuttyGarageDoor", "Internal state: '%s'", this->internal_state_to_str_(state));
+
   this->internal_state_ = state;
 
   if (state == STATE_UNKNOWN)
@@ -525,7 +534,48 @@ void GarageDoorCover::set_state_(InternalState state, bool is_initial_state)
     this->lock_sensor_->publish_state(state == STATE_LOCKED ? LOCK_STATE_LOCKED : LOCK_STATE_UNLOCKED);
   }
 
-  this->last_state_change_time_ = millis();
+  const uint32_t now = millis();
+  this->last_state_change_time_ = now;
+  this->last_position_time_ = now;
 }
 
-GarageDoorCover *GarageDoor;
+const char *GarageDoorCover::internal_state_to_str_(InternalState state)
+{
+  switch (state)
+  {
+    case STATE_UNKNOWN:
+      return "UNKNOWN";
+  
+    case STATE_MOVING:
+      return "MOVING";
+
+    case STATE_LOCKED:
+      return "LOCKED";
+
+    case STATE_CLOSED:
+      return "CLOSED";
+
+    case STATE_OPENING:
+      return "OPENING";
+
+    case STATE_STOPPED_OPENING:
+      return "STOPPED_OPENING";
+
+    case STATE_OPEN:
+      return "OPEN";
+
+    case STATE_CLOSE_WARNING:
+      return "CLOSE_WARNING";
+
+    case STATE_CLOSING:
+      return "CLOSING";
+
+    case STATE_STOPPED_CLOSING:
+      return "STOPPED_CLOSING";
+
+    default:
+      return "INTERNAL_STATE_UNKNOWN";
+  }
+}
+
+GarageDoorCover *GarageDoor = new GarageDoorCover(D1, D2, D5, D6, D7);
