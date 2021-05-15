@@ -9,6 +9,12 @@ const uint32_t NORMAL_CLOSE_DURATION = 10000;
 // Amount of time to keep the control pin active when changing states
 const uint32_t CONTROL_PIN_ACTIVE_DURATION = 10;
 
+// Number of milliseconds between publishing the state while the door is opening or closing
+const uint32_t DOOR_MOVING_PUBLISH_INTERVAL = 500;
+
+// Number of milliseconds between reads of the ADC to get local button state, this is needed to prevent wifi issues from reading to frequently
+const uint32_t LOCAL_BUTTON_READ_INTERVAL = 50;
+
 // Close warning
 const std::string CLOSE_WARNING_RTTTL = "Imperial:d=4, o=5, b=100:e, e, e, 8c, 16p, 16g, e, 8c, 16p, 16g, e, p, b, b, b, 8c6, 16p, 16g, d#, 8c, 16p, 16g, e, 8p";
 
@@ -147,8 +153,7 @@ void GarageDoorCover::setup()
   }
   else
   {
-    // this->set_internal_state_(STATE_UNKNOWN, true);
-    this->set_internal_state_(STATE_OPEN, true);
+    this->set_internal_state_(STATE_UNKNOWN, true);
   }
 
   this->register_service(&GarageDoorCover::lock_, "lock");
@@ -171,7 +176,7 @@ void GarageDoorCover::control(const cover::CoverCall &call)
   if (call.get_stop()) 
   {
     this->target_operation_ = COVER_OPERATION_IDLE;
-    if (this->current_operation != COVER_OPERATION_IDLE)
+    if (this->current_operation == COVER_OPERATION_OPENING || this->current_operation == COVER_OPERATION_CLOSING)
     {
       this->change_to_next_state_();
     }
@@ -217,8 +222,6 @@ void GarageDoorCover::loop()
     return;
   }
 
-  InternalState current_state = this->get_internal_state_();
-
   if (this->current_operation != COVER_OPERATION_IDLE)
   {
     if (this->closed_pin_->digital_read())
@@ -237,7 +240,7 @@ void GarageDoorCover::loop()
     }
   }
 
-  if (current_state == STATE_CLOSE_WARNING && !this->buzzer_->is_playing())
+  if (this->get_internal_state_() == STATE_CLOSE_WARNING && !this->buzzer_->is_playing())
   {
     this->change_to_next_state_();
     return;
@@ -321,15 +324,20 @@ void GarageDoorCover::determine_current_position_()
 {
   float direction;
   float normal_duration;
-  if (this->current_operation == COVER_OPERATION_OPENING)
+  switch (this->current_operation)
   {
-    direction = 1.0f;
-    normal_duration = NORMAL_OPEN_DURATION;
-  }
-  else
-  {
-    direction = -1.0f;
-    normal_duration = NORMAL_CLOSE_DURATION;
+    case COVER_OPERATION_OPENING:
+      direction = 1.0f;
+      normal_duration = NORMAL_OPEN_DURATION;
+      break;
+  
+    case COVER_OPERATION_CLOSING:
+      direction = -1.0f;
+      normal_duration = NORMAL_CLOSE_DURATION;
+      break;
+
+    default:
+      return;
   }
 
   const uint32_t now = millis();
@@ -356,7 +364,7 @@ void GarageDoorCover::determine_current_position_()
       this->target_operation_ = COVER_OPERATION_IDLE;
       this->change_to_next_state_();
     }
-    else if (now - this->last_publish_time_ > 500) 
+    else if (now - this->last_publish_time_ >= DOOR_MOVING_PUBLISH_INTERVAL) 
     {
       this->publish_state(false);
       this->last_publish_time_ = now;
@@ -367,7 +375,7 @@ void GarageDoorCover::determine_current_position_()
 bool GarageDoorCover::check_local_buttons_()
 {
   const uint32_t now = millis();
-  if (now - this->last_local_button_read_time_ > 50)
+  if (now - this->last_local_button_read_time_ > LOCAL_BUTTON_READ_INTERVAL)
   {
     this->last_local_button_read_time_ = now;
 
@@ -486,7 +494,14 @@ void GarageDoorCover::change_to_next_state_(bool is_from_button_press)
       break;
 
     case STATE_CLOSE_WARNING:
-      this->set_internal_state_(is_from_button_press ? STATE_CLOSED : STATE_CLOSING);
+      if (is_from_button_press)
+      {
+        this->set_internal_state_(this->position == COVER_OPEN ? STATE_OPEN : STATE_STOPPED_OPENING);
+      }
+      else if (this->target_operation_ == COVER_OPERATION_CLOSING && !this->buzzer_->is_playing())
+      {
+        this->set_internal_state_(STATE_CLOSING);
+      }
       break;
 
     case STATE_CLOSING:
@@ -512,7 +527,7 @@ void GarageDoorCover::change_to_next_state_(bool is_from_button_press)
     this->control_pin_->digital_write(true);
     this->control_pin_active_time_ = millis();
   }
-  else
+  else if (!this->buzzer_->is_playing())
   {
     this->buzzer_->play(CLOSE_WARNING_RTTTL);
   }
