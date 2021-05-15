@@ -17,20 +17,6 @@ esphome:
   - ../custom/GarageDoor.h
 
 cover:
-  - platform: time_based
-    name: "Time-Based Cover"
-
-    open_action:
-      - lambda: "{}"
-    open_duration: 2.1min
-
-    close_action:
-      - lambda: "{}"
-    close_duration: 2min
-
-    stop_action:
-      - lambda: "{}"
-
   - platform: custom
     lambda: |-
       GarageDoor->set_rtttl_buzzer(rtttl_rtttl);
