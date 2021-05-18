@@ -143,7 +143,8 @@ void GarageDoorCover::setup()
 
   this->lock_sensor_->publish_initial_state(LOCK_STATE_UNLOCKED);
 
-  if (this->closed_pin_->digital_read())
+  // if (this->closed_pin_->digital_read())
+  if (true)
   {
     this->set_internal_state_(STATE_CLOSED, true);
   }
@@ -224,19 +225,21 @@ void GarageDoorCover::loop()
 
   if (this->current_operation != COVER_OPERATION_IDLE)
   {
-    if (this->closed_pin_->digital_read())
+    // if (this->closed_pin_->digital_read())
+    if (this->current_operation == COVER_OPERATION_CLOSING && this->position <= .02)
     {
       this->handle_closed_position_();
       return;
     }
-    else if (this->open_pin_->digital_read())
+    // else if (this->open_pin_->digital_read())
+    else if (this->current_operation == COVER_OPERATION_OPENING && this->position >= .98)
     {
       this->handle_open_position_();
       return;
     }
     else
     {
-      this->determine_current_position_();
+      // this->determine_current_position_();
     }
   }
 
@@ -251,10 +254,10 @@ void GarageDoorCover::loop()
     return;
   }
 
-  if (this->check_remote_buttons_())
-  {
-    return;
-  }
+  // if (this->check_remote_buttons_())
+  // {
+  //   return;
+  // }
 }
 
 void GarageDoorCover::lock_()
@@ -381,54 +384,54 @@ bool GarageDoorCover::check_local_buttons_()
 
     int buttonValue = analogRead(A0);
 
-    LocalButton currentButton;
-    if (buttonValue < 256)
-    {
-      currentButton = LOCAL_BUTTON_DOOR;
-    }
-    else if (buttonValue < 512)
-    {
-      currentButton = LOCAL_BUTTON_LOCK;
-    }
-    else if (buttonValue < 768)
-    {
-      currentButton = LOCAL_BUTTON_LIGHT;
-    }
-    else
-    {
-      currentButton = LOCAL_BUTTON_NONE;
-    }
+    // LocalButton currentButton;
+    // if (buttonValue < 256)
+    // {
+    //   currentButton = LOCAL_BUTTON_DOOR;
+    // }
+    // else if (buttonValue < 512)
+    // {
+    //   currentButton = LOCAL_BUTTON_LOCK;
+    // }
+    // else if (buttonValue < 768)
+    // {
+    //   currentButton = LOCAL_BUTTON_LIGHT;
+    // }
+    // else
+    // {
+    //   currentButton = LOCAL_BUTTON_NONE;
+    // }
 
-    if (currentButton != this->last_local_button_)
-    {
-      this->last_local_button_ = currentButton;
+    // if (currentButton != this->last_local_button_)
+    // {
+    //   this->last_local_button_ = currentButton;
 
-      switch (currentButton)
-      {
-        case LOCAL_BUTTON_DOOR:
-          this->change_to_next_state_(true);
-          return true;
+    //   switch (currentButton)
+    //   {
+    //     case LOCAL_BUTTON_DOOR:
+    //       this->change_to_next_state_(true);
+    //       return true;
 
-        case LOCAL_BUTTON_LOCK:
-          if (this->get_internal_state_() == STATE_LOCKED)
-          {
-            this->unlock_();
-          }
-          else
-          {
-            this->lock_();
-          }
-          return true;
+    //     case LOCAL_BUTTON_LOCK:
+    //       if (this->get_internal_state_() == STATE_LOCKED)
+    //       {
+    //         this->unlock_();
+    //       }
+    //       else
+    //       {
+    //         this->lock_();
+    //       }
+    //       return true;
 
-        case LOCAL_BUTTON_LIGHT:
-          this->fire_homeassistant_event("second_garage_door_local_light_button");
-          return true;
-          break;
+    //     case LOCAL_BUTTON_LIGHT:
+    //       this->fire_homeassistant_event("second_garage_door_local_light_button");
+    //       return true;
+    //       break;
 
-        default:
-          break;
-      }
-    }
+    //     default:
+    //       break;
+    //   }
+    // }
   }
 
   return false;
