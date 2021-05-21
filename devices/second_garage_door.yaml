@@ -37,8 +37,13 @@ binary_sensor:
 
 output:
   - platform: esp8266_pwm
-    pin: D3
+    pin: D8
     id: rtttl_out
 
 rtttl:
   output: rtttl_out
+
+status_led:
+  pin:
+    number: D4
+    inverted: false
