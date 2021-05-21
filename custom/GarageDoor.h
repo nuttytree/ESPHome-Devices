@@ -4,11 +4,11 @@ using namespace esphome;
 
 static const char* TAG = "NuttyGarageDoor";
 
-// Open/Close durations
+// Open/Close durations used to determine position while opening/closing
 const uint32_t NORMAL_OPEN_DURATION = 10000;
 const uint32_t NORMAL_CLOSE_DURATION = 10000;
 
-// Amount of time to keep the control pin active/inactive when changing states
+// Minimum number of milliseconds to keep the control pin active/inactive when changing states
 const uint32_t CONTROL_PIN_ACTIVE_DURATION = 10;
 const uint32_t CONTROL_PIN_INACTIVE_DURATION = 10;
 
@@ -17,6 +17,9 @@ const uint32_t DOOR_MOVING_PUBLISH_INTERVAL = 250;
 
 // Number of milliseconds between reads of the ADC to get local button state, this is needed to prevent wifi issues from reading to frequently
 const uint32_t LOCAL_BUTTON_READ_INTERVAL = 50;
+
+// Number of milliseconds to wait before checking the open/close sensors after starting to open/close the door to prevent false "failed" triggers
+const uint32_t SENSOR_READ_DELAY = 50;
 
 // Close warning
 const std::string CLOSE_WARNING_RTTTL = "Imperial:d=4, o=5, b=100:e, e, e, 8c, 16p, 16g, e, 8c, 16p, 16g, e, p, b, b, b, 8c6, 16p, 16g, d#, 8c, 16p, 16g, e, 8p";
@@ -332,7 +335,7 @@ bool GarageDoorCover::ensure_target_operation_()
 bool GarageDoorCover::check_for_closed_position_()
 {
   // TODO: Switch back to reading the sensor when it is actually connected
-  // if (this->current_operation != COVER_OPERATION_IDLE && this->closed_pin_->digital_read())
+  // if (this->current_operation != COVER_OPERATION_IDLE && (millis() - this->last_state_change_time_) >= SENSOR_READ_DELAY && this->closed_pin_->digital_read())
   if (this->current_operation == COVER_OPERATION_CLOSING && this->target_operation_ == COVER_OPERATION_CLOSING && this->position <= .02)
   {
     if (this->lock_requested_)
@@ -379,7 +382,7 @@ bool GarageDoorCover::check_for_closed_position_()
 bool GarageDoorCover::check_for_open_position_()
 {
   // TODO: Switch back to reading the sensor when it is actually connected
-  // if (this->current_operation != COVER_OPERATION_IDLE && this->open_pin_->digital_read())
+  // if (this->current_operation != COVER_OPERATION_IDLE && (millis() - this->last_state_change_time_) >= SENSOR_READ_DELAY && this->open_pin_->digital_read())
   if (this->current_operation == COVER_OPERATION_OPENING && this->target_operation_ == COVER_OPERATION_OPENING && this->position >= .98)
   {
     this->set_internal_state_(STATE_OPEN);
