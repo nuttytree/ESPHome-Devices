@@ -5,21 +5,21 @@ using namespace esphome;
 static const char* TAG = "NuttyGarageDoor";
 
 // Open/Close durations used to determine position while opening/closing
-const uint32_t NORMAL_OPEN_DURATION = 15000;
-const uint32_t NORMAL_CLOSE_DURATION = 15000;
+const uint32_t NORMAL_OPEN_DURATION = 20000;
+const uint32_t NORMAL_CLOSE_DURATION = 20000;
 
 // Minimum number of milliseconds to keep the control pin active/inactive when changing states
 const uint32_t CONTROL_PIN_ACTIVE_DURATION = 200;
 const uint32_t CONTROL_PIN_INACTIVE_DURATION = 200;
 
 // Number of milliseconds between publishing the state while the door is opening or closing
-const uint32_t DOOR_MOVING_PUBLISH_INTERVAL = 250;
+const uint32_t DOOR_MOVING_PUBLISH_INTERVAL = 500;
 
 // Number of milliseconds between reads of the ADC to get local button state, this is needed to prevent wifi issues from reading to frequently
 const uint32_t LOCAL_BUTTON_READ_INTERVAL = 75;
 
 // Number of milliseconds to wait before checking the open/close sensors after starting to open/close the door to prevent false "failed" triggers
-const uint32_t SENSOR_READ_DELAY = 50;
+const uint32_t SENSOR_READ_DELAY = 500;
 
 // Close warning
 const std::string CLOSE_WARNING_RTTTL = "Imperial:d=4, o=5, b=100:e, e, e, 8c, 16p, 16g, e, 8c, 16p, 16g, e, p, b, b, b, 8c6, 16p, 16g, d#, 8c, 16p, 16g, e, 8p";
@@ -106,7 +106,7 @@ class GarageDoorCover : public cover::Cover, public Component, public api::Custo
     void loop() override;
     GarageDoorLock *get_lock_sensor() { return this->lock_sensor_; }
 
-  private:
+  protected:
     rtttl::Rtttl *buzzer_;
     GPIOPin *control_pin_;
     GPIOPin *closed_pin_;
@@ -168,9 +168,7 @@ void GarageDoorCover::setup()
 
   this->lock_sensor_->publish_initial_state(LOCK_STATE_UNLOCKED);
 
-  // TODO: Switch back to reading the sensor when it is actually connected
-  // if (this->closed_pin_->digital_read())
-  if (true)
+  if (this->closed_pin_->digital_read())
   {
     this->set_internal_state_(STATE_CLOSED, true);
   }
@@ -341,18 +339,15 @@ bool GarageDoorCover::ensure_target_operation_()
 
 bool GarageDoorCover::check_for_closed_position_()
 {
-  // TODO: Switch back to reading the sensor when it is actually connected
-  // if (this->current_operation != COVER_OPERATION_IDLE && (millis() - this->last_state_change_time_) >= SENSOR_READ_DELAY && this->closed_pin_->digital_read())
-  if (this->current_operation == COVER_OPERATION_CLOSING && this->target_operation_ == COVER_OPERATION_CLOSING && this->position <= .02)
+  if (this->current_operation != COVER_OPERATION_IDLE && (millis() - this->last_state_change_time_) >= SENSOR_READ_DELAY && this->closed_pin_->digital_read())
   {
+    ESP_LOGD(TAG, "Door closed sensor is active");
+
+    this->change_to_next_state_(STATE_CHANGE_CLOSE_SENSOR);
     if (this->lock_requested_)
     {
       this->set_internal_state_(STATE_LOCKED);
       this->lock_requested_ = false;
-    }
-    else
-    {
-      this->set_internal_state_(STATE_CLOSED);
     }
 
     // Have to use the static cast because of the extra values that are used
@@ -364,13 +359,10 @@ bool GarageDoorCover::check_for_closed_position_()
 
       case COVER_OPERATION_SET_POSITION:
         this->target_operation_ = this->target_position_ == COVER_CLOSED ? COVER_OPERATION_IDLE : COVER_OPERATION_OPENING;
-        if (this->target_position_ != COVER_CLOSED)
-        {
-          this->change_to_next_state_();
-        }
         break;
 
       case COVER_OPERATION_OPENING:
+        this->target_operation_ = COVER_OPERATION_IDLE;
         this->fire_homeassistant_event(this->get_event_(EVENT_FAILED_OPEN));
         break;
 
@@ -388,11 +380,11 @@ bool GarageDoorCover::check_for_closed_position_()
 
 bool GarageDoorCover::check_for_open_position_()
 {
-  // TODO: Switch back to reading the sensor when it is actually connected
-  // if (this->current_operation != COVER_OPERATION_IDLE && (millis() - this->last_state_change_time_) >= SENSOR_READ_DELAY && this->open_pin_->digital_read())
-  if (this->current_operation == COVER_OPERATION_OPENING && this->target_operation_ == COVER_OPERATION_OPENING && this->position >= .98)
+  if (this->current_operation != COVER_OPERATION_IDLE && (millis() - this->last_state_change_time_) >= SENSOR_READ_DELAY && this->open_pin_->digital_read())
   {
-    this->set_internal_state_(STATE_OPEN);
+    ESP_LOGD(TAG, "Door open sensor is active");
+
+    this->change_to_next_state_(STATE_CHANGE_OPEN_SENSOR);
 
     // Have to use the static cast because of the extra values that are used
     switch (static_cast<uint8_t>(this->target_operation_))
@@ -403,13 +395,10 @@ bool GarageDoorCover::check_for_open_position_()
 
       case COVER_OPERATION_SET_POSITION:
         this->target_operation_ = this->target_position_ == COVER_OPEN ? COVER_OPERATION_IDLE : COVER_OPERATION_CLOSING;
-        if (this->target_position_ != COVER_OPEN)
-        {
-          this->change_to_next_state_();
-        }
         break;
 
       case COVER_OPERATION_CLOSING:
+        this->target_operation_ = COVER_OPERATION_IDLE;
         this->fire_homeassistant_event(this->get_event_(EVENT_FAILED_CLOSE));
         break;
 
@@ -697,14 +686,20 @@ void GarageDoorCover::change_to_next_state_(StateChangeType change_type)
 
 void GarageDoorCover::set_internal_state_(InternalState state, bool is_initial_state)
 {
-  if (this->internal_state_ == state)
+  if (is_intial_state)
+  {
+    ESP_LOGD(TAG, "Setting Initial Internal State: '%s'", this->internal_state_to_str_(state));
+  }
+  else if (this->internal_state_ != state)
+  {
+    ESP_LOGD(TAG, "Setting Internal State:");
+    ESP_LOGD(TAG, "  Current State: '%s'", this->internal_state_to_str_(this->get_internal_state_()));
+    ESP_LOGD(TAG, "  New State:     '%s'", this->internal_state_to_str_(state));
+  }
+  else
   {
     return;
   }
-
-  ESP_LOGD(TAG, "Setting Internal State:");
-  ESP_LOGD(TAG, "  Current State: '%s'", this->internal_state_to_str_(this->get_internal_state_()));
-  ESP_LOGD(TAG, "  New State:     '%s'", this->internal_state_to_str_(state));
 
   this->internal_state_ = state;
 
