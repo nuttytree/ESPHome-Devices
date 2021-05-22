@@ -16,7 +16,7 @@ const uint32_t CONTROL_PIN_INACTIVE_DURATION = 10;
 const uint32_t DOOR_MOVING_PUBLISH_INTERVAL = 250;
 
 // Number of milliseconds between reads of the ADC to get local button state, this is needed to prevent wifi issues from reading to frequently
-const uint32_t LOCAL_BUTTON_READ_INTERVAL = 50;
+const uint32_t LOCAL_BUTTON_READ_INTERVAL = 75;
 
 // Number of milliseconds to wait before checking the open/close sensors after starting to open/close the door to prevent false "failed" triggers
 const uint32_t SENSOR_READ_DELAY = 50;
@@ -46,6 +46,13 @@ const cover::CoverOperation COVER_OPERATION_SET_POSITION = static_cast<cover::Co
 // Lock Binary sensor state aliases
 const bool LOCK_STATE_LOCKED = false;
 const bool LOCK_STATE_UNLOCKED = true;
+
+enum StateChangeType : uint8_t {
+  STATE_CHANGE_INTERNAL = 0,
+  STATE_CHANGE_BUTTON,
+  STATE_CHANGE_CLOSE_SENSOR,
+  STATE_CHANGE_OPEN_SENSOR
+};
 
 enum InternalState : uint8_t {
   // On startup the state is unknown
@@ -132,7 +139,7 @@ class GarageDoorCover : public cover::Cover, public Component, public api::Custo
     bool check_for_position_update_();
     bool check_local_buttons_();
     bool check_remote_buttons_();
-    void change_to_next_state_(bool is_from_button_press = false);
+    void change_to_next_state_(StateChangeType change_type = STATE_CHANGE_INTERNAL);
     void set_internal_state_(InternalState state, bool is_initial_state = false);
     InternalState get_internal_state_() { return this->internal_state_; }
     std::string get_event_(std::string event_type);
@@ -547,7 +554,7 @@ bool GarageDoorCover::check_local_buttons_()
         case LOCAL_BUTTON_DOOR:
           ESP_LOGD(TAG, "Local door button was pressed");
           ESP_LOGD(TAG, "  Read Value: %u", buttonValue);
-          this->change_to_next_state_(true);
+          this->change_to_next_state_(STATE_CHANGE_BUTTON);
           break;
 
         default:
@@ -570,7 +577,7 @@ bool GarageDoorCover::check_remote_buttons_()
     if (currentRemoteState && this->get_internal_state_() != STATE_LOCKED)
     {
       ESP_LOGD(TAG, "Remote door button was pressed");
-      this->change_to_next_state_(true);
+      this->change_to_next_state_(STATE_CHANGE_BUTTON);
       return true;
     }
   }
@@ -590,88 +597,101 @@ bool GarageDoorCover::check_remote_buttons_()
   return false;
 }
 
-void GarageDoorCover::change_to_next_state_(bool is_from_button_press)
+void GarageDoorCover::change_to_next_state_(StateChangeType change_type)
 {
   if (millis() < this->control_pin_inactive_time_ + CONTROL_PIN_INACTIVE_DURATION)
   {
     return;
   }
 
-  switch (this->get_internal_state_())
+  switch (change_type)
   {
-    case STATE_UNKNOWN:
-      this->set_internal_state_(STATE_MOVING);
+    case STATE_CHANGE_CLOSE_SENSOR:
+      this->set_internal_state_(STATE_CLOSED);
       break;
   
-    case STATE_MOVING:
-      this->set_internal_state_(STATE_UNKNOWN);
+    case STATE_CHANGE_OPEN_SENSOR:
+      this->set_internal_state_(STATE_OPEN);
       break;
-
-    case STATE_LOCKED:
-      this->set_internal_state_(STATE_OPENING);
-      break;
-
-    case STATE_CLOSED:
-      this->set_internal_state_(STATE_OPENING);
-      break;
-
-    case STATE_OPENING:
-      this->set_internal_state_(STATE_STOPPED_OPENING);
-      break;
-
-    case STATE_STOPPED_OPENING:
-      this->set_internal_state_(is_from_button_press || this->target_operation_ == COVER_OPERATION_OPENING ? STATE_CLOSING : STATE_CLOSE_WARNING);
-      break;
-
-    case STATE_OPEN:
-      this->set_internal_state_(is_from_button_press ? STATE_CLOSING : STATE_CLOSE_WARNING);
-      break;
-
-    case STATE_CLOSE_WARNING:
-      if (is_from_button_press)
-      {
-        this->set_internal_state_(this->position == COVER_OPEN ? STATE_OPEN : STATE_STOPPED_OPENING);
-      }
-      else if (this->target_operation_ == COVER_OPERATION_CLOSING && !this->buzzer_->is_playing())
-      {
-        this->set_internal_state_(STATE_CLOSING);
-      }
-      break;
-
-    case STATE_CLOSING:
-      this->set_internal_state_(STATE_STOPPED_CLOSING);
-      break;
-
-    case STATE_STOPPED_CLOSING:
-      this->set_internal_state_(STATE_OPENING);
-      break;
-
+  
     default:
+      switch (this->get_internal_state_())
+      {
+        case STATE_UNKNOWN:
+          this->set_internal_state_(STATE_MOVING);
+          break;
+  
+        case STATE_MOVING:
+          this->set_internal_state_(STATE_UNKNOWN);
+          break;
+
+        case STATE_LOCKED:
+          this->set_internal_state_(STATE_OPENING);
+          break;
+
+        case STATE_CLOSED:
+          this->set_internal_state_(STATE_OPENING);
+          break;
+
+        case STATE_OPENING:
+          this->set_internal_state_(STATE_STOPPED_OPENING);
+          break;
+
+        case STATE_STOPPED_OPENING:
+          this->set_internal_state_(change_type == STATE_CHANGE_BUTTON || this->target_operation_ == COVER_OPERATION_OPENING ? STATE_CLOSING : STATE_CLOSE_WARNING);
+          break;
+
+        case STATE_OPEN:
+          this->set_internal_state_(change_type == STATE_CHANGE_BUTTON ? STATE_CLOSING : STATE_CLOSE_WARNING);
+          break;
+
+        case STATE_CLOSE_WARNING:
+          if (change_type == STATE_CHANGE_BUTTON)
+          {
+            this->set_internal_state_(this->position == COVER_OPEN ? STATE_OPEN : STATE_STOPPED_OPENING);
+          }
+          else if (this->target_operation_ == COVER_OPERATION_CLOSING && !this->buzzer_->is_playing())
+          {
+            this->set_internal_state_(STATE_CLOSING);
+          }
+          break;
+
+        case STATE_CLOSING:
+          this->set_internal_state_(STATE_STOPPED_CLOSING);
+          break;
+
+        case STATE_STOPPED_CLOSING:
+          this->set_internal_state_(STATE_OPENING);
+          break;
+
+        default:
+          break;
+      }
+
+      if (change_type == STATE_CHANGE_BUTTON)
+      {
+        this->target_operation_ = this->current_operation;
+        if (this->current_operation == COVER_OPERATION_OPENING)
+        {
+          this->target_position_ = COVER_OPEN;
+        }
+        else if (this->current_operation == COVER_OPERATION_CLOSING)
+        {
+          this->target_position_ = COVER_CLOSED;
+        }
+      }
+
+      if (this->get_internal_state_() != STATE_CLOSE_WARNING)
+      {
+        // "Press" the control "button"
+        this->control_pin_->digital_write(true);
+        this->control_pin_active_time_ = millis();
+      }
+      else if (!this->buzzer_->is_playing())
+      {
+        this->buzzer_->play(CLOSE_WARNING_RTTTL);
+      }
       break;
-  }
-
-  if (is_from_button_press)
-  {
-    this->target_operation_ = this->current_operation;
-    if (this->current_operation == COVER_OPERATION_OPENING)
-    {
-      this->target_position_ = COVER_OPEN;
-    }
-    else if (this->current_operation == COVER_OPERATION_CLOSING)
-    {
-      this->target_position_ = COVER_CLOSED;
-    }
-  }
-
-  if (this->get_internal_state_() != STATE_CLOSE_WARNING)
-  {
-    // "Press" the control "button"
-    this->control_pin_->digital_write(true);
-    this->control_pin_active_time_ = millis();
-  }
-  else if (!this->buzzer_->is_playing())
-  {
-    this->buzzer_->play(CLOSE_WARNING_RTTTL);
   }
 }
 
