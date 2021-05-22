@@ -5,12 +5,12 @@ using namespace esphome;
 static const char* TAG = "NuttyGarageDoor";
 
 // Open/Close durations used to determine position while opening/closing
-const uint32_t NORMAL_OPEN_DURATION = 10000;
-const uint32_t NORMAL_CLOSE_DURATION = 10000;
+const uint32_t NORMAL_OPEN_DURATION = 15000;
+const uint32_t NORMAL_CLOSE_DURATION = 15000;
 
 // Minimum number of milliseconds to keep the control pin active/inactive when changing states
-const uint32_t CONTROL_PIN_ACTIVE_DURATION = 10;
-const uint32_t CONTROL_PIN_INACTIVE_DURATION = 10;
+const uint32_t CONTROL_PIN_ACTIVE_DURATION = 200;
+const uint32_t CONTROL_PIN_INACTIVE_DURATION = 200;
 
 // Number of milliseconds between publishing the state while the door is opening or closing
 const uint32_t DOOR_MOVING_PUBLISH_INTERVAL = 250;
