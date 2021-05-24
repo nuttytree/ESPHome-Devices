@@ -341,6 +341,8 @@ bool GarageDoorCover::check_for_closed_position_()
 {
   if (this->current_operation != COVER_OPERATION_IDLE && (millis() - this->last_state_change_time_) >= SENSOR_READ_DELAY && this->closed_pin_->digital_read())
   {
+    // TODO: Need to properly handle error state
+
     ESP_LOGD(TAG, "Door closed sensor is active");
 
     this->change_to_next_state_(STATE_CHANGE_CLOSE_SENSOR);
@@ -686,7 +688,7 @@ void GarageDoorCover::change_to_next_state_(StateChangeType change_type)
 
 void GarageDoorCover::set_internal_state_(InternalState state, bool is_initial_state)
 {
-  if (is_intial_state)
+  if (is_initial_state)
   {
     ESP_LOGD(TAG, "Setting Initial Internal State: '%s'", this->internal_state_to_str_(state));
   }
