@@ -4,6 +4,9 @@ using namespace esphome;
 
 static const char* TAG = "NuttyGarageDoor";
 
+const bool HAS_INTERNAL_CLOSED_SENSOR = false;
+const bool HAS_INTERNAL_OPEN_SENSOR = true;
+
 // Open/Close durations used to determine position while opening/closing
 const uint32_t NORMAL_OPEN_DURATION = 20000;
 const uint32_t NORMAL_CLOSE_DURATION = 20000;
@@ -39,10 +42,6 @@ const std::string EVENT_FAILED_OPEN = "open_failed";
 const std::string EVENT_FAILED_CLOSE = "close_failed";
 const std::string EVENT_BUTTON_DISCONNECTED = "button_disconnected";
 
-// Special ESPHome cover operation states
-const cover::CoverOperation COVER_OPERATION_UNKNOWN = static_cast<cover::CoverOperation>(100);
-const cover::CoverOperation COVER_OPERATION_SET_POSITION = static_cast<cover::CoverOperation>(200);
-
 // Lock Binary sensor state aliases
 const bool LOCK_STATE_LOCKED = false;
 const bool LOCK_STATE_UNLOCKED = true;
@@ -51,7 +50,8 @@ enum StateChangeType : uint8_t {
   STATE_CHANGE_INTERNAL = 0,
   STATE_CHANGE_BUTTON,
   STATE_CHANGE_CLOSE_SENSOR,
-  STATE_CHANGE_OPEN_SENSOR
+  STATE_CHANGE_OPEN_SENSOR,
+  STATE_CHANGE_CANCEL_WARNING
 };
 
 enum InternalState : uint8_t {
@@ -74,7 +74,15 @@ enum InternalState : uint8_t {
   // The door is closing
   STATE_CLOSING,
   // The door was stopped while it was closing
-  STATE_STOPPED_CLOSING
+  STATE_STOPPED_CLOSING,
+
+  // Special states that the door will never actually be in but are used as target states
+  // Stopped where ever it currently is at
+  STATE_STOPPED,
+  // Stopped at a specific position
+  STATE_POSITION,
+  // No currently requested state
+  STATE_NONE
 };
 
 enum LocalButton : uint8_t {
@@ -116,9 +124,8 @@ class GarageDoorCover : public cover::Cover, public Component, public api::Custo
     GarageDoorLock *lock_sensor_;
 
     InternalState internal_state_{STATE_UNKNOWN};
-    bool lock_requested_{false};
+    InternalState target_state_{STATE_NONE};
     float target_position_{0};
-    cover::CoverOperation target_operation_{COVER_OPERATION_IDLE};
     uint32_t control_pin_active_time_{0};
     uint32_t control_pin_inactive_time_{0};
     uint32_t last_state_change_time_{0};
@@ -133,10 +140,10 @@ class GarageDoorCover : public cover::Cover, public Component, public api::Custo
     void unlock_();
     
     bool check_control_pin_();
-    bool ensure_target_operation_();
     bool check_for_closed_position_();
     bool check_for_open_position_();
     bool check_for_position_update_();
+    bool ensure_target_state_();
     bool check_local_buttons_();
     bool check_remote_buttons_();
     void change_to_next_state_(StateChangeType change_type = STATE_CHANGE_INTERNAL);
@@ -144,7 +151,6 @@ class GarageDoorCover : public cover::Cover, public Component, public api::Custo
     InternalState get_internal_state_() { return this->internal_state_; }
     std::string get_event_(std::string event_type);
     const char *internal_state_to_str_(InternalState state);
-    const char *operation_to_str_(cover::CoverOperation operation);
 };
 
 GarageDoorCover::GarageDoorCover()
@@ -195,41 +201,30 @@ cover::CoverTraits GarageDoorCover::get_traits() {
 
 void GarageDoorCover::control(const cover::CoverCall &call)
 {
-  // Control doesn't support the lock function so any control request will clear a lock request
-  this->lock_requested_ = false;
+  this->change_to_next_state_(STATE_CHANGE_CANCEL_WARNING);
 
   if (call.get_stop()) 
   {
-    this->target_operation_ = COVER_OPERATION_IDLE;
-    if (this->current_operation == COVER_OPERATION_OPENING || this->current_operation == COVER_OPERATION_CLOSING)
-    {
-      this->change_to_next_state_();
-    }
+    this->target_state_ = STATE_STOPPED;
   }
   else if (call.get_position().has_value())
   {
     this->target_position_ = *call.get_position();
-    if (this->target_position_ == this->position && this->current_operation == COVER_OPERATION_IDLE)
+    if (this->target_position_ == this->position && this->current_operation == COVER_OPERATION_IDLE && this->get_internal_state_() != STATE_UNKNOWN)
     {
       return;
     }
-    else if (this->current_operation == COVER_OPERATION_UNKNOWN)
+    else if (this->target_position_ == COVER_CLOSED)
     {
-      if (this->get_internal_state_() == STATE_UNKNOWN)
-      {
-        this->target_operation_ = COVER_OPERATION_SET_POSITION;
-        this->change_to_next_state_();
-      }
+      this->target_state_ = this->get_internal_state_() == STATE_LOCKED ? STATE_LOCKED : STATE_CLOSED;
     }
-    else if (this->target_position_ < this->position)
+    else if (this->target_position_ == COVER_OPEN)
     {
-      this->target_operation_ = COVER_OPERATION_CLOSING;
-      this->change_to_next_state_();
+      this->target_state_ = STATE_OPEN;
     }
-    else if (this->target_position_ > this->position)
+    else
     {
-      this->target_operation_ = COVER_OPERATION_OPENING;
-      this->change_to_next_state_();
+      this->target_state_ = STATE_POSITION;
     }
   }
 }
@@ -237,11 +232,6 @@ void GarageDoorCover::control(const cover::CoverCall &call)
 void GarageDoorCover::loop()
 {
   if (this->check_control_pin_())
-  {
-    return;
-  }
-
-  if (this->ensure_target_operation_())
   {
     return;
   }
@@ -261,6 +251,11 @@ void GarageDoorCover::loop()
     return;
   }
 
+  if (this->ensure_target_state_())
+  {
+    return;
+  }
+
   if (this->check_local_buttons_())
   {
     return;
@@ -274,21 +269,9 @@ void GarageDoorCover::loop()
 
 void GarageDoorCover::lock_()
 {
-  switch (this->get_internal_state_())
+  if (this->get_internal_state_() != STATE_LOCKED)
   {
-    case STATE_LOCKED:
-      break;
-
-    case STATE_CLOSED:
-      this->set_internal_state_(STATE_LOCKED);
-      break;
-
-    default:
-      this->lock_requested_ = true;
-      this->target_position_ = COVER_CLOSED;
-      this->target_operation_ = COVER_OPERATION_CLOSING;
-      this->change_to_next_state_();
-      break;
+    this->target_state_ = STATE_LOCKED;
   }
 }
 
@@ -296,7 +279,7 @@ void GarageDoorCover::unlock_()
 {
   if (this->get_internal_state_() == STATE_LOCKED)
   {
-    this->set_internal_state_(STATE_CLOSED);
+    this->target_state_ = STATE_CLOSED;
   }
 }
 
@@ -320,57 +303,19 @@ bool GarageDoorCover::check_control_pin_()
   }
 }
 
-bool GarageDoorCover::ensure_target_operation_()
-{
-  if (this->target_operation_ != COVER_OPERATION_SET_POSITION && this->target_operation_ != this->current_operation && !this->buzzer_->is_playing())
-  {
-    ESP_LOGD(TAG, "Ensuring Target Operation:");
-    ESP_LOGD(TAG, "  Current Operation: '%s'", this->operation_to_str_(this->current_operation));
-    ESP_LOGD(TAG, "  Target Operation:  '%s'", this->operation_to_str_(this->target_operation_));
-
-    this->change_to_next_state_();
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}
-
 bool GarageDoorCover::check_for_closed_position_()
 {
   if (this->current_operation != COVER_OPERATION_IDLE && (millis() - this->last_state_change_time_) >= SENSOR_READ_DELAY && this->closed_pin_->digital_read())
   {
-    // TODO: Need to properly handle error state
-
     ESP_LOGD(TAG, "Door closed sensor is active");
 
+    if (this->get_internal_state_() == STATE_OPENING)
+    {
+      this->target_state_ = STATE_NONE;
+      this->fire_homeassistant_event(this->get_event_(EVENT_FAILED_OPEN));
+    }
+
     this->change_to_next_state_(STATE_CHANGE_CLOSE_SENSOR);
-    if (this->lock_requested_)
-    {
-      this->set_internal_state_(STATE_LOCKED);
-      this->lock_requested_ = false;
-    }
-
-    // Have to use the static cast because of the extra values that are used
-    switch (static_cast<uint8_t>(this->target_operation_))
-    {
-      case COVER_OPERATION_CLOSING:
-        this->target_operation_ = COVER_OPERATION_IDLE;
-        break;
-
-      case COVER_OPERATION_SET_POSITION:
-        this->target_operation_ = this->target_position_ == COVER_CLOSED ? COVER_OPERATION_IDLE : COVER_OPERATION_OPENING;
-        break;
-
-      case COVER_OPERATION_OPENING:
-        this->target_operation_ = COVER_OPERATION_IDLE;
-        this->fire_homeassistant_event(this->get_event_(EVENT_FAILED_OPEN));
-        break;
-
-      default:
-        break;
-    }
 
     return true;
   }
@@ -386,27 +331,13 @@ bool GarageDoorCover::check_for_open_position_()
   {
     ESP_LOGD(TAG, "Door open sensor is active");
 
-    this->change_to_next_state_(STATE_CHANGE_OPEN_SENSOR);
-
-    // Have to use the static cast because of the extra values that are used
-    switch (static_cast<uint8_t>(this->target_operation_))
+    if (this->get_internal_state_() == STATE_CLOSING)
     {
-      case COVER_OPERATION_OPENING:
-        this->target_operation_ = COVER_OPERATION_IDLE;
-        break;
-
-      case COVER_OPERATION_SET_POSITION:
-        this->target_operation_ = this->target_position_ == COVER_OPEN ? COVER_OPERATION_IDLE : COVER_OPERATION_CLOSING;
-        break;
-
-      case COVER_OPERATION_CLOSING:
-        this->target_operation_ = COVER_OPERATION_IDLE;
-        this->fire_homeassistant_event(this->get_event_(EVENT_FAILED_CLOSE));
-        break;
-
-      default:
-        break;
+      this->target_state_ = STATE_NONE;
+      this->fire_homeassistant_event(this->get_event_(EVENT_FAILED_CLOSE));
     }
+
+    this->change_to_next_state_(STATE_CHANGE_OPEN_SENSOR);
 
     return true;
   }
@@ -420,14 +351,14 @@ bool GarageDoorCover::check_for_position_update_()
 {
   float direction;
   uint32_t normal_duration;
-  switch (this->current_operation)
+  switch (this->get_internal_state_())
   {
-    case COVER_OPERATION_OPENING:
+    case STATE_OPENING:
       direction = 1.0f;
       normal_duration = NORMAL_OPEN_DURATION;
       break;
   
-    case COVER_OPERATION_CLOSING:
+    case STATE_CLOSING:
       direction = -1.0f;
       normal_duration = NORMAL_CLOSE_DURATION;
       break;
@@ -448,12 +379,9 @@ bool GarageDoorCover::check_for_position_update_()
   {
     this->position = clamp(this->position + (direction * (now - this->last_position_time_) / normal_duration), 0.01f, 0.99f);
     this->last_position_time_ = now;
-    if ((direction == 1.0f && this->position >= this->target_position_)
-      || (direction == -1.0f && this->position <= this->target_position_))
+    if (this->target_state_ == STATE_POSITION && this->position == this->target_position_)
     {
-      this->target_operation_ = COVER_OPERATION_IDLE;
-      this->change_to_next_state_();
-      return true;
+      return false;
     }
     else if (now - this->last_publish_time_ >= DOOR_MOVING_PUBLISH_INTERVAL) 
     {
@@ -465,6 +393,112 @@ bool GarageDoorCover::check_for_position_update_()
     {
       return false;
     }
+  }
+}
+
+bool GarageDoorCover::ensure_target_state_()
+{
+  if (!this->buzzer_->is_playing() && this->target_state_ != STATE_NONE)
+  {
+    InternalState current_state = this->get_internal_state_();
+    switch (this->target_state_)
+    {
+      case STATE_LOCKED:
+        if (current_state == STATE_MOVING || current_state == STATE_CLOSING)
+        {
+          return false;
+        }
+        else if (current_state == STATE_CLOSED)
+        {
+            this->set_internal_state_(STATE_LOCKED);
+            this->target_state_ = STATE_NONE;
+            return true;
+        }
+        else
+        {
+          this->change_to_next_state_();
+          return true;
+        }
+    
+      case STATE_CLOSED:
+        if (current_state == STATE_MOVING || current_state == STATE_CLOSING)
+        {
+          return false;
+        }
+        else if (current_state == STATE_LOCKED)
+        {
+            this->set_internal_state_(STATE_CLOSED);
+            this->target_state_ = STATE_NONE;
+            return true;
+        }
+        else
+        {
+          this->change_to_next_state_();
+          return true;
+        }
+
+      case STATE_OPEN:
+        if (current_state == STATE_MOVING || current_state == STATE_OPENING)
+        {
+          return false;
+        }
+        else
+        {
+          this->change_to_next_state_();
+          return true;
+        }
+        
+      case STATE_POSITION:
+        if (current_state == STATE_MOVING)
+        {
+          return false;
+        }
+        else if (this->position < this->target_position_ && current_state != STATE_OPENING)
+        {
+          this->change_to_next_state_();
+          return true;
+        }
+        else if (this->position > this->target_position_ && current_state != STATE_CLOSING)
+        {
+          this->change_to_next_state_();
+          return true;
+        }
+        else if (this->position == this->target_position_ && (current_state == STATE_OPENING || current_state == STATE_CLOSING))
+        {
+          this->change_to_next_state_();
+          this->target_state_ = STATE_NONE;
+          return true;
+        }
+        else if (this->position == this->target_position_)
+        {
+          this->target_state_ = STATE_NONE;
+          return true;
+        }
+        else
+        {
+          return false;
+        }
+        
+      case STATE_STOPPED:
+        if (this->current_operation != COVER_OPERATION_IDLE)
+        {
+          this->change_to_next_state_();
+          this->target_state_ = STATE_NONE;
+          return true;
+        }
+        else
+        {
+          this->target_state_ = STATE_NONE;
+          return false;
+        }
+
+      default:
+        return false;
+    }
+  }
+  else
+  {
+    return false;
   }
 }
 
@@ -599,13 +633,35 @@ void GarageDoorCover::change_to_next_state_(StateChangeType change_type)
   {
     case STATE_CHANGE_CLOSE_SENSOR:
       this->set_internal_state_(STATE_CLOSED);
+      if (HAS_INTERNAL_CLOSED_SENSOR)
+      {
+        return;
+      }
       break;
   
     case STATE_CHANGE_OPEN_SENSOR:
       this->set_internal_state_(STATE_OPEN);
+      if (HAS_INTERNAL_OPEN_SENSOR)
+      {
+        return;
+      }
       break;
+
+    case STATE_CHANGE_CANCEL_WARNING:
+      if (this->get_internal_state_() == STATE_CLOSE_WARNING)
+      {
+        this->buzzer_->stop();
+        this->set_internal_state_(this->position == COVER_OPEN ? STATE_OPEN : STATE_STOPPED_OPENING);
+        this->target_state_ = STATE_NONE;
+      }
+      return;
   
     default:
+      if (change_type == STATE_CHANGE_BUTTON)
+      {
+       this->target_state_ = STATE_NONE;
+      }
+
       switch (this->get_internal_state_())
       {
         case STATE_UNKNOWN:
@@ -629,7 +685,14 @@ void GarageDoorCover::change_to_next_state_(StateChangeType change_type)
           break;
 
         case STATE_STOPPED_OPENING:
-          this->set_internal_state_(change_type == STATE_CHANGE_BUTTON || this->target_operation_ == COVER_OPERATION_OPENING ? STATE_CLOSING : STATE_CLOSE_WARNING);
+          if (change_type == STATE_CHANGE_BUTTON || this->position > this->target_position_)
+          {
+            this->set_internal_state_(STATE_CLOSING);
+          }
+          else
+          {
+            this->set_internal_state_(STATE_CLOSE_WARNING);
+          }
           break;
 
         case STATE_OPEN:
@@ -639,9 +702,11 @@ void GarageDoorCover::change_to_next_state_(StateChangeType change_type)
         case STATE_CLOSE_WARNING:
           if (change_type == STATE_CHANGE_BUTTON)
           {
+            this->buzzer_->stop();
             this->set_internal_state_(this->position == COVER_OPEN ? STATE_OPEN : STATE_STOPPED_OPENING);
+            return;
           }
-          else if (this->target_operation_ == COVER_OPERATION_CLOSING && !this->buzzer_->is_playing())
+          else
           {
             this->set_internal_state_(STATE_CLOSING);
           }
@@ -659,28 +724,15 @@ void GarageDoorCover::change_to_next_state_(StateChangeType change_type)
           break;
       }
 
-      if (change_type == STATE_CHANGE_BUTTON)
+      if (this->get_internal_state_() == STATE_CLOSE_WARNING)
       {
-        this->target_operation_ = this->current_operation;
-        if (this->current_operation == COVER_OPERATION_OPENING)
-        {
-          this->target_position_ = COVER_OPEN;
-        }
-        else if (this->current_operation == COVER_OPERATION_CLOSING)
-        {
-          this->target_position_ = COVER_CLOSED;
-        }
+        this->buzzer_->play(CLOSE_WARNING_RTTTL);
       }
-
-      if (this->get_internal_state_() != STATE_CLOSE_WARNING)
+      else
       {
         // "Press" the control "button"
         this->control_pin_->digital_write(true);
         this->control_pin_active_time_ = millis();
-      }
-      else if (!this->buzzer_->is_playing())
-      {
-        this->buzzer_->play(CLOSE_WARNING_RTTTL);
       }
       break;
   }
@@ -708,14 +760,12 @@ void GarageDoorCover::set_internal_state_(InternalState state, bool is_initial_s
   if (state == STATE_UNKNOWN)
   {
     this->position = 0.5f;
-    this->target_operation_ = COVER_OPERATION_UNKNOWN;
-    this->current_operation = COVER_OPERATION_UNKNOWN;
+    this->current_operation = COVER_OPERATION_IDLE;
   }
   else if (state == STATE_MOVING)
   {
     this->position = 0.5f;
-    this->target_operation_ = COVER_OPERATION_SET_POSITION;
-    this->current_operation = COVER_OPERATION_SET_POSITION;
+    this->current_operation = COVER_OPERATION_CLOSING;
   }
   else if (state == STATE_LOCKED || state == STATE_CLOSED)
   {
@@ -800,31 +850,6 @@ const char *GarageDoorCover::internal_state_to_str_(InternalState state)
 
     default:
       return "INTERNAL_STATE_UNKNOWN";
-  }
-}
-
-const char *GarageDoorCover::operation_to_str_(cover::CoverOperation operation)
-{
-  // Have to use the static cast because of the extra values that are used
-  switch (static_cast<uint8_t>(operation))
-  {
-    case COVER_OPERATION_UNKNOWN:
-      return "UNKNOWN";
-  
-    case COVER_OPERATION_SET_POSITION:
-      return "SET_POSITION";
-  
-    case COVER_OPERATION_IDLE:
-      return "IDLE";
-  
-    case COVER_OPERATION_OPENING:
-      return "OPENING";
-  
-    case COVER_OPERATION_CLOSING:
-      return "CLOSING";
-  
-    default:
-      return "OPERATION_UNKNOWN";
   }
 }
 
