@@ -4,25 +4,25 @@ using namespace esphome;
 
 static const char* TAG = "NuttyGarageDoor";
 
-const bool HAS_INTERNAL_CLOSED_SENSOR = false;
+const bool HAS_INTERNAL_CLOSED_SENSOR = true;
 const bool HAS_INTERNAL_OPEN_SENSOR = true;
 
 // Open/Close durations used to determine position while opening/closing
-const uint32_t NORMAL_OPEN_DURATION = 20000;
-const uint32_t NORMAL_CLOSE_DURATION = 20000;
+const uint32_t NORMAL_OPEN_DURATION = 13000;
+const uint32_t NORMAL_CLOSE_DURATION = 12000;
 
 // Minimum number of milliseconds to keep the control pin active/inactive when changing states
 const uint32_t CONTROL_PIN_ACTIVE_DURATION = 200;
 const uint32_t CONTROL_PIN_INACTIVE_DURATION = 200;
 
 // Number of milliseconds between publishing the state while the door is opening or closing
-const uint32_t DOOR_MOVING_PUBLISH_INTERVAL = 500;
+const uint32_t DOOR_MOVING_PUBLISH_INTERVAL = 750;
 
 // Number of milliseconds between reads of the ADC to get local button state, this is needed to prevent wifi issues from reading to frequently
 const uint32_t LOCAL_BUTTON_READ_INTERVAL = 75;
 
 // Number of milliseconds to wait before checking the open/close sensors after starting to open/close the door to prevent false "failed" triggers
-const uint32_t SENSOR_READ_DELAY = 500;
+const uint32_t SENSOR_READ_DELAY = 1000;
 
 // Close warning
 const std::string CLOSE_WARNING_RTTTL = "Imperial:d=4, o=5, b=100:e, e, e, 8c, 16p, 16g, e, 8c, 16p, 16g, e, p, b, b, b, 8c6, 16p, 16g, d#, 8c, 16p, 16g, e, 8p";
@@ -404,6 +404,11 @@ bool GarageDoorCover::ensure_target_state_()
     switch (this->target_state_)
     {
       case STATE_LOCKED:
+        if (current_state == STATE_LOCKED)
+        {
+          this->target_state_ = STATE_NONE;
+          return false;
+        }
         if (current_state == STATE_MOVING || current_state == STATE_CLOSING)
         {
           return false;
@@ -411,7 +416,6 @@ bool GarageDoorCover::ensure_target_state_()
         else if (current_state == STATE_CLOSED)
         {
             this->set_internal_state_(STATE_LOCKED);
-            this->target_state_ = STATE_NONE;
             return true;
         }
         else
@@ -421,6 +425,11 @@ bool GarageDoorCover::ensure_target_state_()
         }
     
       case STATE_CLOSED:
+        if (current_state == STATE_CLOSED)
+        {
+          this->target_state_ = STATE_NONE;
+          return false;
+        }
         if (current_state == STATE_MOVING || current_state == STATE_CLOSING)
         {
           return false;
@@ -438,6 +447,11 @@ bool GarageDoorCover::ensure_target_state_()
         }
 
       case STATE_OPEN:
+        if (current_state == STATE_OPEN)
+        {
+          this->target_state_ = STATE_NONE;
+          return false;
+        }
         if (current_state == STATE_MOVING || current_state == STATE_OPENING)
         {
           return false;
