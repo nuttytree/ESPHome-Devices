@@ -326,7 +326,7 @@ void TuyaLightPlus::handle_tuya_datapoint(tuya::TuyaDatapoint datapoint)
   this->state_changed_at_ = millis();
 
   // If the remote values do not reflect the current values update and publish the values
-  if (this->state_->current_values != this->state_->remote_values)
+  if (this->state_->current_values.get_state() != this->state_->remote_values.get_state())
   {
     this->state_->remote_values = this->state_->current_values;
     this->state_->publish_state();
@@ -339,6 +339,9 @@ void TuyaLightPlus::handle_tuya_datapoint(tuya::TuyaDatapoint datapoint)
 void TuyaLightPlus::set_tuya_state(bool state)
 {
   this->tuya_state_ = state;
+
+  // In version 1.19.0 the code below needs to change to:
+  // this->parent_->set_datapoint_value(*this->switch_id_, state);
   tuya::TuyaDatapoint datapoint{};
   datapoint.id = *this->switch_id_;
   datapoint.type = tuya::TuyaDatapointType::BOOLEAN;
@@ -348,6 +351,8 @@ void TuyaLightPlus::set_tuya_state(bool state)
 
 void TuyaLightPlus::set_tuya_level(uint32_t level)
 {
+  // In version 1.19.0 the code below needs to change to:
+  // this->parent_->set_datapoint_value(*this->dimmer_id_, std::max(level, this->min_value_));
   tuya::TuyaDatapoint datapoint{};
   datapoint.id = *this->dimmer_id_;
   datapoint.type = tuya::TuyaDatapointType::INTEGER;
