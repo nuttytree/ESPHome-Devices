@@ -7,9 +7,9 @@ esphome:
     - ../custom/tuya_dimmer_as_binary_fan_output.h
 
 packages:
-  device_base: !include device_base.yaml
-
-<<: !include ../components/logger/logger_no_serial.yaml
+  base:   !include device_base.yaml
+  logger: !include logger/logger_no_serial.yaml
+  uart:   !include uart/tuya.yaml
 
 fan:
   - platform: binary
@@ -33,6 +33,3 @@ output:
       id: tuya_fan_output
 
 tuya:
-
-uart:
-  - !include ../components/uart/tuya.yaml

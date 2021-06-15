@@ -14,9 +14,9 @@ esphome:
   includes:
     - ../custom/scripture_of_the_day.h
 
-<<: !include ../components/wifi/wifi_dhcp.yaml
-
-<<: !include ../components/logger/logger.yaml
+packages:
+  wifi:   !include wifi/wifi_dhcp.yaml
+  logger: !include logger/logger.yaml
 
 custom_component:
 - lambda: |-
