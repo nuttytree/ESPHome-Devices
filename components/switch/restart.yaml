@@ -1,3 +1,0 @@
-platform: restart
-id: reboot
-name: Restart ${device_name}

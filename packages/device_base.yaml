@@ -12,24 +12,15 @@ esphome:
   arduino_version: latest
   build_path: ../build/${device_id}
 
-<<: !include ../components/wifi/wifi.yaml
+packages:
+  wifi:             !include wifi/wifi.yaml
+  api:              !include api/api.yaml
+  ota:              !include ota/ota.yaml
+  logger:           !include logger/logger.yaml
+  status_sensor:    !include binary_sensor/status.yaml
+  uptime_sensor:    !include sensor/uptime.yaml
+  wifi_sensor:      !include sensor/wifi.yaml
+  restart_switch:   !include switch/restart.yaml
+  version_sensor:   !include text_sensor/version.yaml
+  wifi_info_sensor: !include text_sensor/wifi_info.yaml
 
-<<: !include ../components/api/api.yaml
-
-<<: !include ../components/ota/ota.yaml
-
-<<: !include ../components/logger/logger.yaml
-
-binary_sensor:
-  - !include ../components/binary_sensor/status.yaml
-
-sensor:
-  - !include ../components/sensor/uptime.yaml
-  - !include ../components/sensor/wifi.yaml
-
-switch:
-  - !include ../components/switch/restart.yaml
-
-text_sensor:
-  - !include ../components/text_sensor/version.yaml
-  - !include ../components/text_sensor/wifi.yaml

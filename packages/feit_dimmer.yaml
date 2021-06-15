@@ -11,9 +11,9 @@ esphome:
       - script.execute: startup
 
 packages:
-  device_base: !include device_base.yaml
-
-<<: !include ../components/logger/logger_no_serial.yaml
+  base:   !include device_base.yaml
+  logger: !include logger/logger_no_serial.yaml
+  uart:   !include uart/tuya.yaml
 
 light:
   - platform: custom
@@ -41,6 +41,3 @@ light:
         default_transition_length: 0s
 
 tuya:
-
-uart:
-  - !include ../components/uart/tuya.yaml
