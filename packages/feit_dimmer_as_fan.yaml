@@ -17,6 +17,8 @@ fan:
     output: tuya_fan_output
     name: ${device_name}
 
+tuya:
+
 output:
   - platform: custom
     type: binary
@@ -31,5 +33,3 @@ output:
       return {TuyaFanOutput};
     outputs:
       id: tuya_fan_output
-
-tuya:

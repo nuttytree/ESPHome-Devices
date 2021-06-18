@@ -1,0 +1,16 @@
+substitutions:
+  device_id: computer_light
+  device_name: Computer Light
+  ip_address: !secret computer_light_ip
+  ota_pwd: !secret computer_light_ota_pwd
+  api_pwd: !secret computer_light_api_pwd
+  ap_wifi_pwd: !secret computer_light_ap_wifi_pwd
+  day_brightness: "1"
+  night_brightness: ".03"
+  day_auto_off_minutes: "0"
+  night_auto_off_minutes: "15"
+  linked_lights: ""
+  double_tap_while_off_stays_on: "true"
+
+packages:
+  feit_dimmer: !include ../packages/feit_dimmer_test.yaml

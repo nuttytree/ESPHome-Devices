@@ -1,6 +1,7 @@
 substitutions:
   platform: ESP8266
   board: esp01_1m
+  log_level: verbose
 
 esphome:
   includes:
@@ -10,10 +11,19 @@ esphome:
     then:
       - script.execute: startup
 
+external_components:
+  # - source: github://nuttytree/esphome@more-tuya-reliability-improvements
+  - source:
+      type: local
+      path: ../components 
+    components: [ tuya ]
+
 packages:
   base:   !include device_base.yaml
   logger: !include logger/logger_no_serial.yaml
   uart:   !include uart/tuya.yaml
+
+tuya:
 
 light:
   - platform: custom
@@ -39,5 +49,3 @@ light:
         name: ${device_name}
         gamma_correct: 1.0
         default_transition_length: 0s
-
-tuya:

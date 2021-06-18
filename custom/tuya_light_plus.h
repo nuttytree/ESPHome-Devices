@@ -4,6 +4,8 @@ using namespace esphome;
 
 #define DOUBLE_TAP_TIMEOUT 300
 
+static const char* TAG = "NuttyTuyaLight";
+
 class TuyaLightPlus : public Component, public light::LightOutput, public api::CustomAPIDevice
 {
   public:
@@ -235,14 +237,21 @@ void TuyaLightPlus::on_day_night_changed(std::string state)
 
 void TuyaLightPlus::handle_tuya_datapoint(tuya::TuyaDatapoint datapoint)
 {
+  ESP_LOGD(TAG, "Received Datapoint:");
   if (datapoint.id == *this->switch_id_)
   {
+    ESP_LOGD(TAG, "  Type: Switch");
+  
     // Light turned on
     if (datapoint.value_bool)
     {
+      ESP_LOGD(TAG, "  State: On");
+
       // Turned on with the physical button
       if (!this->tuya_state_)
       {
+        ESP_LOGD(TAG, "Turned on at device");
+
         if (this->has_double_tap_while_on_)
         {
           // We are in a double tap while on timeout period so this is a double tap
@@ -281,18 +290,25 @@ void TuyaLightPlus::handle_tuya_datapoint(tuya::TuyaDatapoint datapoint)
         }
       
         // We got through all the double tap logic and the light is still on so update the Tuya state
+        ESP_LOGD(TAG, "Updating Tuya state to on");
         this->tuya_state_ = true;
       }
-
-      // Set the brightness to the correct level (it currently is at 0)
-      this->set_tuya_level(this->brightness_to_tuya_level(this->state_->current_values.get_brightness()));
+      else
+      {
+        // Set the brightness to the correct level (it currently is at 0)
+        this->set_tuya_level(this->brightness_to_tuya_level(this->state_->current_values.get_brightness()));
+      }
     }
     // Light turned off
     else
     {
+      ESP_LOGD(TAG, "  State: Off");
+
       // Turned off with physical button
       if (this->tuya_state_)
       {
+        ESP_LOGD(TAG, "Turned off at device");
+
         if (has_double_tap_while_on_)
         {
           // Start the double tap while on timeout
@@ -300,21 +316,28 @@ void TuyaLightPlus::handle_tuya_datapoint(tuya::TuyaDatapoint datapoint)
         }
 
         // Update the Tuya state
+        ESP_LOGD(TAG, "Updating Tuya state to off");
         this->tuya_state_ = false;
       }
 
       // Set the Tuya level to 0 to prevent flashes during double taps
+      ESP_LOGD(TAG, "Updating Tuya level to 0");
       this->set_tuya_level(0);
 
       // Set the current brightness to the default so that it will turn on at the default brightness
+      ESP_LOGD(TAG, "Updating brightness state to default");
       this->state_->current_values.set_brightness(this->default_brightness_);
     }
 
     // Update the current values state
+    ESP_LOGD(TAG, "Updating state to new value");
     this->state_->current_values.set_state(this->tuya_state_);
   }
   else if (datapoint.id == *this->dimmer_id_)
   {
+    ESP_LOGD(TAG, "  Type: Brightness");
+    ESP_LOGD(TAG, "  Value: %u", datapoint.value_uint);
+
     // Only react to dimmer level changes if the light is on
     if(this->tuya_state_)
     {
@@ -326,13 +349,16 @@ void TuyaLightPlus::handle_tuya_datapoint(tuya::TuyaDatapoint datapoint)
   this->state_changed_at_ = millis();
 
   // If the remote values do not reflect the current values update and publish the values
-  if (this->state_->current_values.get_state() != this->state_->remote_values.get_state())
+  if (this->state_->current_values.get_state() != this->state_->remote_values.get_state()
+    || this->state_->current_values.get_brightness() != this->state_->remote_values.get_brightness())
   {
+    ESP_LOGD(TAG, "Publishing new state");
     this->state_->remote_values = this->state_->current_values;
     this->state_->publish_state();
   }
 
   // Update any linked lights
+  ESP_LOGD(TAG, "Updating linked lights");
   this->update_linked_lights();
 }
 
@@ -340,24 +366,12 @@ void TuyaLightPlus::set_tuya_state(bool state)
 {
   this->tuya_state_ = state;
 
-  // In version 1.19.0 the code below needs to change to:
-  // this->parent_->set_datapoint_value(*this->switch_id_, state);
-  tuya::TuyaDatapoint datapoint{};
-  datapoint.id = *this->switch_id_;
-  datapoint.type = tuya::TuyaDatapointType::BOOLEAN;
-  datapoint.value_bool = state;
-  this->parent_->set_datapoint_value(datapoint);
+  this->parent_->set_datapoint_value(*this->switch_id_, state);
 }
 
 void TuyaLightPlus::set_tuya_level(uint32_t level)
 {
-  // In version 1.19.0 the code below needs to change to:
-  // this->parent_->set_datapoint_value(*this->dimmer_id_, std::max(level, this->min_value_));
-  tuya::TuyaDatapoint datapoint{};
-  datapoint.id = *this->dimmer_id_;
-  datapoint.type = tuya::TuyaDatapointType::INTEGER;
-  datapoint.value_uint = std::max(level, this->min_value_);
-  this->parent_->set_datapoint_value(datapoint);
+  this->parent_->set_datapoint_value(*this->dimmer_id_, std::max(level, this->min_value_));
 }
 
 void TuyaLightPlus::update_linked_lights()
