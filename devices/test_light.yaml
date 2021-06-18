@@ -1,6 +1,6 @@
 substitutions:
-  device_id: computer_light
-  device_name: Computer Light
+  device_id: test_light
+  device_name: Test Light
   ip_address: !secret computer_light_ip
   ota_pwd: !secret computer_light_ota_pwd
   api_pwd: !secret computer_light_api_pwd

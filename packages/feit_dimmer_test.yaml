@@ -24,3 +24,5 @@ light:
     switch_datapoint: 1
     dimmer_datapoint: 2
     max_value: 1000
+    default_day_brightness: ${day_brightness}
+    default_night_brightness: ${night_brightness}
