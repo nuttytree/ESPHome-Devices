@@ -24,5 +24,13 @@ light:
     switch_datapoint: 1
     dimmer_datapoint: 2
     max_value: 1000
-    default_day_brightness: ${day_brightness}
-    default_night_brightness: ${night_brightness}
+    default_transition_length: 1min
+    day_night:
+      sensor_id: sensor.day_night
+      sensor_type: text
+      sensor_day_value: Day
+      sensor_night_value: Night
+      day_default_brightness: ${day_brightness}
+      night_default_brightness: ${night_brightness}
+      day_auto_off_time: ${day_auto_off_minutes}min
+      night_auto_off_time: ${night_auto_off_minutes}min
