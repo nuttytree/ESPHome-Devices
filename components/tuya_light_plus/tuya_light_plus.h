@@ -48,9 +48,9 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
   void on_day_night_changed_(std::string state);
 
   Tuya *parent_;
+  optional<uint8_t> switch_id_{};
   optional<uint8_t> dimmer_id_{};
   optional<uint8_t> min_value_datapoint_id_{};
-  optional<uint8_t> switch_id_{};
   uint32_t min_value_ = 0;
   uint32_t max_value_ = 255;
   light::LightState *state_{nullptr};
