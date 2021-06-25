@@ -21,8 +21,8 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
   void set_dimmer_id(uint8_t dimmer_id) { this->dimmer_id_ = dimmer_id; }
   void set_min_value_datapoint_id(uint8_t min_value_datapoint_id) { this->min_value_datapoint_id_ = min_value_datapoint_id; }
   void set_tuya_parent(Tuya *parent) { this->parent_ = parent; }
-  void set_min_value(uint32_t min_value) { min_value_ = min_value; }
-  void set_max_value(uint32_t max_value) { max_value_ = max_value; }
+  void set_min_value(uint32_t min_value) { this->min_value_ = min_value; }
+  void set_max_value(uint32_t max_value) { this->max_value_ = max_value; }
   light::LightTraits get_traits() override;
   void setup_state(light::LightState *state) override;
   void write_state(light::LightState *state) override;
@@ -65,6 +65,7 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
   optional<float> night_default_brightness_{};
   optional<uint32_t> day_auto_off_time_{};
   optional<uint32_t> night_auto_off_time_{};
+  bool tuya_state_is_on_{false};
   long last_state_change_ = 0;
 };
 

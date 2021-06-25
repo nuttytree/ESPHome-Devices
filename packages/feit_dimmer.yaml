@@ -1,22 +1,14 @@
 substitutions:
   platform: ESP8266
   board: esp01_1m
-  log_level: verbose
-
-esphome:
-  includes:
-    - ../custom/tuya_light_plus.h
-  on_boot:
-    priority: -100
-    then:
-      - script.execute: startup
+  # log_level: verbose
 
 external_components:
   # - source: github://nuttytree/esphome@more-tuya-reliability-improvements
   - source:
       type: local
       path: ../components 
-    components: [ tuya ]
+    components: [ tuya, tuya_light_plus ]
 
 packages:
   base:   !include device_base.yaml
@@ -26,26 +18,18 @@ packages:
 tuya:
 
 light:
-  - platform: custom
-    lambda: |-
-      TuyaLight = new TuyaLightPlus();
-      TuyaLight->set_switch_id(1);
-      TuyaLight->set_dimmer_id(2);
-      TuyaLight->set_min_value(0);
-      TuyaLight->set_max_value(1000);
-      TuyaLight->set_tuya_parent(tuya_tuya);
-      TuyaLight->set_day_night_sensor("sensor.day_night");
-      TuyaLight->set_day_default_brightness(${day_brightness});
-      TuyaLight->set_night_default_brightness(${night_brightness});
-      TuyaLight->set_day_auto_off_minutes(${day_auto_off_minutes});
-      TuyaLight->set_night_auto_off_minutes(${night_auto_off_minutes});
-      TuyaLight->set_api_server(api_apiserver);
-      TuyaLight->set_linked_lights("${linked_lights}");
-      TuyaLight->set_double_tap_while_off_stays_on(${double_tap_while_off_stays_on});
-      App.register_component(TuyaLight);
-      return {TuyaLight};
-    lights:
-      - id: tuya_light
-        name: ${device_name}
-        gamma_correct: 1.0
-        default_transition_length: 0s
+  - platform: tuya_light_plus
+    id: tuya_light
+    name: ${device_name}
+    switch_datapoint: 1
+    dimmer_datapoint: 2
+    max_value: 1000
+    day_night:
+      sensor_id: sensor.day_night
+      sensor_type: text
+      sensor_day_value: Day
+      sensor_night_value: Night
+      day_default_brightness: ${day_brightness}
+      night_default_brightness: ${night_brightness}
+      day_auto_off_time: ${day_auto_off_minutes}min
+      night_auto_off_time: ${night_auto_off_minutes}min

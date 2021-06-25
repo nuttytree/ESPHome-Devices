@@ -6,7 +6,7 @@ substitutions:
   api_pwd: !secret office_light_api_pwd
   ap_wifi_pwd: !secret office_light_ap_wifi_pwd
   day_brightness: "1"
-  night_brightness: ".03"
+  night_brightness: ".01"
   day_auto_off_minutes: "0"
   night_auto_off_minutes: "15"
   linked_lights: ""

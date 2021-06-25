@@ -77,6 +77,7 @@ class Tuya : public Component, public uart::UARTDevice {
   void register_listener(uint8_t datapoint_id, const std::function<void(TuyaDatapoint)> &func);
   void set_datapoint_value(uint8_t datapoint_id, uint32_t value);
   void set_datapoint_value(uint8_t datapoint_id, std::string value);
+  void set_datapoint_value(uint8_t datapoint_id, bool value);
 #ifdef USE_TIME
   void set_time_id(time::RealTimeClock *time_id) { this->time_id_ = time_id; }
 #endif
