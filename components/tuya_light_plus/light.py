@@ -1,3 +1,4 @@
+from typing import Optional
 from esphome import core
 from esphome.components import light
 import esphome.config_validation as cv
@@ -19,6 +20,7 @@ CONF_DIMMER_DATAPOINT = "dimmer_datapoint"
 CONF_MIN_VALUE_DATAPOINT = "min_value_datapoint"
 CONF_DEFAULT_BRIGHTNESS = "default_brightness"
 CONF_AUTO_OFF_TIME = "auto_off_time"
+CONF_LINKED_LIGHTS = "linked_lights"
 CONF_DAY_NIGHT = "day_night"
 CONF_SENSOR_TYPE = "sensor_type"
 CONF_SENSOR_DAY_VALUE = "sensor_day_value"
@@ -64,6 +66,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_MAX_VALUE): cv.int_,
             cv.Optional(CONF_DEFAULT_BRIGHTNESS): cv.float_range(.01, 1.0),
             cv.Optional(CONF_AUTO_OFF_TIME): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_LINKED_LIGHTS): cv.ensure_list(cv.entity_id),
             cv.Optional(CONF_DAY_NIGHT): DAY_NIGHT_SCHEMA,
             # Change the default gamma_correct and default transition length settings.
             # The Tuya MCU handles transitions and gamma correction on its own.
