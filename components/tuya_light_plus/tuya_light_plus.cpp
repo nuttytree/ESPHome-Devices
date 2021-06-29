@@ -121,8 +121,8 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
       this->call_homeassistant_service(
         "light.turn_on",
         {
-          {"entity_id", *this->linked_lights_ },
-          {"brightness", this->brightness_pct_() },
+          { "entity_id", *this->linked_lights_ },
+          { "brightness", to_string(static_cast<uint32_t>(this->state_->current_values.get_brightness() * 255)) },
         });
     }
     else
@@ -130,7 +130,7 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
       this->call_homeassistant_service(
         "light.turn_off",
         {
-          {"entity_id", *this->linked_lights_ },
+          { "entity_id", *this->linked_lights_ },
         });
     }
   }

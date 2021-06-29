@@ -30,7 +30,7 @@ light:
     dimmer_datapoint: 2
     max_value: 1000
     linked_lights:
-      - light.basement_stair_lights_1
+      - light.basement_stair_lights
     day_night:
       sensor_id: sensor.day_night
       sensor_type: text

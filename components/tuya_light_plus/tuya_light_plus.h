@@ -44,7 +44,6 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
  protected:
   float tuya_level_to_brightness_(uint32_t level) { return static_cast<float>(level) / static_cast<float>(this->max_value_); }
   uint32_t brightness_to_tuya_level_(float brightness) { return static_cast<uint32_t>(brightness * this->max_value_); }
-  std::string brightness_pct_() { return to_string(static_cast<uint32_t>(this->state_->current_values.get_brightness() * 100)); }
   void handle_tuya_datapoint_(TuyaDatapoint datapoint);
   void on_day_night_changed_(std::string state);
 
