@@ -5,17 +5,24 @@ substitutions:
   ota_pwd: !secret kitchen_bar_lights_ota_pwd
   api_pwd: !secret kitchen_bar_lights_api_pwd
   ap_wifi_pwd: !secret kitchen_bar_lights_ap_wifi_pwd
-  day_brightness: "1"
-  night_brightness: ".03"
-  day_auto_off_minutes: "0"
-  night_auto_off_minutes: "15"
-  linked_lights: ""
-  double_tap_while_off_stays_on: "true"
-
-script:
-  - id: startup
-    then:
-      - lambda: |-
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml
+
+light:
+  - platform: tuya_light_plus
+    id: tuya_light
+    name: ${device_name}
+    switch_datapoint: 1
+    dimmer_datapoint: 2
+    max_value: 1000
+    linked_lights:
+    day_night:
+      sensor_id: sensor.day_night
+      sensor_type: text
+      sensor_day_value: Day
+      sensor_night_value: Night
+      day_default_brightness: 1
+      night_default_brightness: .01
+      day_auto_off_time: 0 min
+      night_auto_off_time: 15 min

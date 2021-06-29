@@ -6,11 +6,6 @@ substitutions:
   api_pwd: !secret computer_light_api_pwd
   ap_wifi_pwd: !secret computer_light_ap_wifi_pwd
 
-script:
-  - id: startup
-    then:
-      - lambda: |-
-
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml
 
