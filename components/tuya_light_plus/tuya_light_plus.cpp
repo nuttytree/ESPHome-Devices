@@ -113,6 +113,27 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
 
   this->state_->remote_values = this->state_->current_values;
   this->state_->publish_state();
+
+  if (this->linked_lights_.has_value())
+  {
+    if (this->state_->current_values.is_on())
+    {
+      this->call_homeassistant_service(
+        "light.turn_on",
+        {
+          {"entity_id", *this->linked_lights_ },
+          {"brightness", this->brightness_pct_() },
+        });
+    }
+    else
+    {
+      this->call_homeassistant_service(
+        "light.turn_off",
+        {
+          {"entity_id", *this->linked_lights_ },
+        });
+    }
+  }
 }
 
 void TuyaLightPlus::on_day_night_changed_(std::string state)

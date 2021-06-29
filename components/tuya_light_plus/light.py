@@ -96,6 +96,8 @@ async def to_code(config):
         cg.add(var.set_default_brightness(config[CONF_DEFAULT_BRIGHTNESS]))
     if CONF_AUTO_OFF_TIME in config:
         cg.add(var.set_auto_off_time(config[CONF_AUTO_OFF_TIME]))
+    if CONF_LINKED_LIGHTS in config and len(config[CONF_LINKED_LIGHTS]) > 0:
+        cg.add(var.set_linked_lights(",".join(config[CONF_LINKED_LIGHTS])))
     if CONF_DAY_NIGHT in config:
         day_night = config[CONF_DAY_NIGHT]
         cg.add(var.set_day_night_sensor(day_night[CONF_SENSOR_ID]))

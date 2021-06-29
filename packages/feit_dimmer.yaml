@@ -1,7 +1,6 @@
 substitutions:
   platform: ESP8266
   board: esp01_1m
-  # log_level: verbose
 
 external_components:
   # - source: github://nuttytree/esphome@more-tuya-reliability-improvements
@@ -16,23 +15,3 @@ packages:
   uart:   !include uart/tuya.yaml
 
 tuya:
-
-light:
-  - platform: tuya_light_plus
-    id: tuya_light
-    name: ${device_name}
-    switch_datapoint: 1
-    dimmer_datapoint: 2
-    max_value: 1000
-    linked_lights:
-      - light.test
-      - light.another
-    day_night:
-      sensor_id: sensor.day_night
-      sensor_type: text
-      sensor_day_value: Day
-      sensor_night_value: Night
-      day_default_brightness: ${day_brightness}
-      night_default_brightness: ${night_brightness}
-      day_auto_off_time: ${day_auto_off_minutes}min
-      night_auto_off_time: ${night_auto_off_minutes}min

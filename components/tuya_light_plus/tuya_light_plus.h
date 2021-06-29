@@ -28,6 +28,7 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
   void write_state(light::LightState *state) override;
   void loop() override;
 
+  void set_linked_lights(const std::string linked_lights) { this->linked_lights_ = linked_lights; }
   void set_day_night_sensor(const std::string day_night_sensor) { this->day_night_sensor_ = day_night_sensor; }
   void set_day_night_sensor_type(DayNightSensorType day_night_sensor_type) { this->day_night_sensor_type_ = day_night_sensor_type; }
   void set_day_night_day_value(const std::string day_night_day_value) { this->day_night_day_value_ = day_night_day_value; }
@@ -43,7 +44,7 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
  protected:
   float tuya_level_to_brightness_(uint32_t level) { return static_cast<float>(level) / static_cast<float>(this->max_value_); }
   uint32_t brightness_to_tuya_level_(float brightness) { return static_cast<uint32_t>(brightness * this->max_value_); }
-  float brightness_pct_() { return static_cast<uint32_t>(this->state_->current_values.get_brightness() * 100); }
+  std::string brightness_pct_() { return to_string(static_cast<uint32_t>(this->state_->current_values.get_brightness() * 100)); }
   void handle_tuya_datapoint_(TuyaDatapoint datapoint);
   void on_day_night_changed_(std::string state);
 
@@ -57,6 +58,7 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
 
   optional<float> default_brightness_{};
   optional<uint32_t> auto_off_time_{};
+  optional<std::string> linked_lights_;
   optional<std::string> day_night_sensor_{};
   optional<DayNightSensorType> day_night_sensor_type_{};
   optional<std::string> day_night_day_value_{};
