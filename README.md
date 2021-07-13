@@ -16,6 +16,9 @@ This is a copy of the standard Tuya component with a couple of fixes/tweaks that
 ### Tuya Light Plus
 This an enhanced version of the standard [Tuya](https://esphome.io/components/light/tuya.html) light component that adds a bunch of extra features. I use this component with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) but it will likely work with other Tuya dimmers. More details on features and how to use this component are available [here](./components/tuya_light_plus/README.md).
 
+### Tuya Dimmer as Fan
+This a modified version of the Tuya fan component I use with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) (but it will likely work with other Tuya dimmers) to control bathroom fans. The major change from the standard Tuya fan component (other than removing options for speed, oscillation, and direction) is adding a function to always change the dimmer back to the maximum "brightness" effectively making this only an on/off device. Details on how to use this component are available [here](./components/tuya_dimmer_as_fan/README.md).
+
 
 ## Misc Devices
 ### [Basement Bathroom Sensor](./devices/basement_bathroom_sensor.yaml)
@@ -82,10 +85,7 @@ All of my dimmers are using my custom [Tuya Light Plus](./components/tuya_light_
 * [Master Bathroom Lights](./devices/master_bath_lights_1.yaml)/[Master Bathroom Lights 2](./devices/master_bath_lights_2.yaml)
 * [Office Light](./devices/office_light.yaml)
 
-## Dimmer Switches as On/Off Switches
+## Dimmer Switches as On/Off Fan Switches
 ### [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1)
-I tried to find an on/off switch that looked/felt like the Feit dimmers but didn't find anything so I decided to use the Feit dimmers as switches.
-
-#### Fans
-I created a custom [tuya_dimmer_as_binary_fan_output.h](./custom/tuya_dimmer_as_binary_fan_output.h) component that prevents the dimmer from being dimmed (always changes it right back to 100%) and can report the change in on/off status back to a fan component.
+I tried to find an on/off switch that looked/felt like the Feit dimmers to use for controlling bathroom fans but didn't find anything so I decided to use the Feit dimmers. I don't want the fans "dimmable" so I created a custom [Tuya Dimmer as Fan](./components/tuya_dimmer_as_fan/README.md) component that changes the "brightness" back to the maximum value if changed at the switch.
 * [Master Bath Fan](./devices/master_bath_fan.yaml)
