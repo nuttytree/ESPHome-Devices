@@ -61,12 +61,13 @@ This is installed in place of the switch that controled my [TREO LED Pool Lights
 * [Patio and Pool Lights](./devices/patio_and_pool_lights.yaml)
 
 ## Dimmer Switches
-### [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1)
-After trying several dimmers I finally decided to standardize on the Feit dimmers.  I bought the first couple of these at Costco for a better price than Amazon but Costco doesn't seem to carry them anymore.  
+### [Feit Dimmers](https://www.feit.com/product/smart-wi-fi-dimmer/)
+After trying several dimmers I finally decided to standardize on the Feit dimmers.  
 Things I like about these dimmers:
 * ~~Can be flashed using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert)~~ Unfortunately Feit has started shipping these with updated firmware that does not currently work with Tuya Convert. Hopefully the excellent Tuya Convert team can figure out how to work around the new firmware. Until then I did find this [tutorial](https://community.smartthings.com/t/costco-cheap-feit-smart-dimmer-wifi/208142) on flashing these devices (I have not tried this yet).
 * Have a solid feel to them
 * They can be linked via a traveler wire (this works even when flashed with ESPHome and while not mentioned in the documentation you can link more than 2 switches this way)
+* Are readily available from [Amazon](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) or [Costco](https://www.costco.com/feit-electric-smart-dimmer%2c-3-pack.product.100518151.html) for an affordable price.
   
 Things I don't like about these dimmers:
 * Have to click repeatedly to change the brightness (can't hold to change)
