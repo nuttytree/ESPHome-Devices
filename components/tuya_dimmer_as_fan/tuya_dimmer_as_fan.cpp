@@ -20,14 +20,14 @@ void TuyaDimmerAsFan::setup() {
   this->parent_->register_listener(*this->dimmer_id_, [this](const TuyaDatapoint &datapoint) {
     if (datapoint.value_int != this->dimmer_max_value_)
     {
-      this->parent_->set_datapoint_value(*this->dimmer_id_, this->dimmer_max_value_);
+      this->parent_->set_integer_datapoint_value(*this->dimmer_id_, this->dimmer_max_value_);
     }
   });
 
-  this->fan_->add_on_state_callback([this]() { this->parent_->set_datapoint_value(*this->switch_id_, this->fan_->state); });
+  this->fan_->add_on_state_callback([this]() { this->parent_->set_boolean_datapoint_value(*this->switch_id_, this->fan_->state); });
 
   // Make sure we start at the max value
-  this->parent_->set_datapoint_value(*this->dimmer_id_, this->dimmer_max_value_);
+  this->parent_->set_integer_datapoint_value(*this->dimmer_id_, this->dimmer_max_value_);
 }
 
 void TuyaDimmerAsFan::dump_config() {

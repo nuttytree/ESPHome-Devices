@@ -12,7 +12,7 @@ void TuyaLightPlus::setup()
   this->parent_->register_listener(*this->switch_id_, [this](tuya::TuyaDatapoint datapoint) { this->handle_tuya_datapoint_(datapoint); });
   this->parent_->register_listener(*this->dimmer_id_, [this](tuya::TuyaDatapoint datapoint) { this->handle_tuya_datapoint_(datapoint); });
   if (this->min_value_datapoint_id_.has_value()) {
-    this->parent_->set_datapoint_value(*this->min_value_datapoint_id_, this->min_value_);
+    this->parent_->set_integer_datapoint_value(*this->min_value_datapoint_id_, this->min_value_);
   }
 
   this->register_service(&TuyaLightPlus::set_default_brightness, "set_default_brightness", {"brightness"});
@@ -52,13 +52,13 @@ void TuyaLightPlus::write_state(light::LightState *state)
 
   if (brightness == 0.0f) {
     this->tuya_state_is_on_ = false;
-    this->parent_->set_datapoint_value(*this->switch_id_, false);
+    this->parent_->set_boolean_datapoint_value(*this->switch_id_, false);
   }
   else
   {
     this->tuya_state_is_on_ = true;
-    this->parent_->set_datapoint_value(*this->dimmer_id_, this->brightness_to_tuya_level_(brightness));
-    this->parent_->set_datapoint_value(*this->switch_id_, true);
+    this->parent_->set_integer_datapoint_value(*this->dimmer_id_, this->brightness_to_tuya_level_(brightness));
+    this->parent_->set_boolean_datapoint_value(*this->switch_id_, true);
   }
 }
 
@@ -134,7 +134,7 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
         {
           ESP_LOGD(TAG, "Switch was double clicked while on");
 
-          this->parent_->set_datapoint_value(*this->switch_id_, false);
+          this->parent_->set_boolean_datapoint_value(*this->switch_id_, false);
 
           this->double_click_while_on_timeout_ = 0;
           this->double_click_while_on_callback_.call();
@@ -149,7 +149,7 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
         if (this->double_click_while_off_timeout_ == 0)
         {
           // Turn the light back off and wait to see if we get a double click
-          this->parent_->set_datapoint_value(*this->switch_id_, false);
+          this->parent_->set_boolean_datapoint_value(*this->switch_id_, false);
           this->double_click_while_off_timeout_ = millis() + DOUBLE_CLICK_TIMEOUT;
           return;
         }
@@ -164,7 +164,7 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
           // Double click while off can be configured to result in the light being off or on
           if (this->double_click_while_off_stays_off_)
           {
-            this->parent_->set_datapoint_value(*this->switch_id_, false);
+            this->parent_->set_boolean_datapoint_value(*this->switch_id_, false);
             return;
           }
         }
@@ -173,7 +173,7 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
       // When the light is turned on at the switch the level of the Tuya device will stll be 0 so we set it to the current state value
       float brightness;
       this->state_->current_values_as_brightness(&brightness);
-      this->parent_->set_datapoint_value(*this->dimmer_id_, this->brightness_to_tuya_level_(brightness));
+      this->parent_->set_integer_datapoint_value(*this->dimmer_id_, this->brightness_to_tuya_level_(brightness));
     }
 
     // Turned off with the physical button
@@ -195,7 +195,7 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
     // default brightness set the current brightness value to the default so that if it is turned on remotely it will be at the default value
     if (!datapoint.value_bool)
     {
-      this->parent_->set_datapoint_value(*this->dimmer_id_, static_cast<uint32_t>(0));
+      this->parent_->set_integer_datapoint_value(*this->dimmer_id_, 0);
       if (this->default_brightness_.has_value())
       {
         this->state_->current_values.set_brightness(*this->default_brightness_);
