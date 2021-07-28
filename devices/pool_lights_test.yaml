@@ -1,0 +1,24 @@
+substitutions:
+  device_id: pool_and_patio_lights
+  device_name: Pool and Patio Lights
+  platform: ESP8266
+  board: esp01_1m
+  ip_address: !secret pool_and_patio_lights_ip
+  ota_pwd: !secret pool_and_patio_lights_ota_pwd
+  api_pwd: !secret pool_and_patio_lights_api_pwd
+  ap_wifi_pwd: !secret pool_and_patio_lights_ap_wifi_pwd
+
+packages:
+  device_base: !include ../packages/device_base.yaml
+
+external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ treo_led_pool_light ]
+
+light:
+  - id: pool_lights
+    name: "Pool Lights"
+    platform: treo_led_pool_light
+    pin: 15
