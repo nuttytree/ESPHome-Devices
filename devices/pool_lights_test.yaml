@@ -17,6 +17,13 @@ external_components:
       path: ../components 
     components: [ treo_led_pool_light ]
 
+script:
+  - id: double_click
+    then:
+      - light.turn_off: pool_lights
+      - delay: 2s
+      - light.turn_on: pool_lights
+
 light:
   - id: pool_lights
     name: "Pool Lights"
