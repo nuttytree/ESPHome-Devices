@@ -12,9 +12,7 @@ packages:
   device_base: !include ../packages/device_base.yaml
 
 external_components:
-  - source:
-      type: local
-      path: ../../ESPSense/components 
+  - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
 binary_sensor:

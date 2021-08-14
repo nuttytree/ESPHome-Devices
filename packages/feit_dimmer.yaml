@@ -7,9 +7,7 @@ external_components:
       type: local
       path: ../components 
     components: [ tuya, tuya_light_plus ]
-  - source:
-      type: local
-      path: ../../ESPSense/components 
+  - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
 espsense:

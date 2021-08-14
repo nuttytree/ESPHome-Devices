@@ -7,9 +7,7 @@ external_components:
       type: local
       path: ../components 
     components: [ tuya, tuya_dimmer_as_fan ]
-  - source:
-      type: local
-      path: ../../ESPSense/components 
+  - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
 packages:

@@ -23,7 +23,7 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
   void set_tuya_parent(Tuya *parent) { this->parent_ = parent; }
   void set_min_value(uint32_t min_value) { this->min_value_ = min_value; }
   void set_max_value(uint32_t max_value) { this->max_value_ = max_value; }
-  void set_load_wattage(float load_wattage) { this->load_wattage_ = load_wattage; }
+  void set_light_wattage(float light_wattage) { this->light_wattage_ = light_wattage; }
   void set_power_sensor(sensor::Sensor *power_sensor) { this->power_sensor_ = power_sensor; }
   light::LightTraits get_traits() override;
   void setup_state(light::LightState *state) override;
@@ -73,7 +73,7 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
   optional<float> night_default_brightness_{};
   optional<uint32_t> day_auto_off_time_{};
   optional<uint32_t> night_auto_off_time_{};
-  optional<float> load_wattage_{};
+  optional<float> light_wattage_{};
   sensor::Sensor *power_sensor_;
   CallbackManager<void()> double_click_while_off_callback_{};
   CallbackManager<void()> double_click_while_on_callback_{};

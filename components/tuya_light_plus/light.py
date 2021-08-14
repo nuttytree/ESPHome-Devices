@@ -38,7 +38,7 @@ CONF_NIGHT_AUTO_OFF_TIME = "night_auto_off_time"
 CONF_ON_DOUBLE_CLICK_WHILE_OFF = "on_double_click_while_off"
 CONF_DOUBLE_CLICK_WHILE_OFF_STAYS_OFF = "double_click_while_off_stays_off"
 CONF_ON_DOUBLE_CLICK_WHILE_ON = "on_double_click_while_on"
-CONF_LOAD_WATTAGE = "load_wattage"
+CONF_LIGHT_WATTAGE = "light_wattage"
 
 tuya_ns = cg.esphome_ns.namespace("tuya")
 api_ns = cg.esphome_ns.namespace("api")
@@ -103,7 +103,7 @@ CONFIG_SCHEMA = cv.All(
                 icon_=ICON_POWER,
             ).extend(
                 {
-                    cv.Optional(CONF_LOAD_WATTAGE): cv.positive_float,
+                    cv.Optional(CONF_LIGHT_WATTAGE): cv.positive_float,
                 }
             ),
         }
@@ -164,7 +164,7 @@ async def to_code(config):
     if CONF_POWER in config:
         power_config = config[CONF_POWER]
         power_sensor = await sensor.new_sensor(power_config)
-        cg.add(var.set_load_wattage(power_config[CONF_LOAD_WATTAGE]))
+        cg.add(var.set_light_wattage(power_config[CONF_LIGHT_WATTAGE]))
         cg.add(var.set_power_sensor(power_sensor))
     paren = await cg.get_variable(config[CONF_TUYA_ID])
     cg.add(var.set_tuya_parent(paren))

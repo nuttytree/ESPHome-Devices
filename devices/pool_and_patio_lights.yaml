@@ -16,9 +16,7 @@ esphome:
     - ../custom/TreoLedPoolLight.h
 
 external_components:
-  - source:
-      type: local
-      path: ../../ESPSense/components 
+  - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
 binary_sensor:
