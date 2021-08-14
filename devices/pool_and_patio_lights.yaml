@@ -15,6 +15,10 @@ esphome:
   includes:
     - ../custom/TreoLedPoolLight.h
 
+external_components:
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
+
 binary_sensor:
   - platform: gpio
     id: patio_lights_button
@@ -54,6 +58,12 @@ binary_sensor:
       then:
         - switch.turn_off: patio_lights_indicator
 
+espsense:
+  plugs:
+    - name: Pool Lights
+      power_sensor: pool_light_power
+      voltage: 120
+
 light:
   - platform: custom
     lambda: |-
@@ -63,6 +73,27 @@ light:
     lights:
       - id: pool_lights
         name: "Pool Lights"
+        on_turn_on:
+          - sensor.template.publish:
+              id: pool_light_power
+              state: 10.0
+        on_turn_off:
+          - sensor.template.publish:
+              id: pool_light_power
+              state: 0.0
+
+sensor:
+  - platform: template
+    name: Pool Lights Power
+    id: pool_light_power
+    unit_of_measurement: W
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+  - platform: total_daily_energy
+    name: Pool Lights
+    power_id: pool_light_power
+    state_class: measurement
 
 status_led:
   pin:
@@ -73,3 +104,6 @@ switch:
   - platform: gpio
     id: patio_lights_indicator
     pin: 13
+
+time:
+  - platform: homeassistant

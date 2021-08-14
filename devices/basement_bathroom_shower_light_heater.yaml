@@ -11,6 +11,10 @@ substitutions:
 packages:
   device_base: !include ../packages/device_base.yaml
 
+external_components:
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
+
 binary_sensor:
   - platform: gpio
     id: light_button
@@ -29,11 +33,28 @@ binary_sensor:
       then:
         - switch.toggle: heater
 
+espsense:
+  plugs:
+    - name: Basement Bathroom Shower Light
+      power_sensor: light_power
+      voltage: 120
+    - name: Basement Bathroom Heater
+      power_sensor: heat_power
+      voltage: 120
+
 light:
   - platform: binary
     id: the_light
     name: "Basement Shower Light"
     output: light_output
+    on_turn_on:
+      - sensor.template.publish:
+          id: light_power
+          state: 11.5
+    on_turn_off:
+      - sensor.template.publish:
+          id: light_power
+          state: 0.0
 
 output:
   - platform: gpio
@@ -51,3 +72,38 @@ switch:
     name: "Basement Bathroom Heater"
     icon: mdi:radiator
     pin: 4
+    on_turn_on:
+      - sensor.template.publish:
+          id: heat_power
+          state: 500
+    on_turn_off:
+      - sensor.template.publish:
+          id: heat_power
+          state: 0.0
+
+sensor:
+  - platform: template
+    name: Basement Bathroom Shower Light
+    id: light_power
+    unit_of_measurement: W
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+  - platform: template
+    name: Basement Bathroom Heater
+    id: heat_power
+    unit_of_measurement: W
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+  - platform: total_daily_energy
+    name: Basement Bathroom Shower Light
+    power_id: light_power
+    state_class: measurement
+  - platform: total_daily_energy
+    name: Basement Bathroom Heater
+    power_id: heat_power
+    state_class: measurement
+
+time:
+  - platform: homeassistant

@@ -15,6 +15,12 @@ void TuyaDimmerAsFan::setup() {
     auto call = this->fan_->make_call();
     call.set_state(datapoint.value_bool);
     call.perform();
+
+    if (this->fan_wattage_.has_value() && this->power_sensor_ != nullptr)
+    {
+      float power = datapoint.value_bool ? this->fan_wattage_.value() : 0.0f;
+      this->power_sensor_->publish_state(power);
+    }
   });
 
   this->parent_->register_listener(*this->dimmer_id_, [this](const TuyaDatapoint &datapoint) {
