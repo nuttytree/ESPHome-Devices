@@ -1,6 +1,6 @@
 from typing import Optional
 from esphome import core
-from esphome.components import light
+from esphome.components import light, sensor
 import esphome.config_validation as cv
 import esphome.automation as auto
 import esphome.codegen as cg
@@ -12,6 +12,11 @@ from esphome.const import (
     CONF_DEFAULT_TRANSITION_LENGTH,
     CONF_SWITCH_DATAPOINT,
     CONF_SENSOR_ID,
+    CONF_POWER,
+    UNIT_WATT,
+    DEVICE_CLASS_POWER,
+    STATE_CLASS_MEASUREMENT,
+    ICON_POWER,
 )
 from esphome.components.tuya import CONF_TUYA_ID, Tuya
 
@@ -33,6 +38,7 @@ CONF_NIGHT_AUTO_OFF_TIME = "night_auto_off_time"
 CONF_ON_DOUBLE_CLICK_WHILE_OFF = "on_double_click_while_off"
 CONF_DOUBLE_CLICK_WHILE_OFF_STAYS_OFF = "double_click_while_off_stays_off"
 CONF_ON_DOUBLE_CLICK_WHILE_ON = "on_double_click_while_on"
+CONF_LOAD_WATTAGE = "load_wattage"
 
 tuya_ns = cg.esphome_ns.namespace("tuya")
 api_ns = cg.esphome_ns.namespace("api")
@@ -89,6 +95,17 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(
                 CONF_DEFAULT_TRANSITION_LENGTH, default="0s"
             ): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_POWER): sensor.sensor_schema(
+                unit_of_measurement_=UNIT_WATT,
+                accuracy_decimals_=1,
+                device_class_=DEVICE_CLASS_POWER,
+                state_class_=STATE_CLASS_MEASUREMENT,
+                icon_=ICON_POWER,
+            ).extend(
+                {
+                    cv.Optional(CONF_LOAD_WATTAGE): cv.positive_float,
+                }
+            ),
         }
     ).extend(cv.COMPONENT_SCHEMA),
 )
@@ -144,5 +161,10 @@ async def to_code(config):
     for conf in config.get(CONF_ON_DOUBLE_CLICK_WHILE_ON, []):
         trigger = cg.new_Pvariable(conf[CONF_ON_DOUBLE_CLICK_WHILE_ON], var)
         await auto.build_automation(trigger, [], conf)
+    if CONF_POWER in config:
+        power_config = config[CONF_POWER]
+        power_sensor = await sensor.new_sensor(power_config)
+        cg.add(var.set_load_wattage(power_config[CONF_LOAD_WATTAGE]))
+        cg.add(var.set_power_sensor(power_sensor))
     paren = await cg.get_variable(config[CONF_TUYA_ID])
     cg.add(var.set_tuya_parent(paren))

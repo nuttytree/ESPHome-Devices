@@ -1,6 +1,6 @@
 # Tuya Light Plus Component
 ## Overview
-This a modified version of the Tuya fan component I use with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) (but it will likely work with other Tuya dimmers) to control bathroom fans. The major change from the standard Tuya fan component (other than removing options for speed, oscillation, and direction) is adding a function to always change the dimmer back to the maximum "brightness" effectively making this only an on/off device.
+This a modified version of the Tuya fan component I use with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) (but it will likely work with other Tuya dimmers) to control bathroom fans. The major change from the standard Tuya fan component (other than removing options for speed, oscillation, and direction) is adding a function to always change the dimmer back to the maximum "brightness" effectively making this only an on/off device. Similar to the Tuya Light Plus component this component can also add a power sensor based on configured wattage of the fan, this could be done with a templat sensor and automations but it was easy to add here so I figured why not.
 
 
 ## Setup
@@ -29,6 +29,10 @@ fan:
     switch_datapoint: 1
     dimmer_datapoint: 2
     dimmer_max_value: 1000
+    power:
+      id: my_fan_power
+      name: My Fan Power
+      light_wattage: 21.6
 ```
 
 ## Configuration Variables
@@ -37,3 +41,6 @@ fan:
 * switch_datapoint (Required, int): The datapoint id number of the power switch.
 * dimmer_datapoint (Required, int): The datapoint id number of the dimmer value.
 * dimmer_max_value (Optional, int, default 255): The highest dimmer value allowed.
+* power.id (Optional, string) Manually specify the power sensor ID used for code generation.
+* power.name (Optional, string) The name for the power sensor.
+* power.fan_wattage (Optional, float) The total wattage of the fan(s) controled by this dimmer.

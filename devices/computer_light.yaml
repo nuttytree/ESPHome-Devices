@@ -26,3 +26,7 @@ light:
       night_default_brightness: 1
       day_auto_off_time: 0 min
       night_auto_off_time: 15 min
+    power:
+      id: power
+      name: ${device_name} Power
+      light_wattage: 11.8

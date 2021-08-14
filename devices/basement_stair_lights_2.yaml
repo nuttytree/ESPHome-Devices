@@ -15,7 +15,7 @@ script:
             entity_id: switch.basement_tv, switch.xbox, light.basement_tv, light.basement, light.bar, switch.pool_table_light, light.basement_bathroom_light, light.basement_shower_light
 
 packages:
-  feit_dimmer: !include ../packages/feit_dimmer.yaml
+  feit_dimmer: !include ../packages/feit_dimmer_without_power.yaml
 
 light:
   - platform: tuya_light_plus

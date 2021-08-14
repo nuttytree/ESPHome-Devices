@@ -11,6 +11,23 @@ substitutions:
 packages:
   device_base: !include ../packages/device_base.yaml
 
+external_components:
+  - source:
+      type: local
+      path: ../../ESPSense/components 
+    components: [ espsense ]
+
+espsense:
+  plugs:
+    - name: Pool Pump
+      power_sensor: pool_pump_power
+      current_sensor: pool_pump_current
+      voltage_sensor: voltage
+    - name: Pool Cleaner
+      power_sensor: pool_cleaner_power
+      current_sensor: pool_cleaner_current
+      voltage_sensor: voltage
+
 i2c:
   sda: GPIO12
   scl: GPIO14
@@ -19,10 +36,12 @@ sensor:
   - platform: ade7953
     voltage:
       name: ${device_name} Voltage
+      id: voltage
       filters:
         - multiply: 2
     current_a:
       name: Pool Cleaner Current
+      id: pool_cleaner_current
       filters:
         - lambda: |-
             // Filter the initial high current spike when the motor starts to prevent tripping the on_value_range logic
@@ -43,6 +62,7 @@ sensor:
           - switch.turn_off: pool_cleaner
     current_b:
       name: Pool Pump Current
+      id: pool_pump_current
       filters:
         - lambda: |-
             // Filter the initial high current spike when the motor starts to prevent tripping the on_value_range logic
@@ -63,10 +83,12 @@ sensor:
           - switch.turn_off: pool_pump
     active_power_a:
       name: Pool Cleaner Power
+      id: pool_cleaner_power
       filters:
         - lambda: "return x < .1 ? 0 : x * 2;"
     active_power_b:
       name: Pool Pump Power
+      id: pool_pump_power
       filters:
         - lambda: "return abs(x) < .1 ? 0 : abs(x) * 2;"
     update_interval: 2s
@@ -92,6 +114,14 @@ sensor:
     name: "Pool Mode Id"
     id: pool_mode_id
     internal: true
+  - platform: total_daily_energy
+    name: "Pool Pump Total Daily Energy"
+    power_id: pool_pump_power
+    state_class: "measurement"
+  - platform: total_daily_energy
+    name: "Pool Cleaner Total Daily Energy"
+    power_id: pool_cleaner_power
+    state_class: "measurement"
 
 status_led:
   pin:

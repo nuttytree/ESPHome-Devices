@@ -239,6 +239,12 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
         });
     }
   }
+
+  if (this->load_wattage_.has_value() && this->power_sensor_ != nullptr)
+  {
+    float power = this->state_->current_values.is_on() ? this->load_wattage_.value() : 0.0f;
+    this->power_sensor_->publish_state(power);
+  }
 }
 
 void TuyaLightPlus::on_day_night_changed_(std::string state)

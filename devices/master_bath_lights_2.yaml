@@ -7,7 +7,7 @@ substitutions:
   ap_wifi_pwd: !secret master_bath_lights_2_ap_wifi_pwd
 
 packages:
-  feit_dimmer: !include ../packages/feit_dimmer.yaml
+  feit_dimmer: !include ../packages/feit_dimmer_without_power.yaml
 
 light:
   - platform: tuya_light_plus

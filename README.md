@@ -19,6 +19,9 @@ This an enhanced version of the standard [Tuya](https://esphome.io/components/li
 ### Tuya Dimmer as Fan
 This a modified version of the Tuya fan component I use with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) (but it will likely work with other Tuya dimmers) to control bathroom fans. The major change from the standard Tuya fan component (other than removing options for speed, oscillation, and direction) is adding a function to always change the dimmer back to the maximum "brightness" effectively making this only an on/off device. Details on how to use this component are available [here](./components/tuya_dimmer_as_fan/README.md).
 
+### ESPSense
+This excellent component is not mine and doesn't live in this repository but most of my devices are using it so I felt it was worthy of a mention here. More details are available [here](https://github.com/cbpowell/ESPSense).
+
 
 ## Misc Devices
 ### [Basement Bathroom Sensor](./devices/basement_bathroom_sensor.yaml)

@@ -23,3 +23,7 @@ light:
     double_click_while_off_stays_off: false
     on_turn_off:
       - lambda: tuya_tuyalightplus->set_auto_off_time(30 * 60 * 1000);
+    power:
+      id: power
+      name: ${device_name} Power
+      light_wattage: 73.4

@@ -11,12 +11,48 @@ substitutions:
 packages:
   device_base: !include ../packages/device_base.yaml
 
+external_components:
+  - source:
+      type: local
+      path: ../../ESPSense/components 
+    components: [ espsense ]
+
+espsense:
+  plugs:
+    - name: Patio Lights
+      power_sensor: power
+      voltage: 120
+
 light:
   - platform: binary
     name: "Patio Lights"
     output: patio_lights_output
+    on_turn_on:
+      - sensor.template.publish:
+          id: power
+          state: 15.3
+    on_turn_off:
+      - sensor.template.publish:
+          id: power
+          state: 0.0
 
 output:
   - platform: gpio
     id: patio_lights_output
     pin: D1
+
+sensor:
+  - platform: template
+    name: Patio Lights Power
+    id: power
+    unit_of_measurement: W
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+  - platform: total_daily_energy
+    name: Patio Lights
+    power_id: power
+    state_class: measurement
+
+time:
+  - platform: homeassistant
