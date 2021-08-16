@@ -13,7 +13,7 @@ enum DayNightSensorType {
   TEXT,
 };
 
-class TuyaLightPlus : public Component, public light::LightOutput, public api::CustomAPIDevice {
+class TuyaLightPlus : public PollingComponent, public light::LightOutput, public api::CustomAPIDevice {
  public:
   void setup() override;
   void dump_config() override;
@@ -29,6 +29,7 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
   void setup_state(light::LightState *state) override;
   void write_state(light::LightState *state) override;
   void loop() override;
+  void update() override;
 
   void set_linked_lights(const std::string linked_lights) { this->linked_lights_ = linked_lights; }
   void set_day_night_sensor(const std::string day_night_sensor) { this->day_night_sensor_ = day_night_sensor; }

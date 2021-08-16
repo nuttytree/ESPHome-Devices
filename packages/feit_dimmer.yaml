@@ -22,9 +22,13 @@ packages:
   uart:   !include uart/tuya.yaml
 
 sensor:
-  - platform: total_daily_energy
+  - platform: integration
     name: ${device_name}
-    power_id: power
+    sensor: power
+    integration_method: left
+    time_unit: h
+    unit_of_measurement: Wh
+    device_class: energy
     state_class: measurement
 
 time:
