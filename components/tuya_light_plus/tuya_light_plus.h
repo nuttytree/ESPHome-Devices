@@ -1,9 +1,9 @@
 #pragma once
 
-#include "esphome/core/component.h"
 #include "esphome/components/tuya/tuya.h"
 #include "esphome/components/light/light_output.h"
 #include "esphome/components/api/custom_api_device.h"
+#include "esphome/core/component.h"
 
 namespace esphome {
 namespace tuya {
@@ -13,7 +13,7 @@ enum DayNightSensorType {
   TEXT,
 };
 
-class TuyaLightPlus : public PollingComponent, public light::LightOutput, public api::CustomAPIDevice {
+class TuyaLightPlus : public light::LightOutput, public PollingComponent, public api::CustomAPIDevice {
  public:
   void setup() override;
   void dump_config() override;

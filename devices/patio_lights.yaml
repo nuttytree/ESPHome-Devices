@@ -12,27 +12,27 @@ packages:
   device_base: !include ../packages/device_base.yaml
 
 external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ binary_light_with_power, total_daily_energy ]
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
 espsense:
   plugs:
-    - name: Patio Lights
+    - name: ${device_name}
       power_sensor: power
       voltage: 120
 
 light:
-  - platform: binary
-    name: "Patio Lights"
+  - platform: binary_light_with_power
+    name: ${device_name}
     output: patio_lights_output
-    on_turn_on:
-      - sensor.template.publish:
-          id: power
-          state: 15.3
-    on_turn_off:
-      - sensor.template.publish:
-          id: power
-          state: 0.0
+    power:
+      id: power
+      name: ${device_name} Power
+      light_wattage: 15.3
 
 output:
   - platform: gpio
@@ -40,17 +40,11 @@ output:
     pin: D1
 
 sensor:
-  - platform: template
-    name: Patio Lights Power
-    id: power
-    unit_of_measurement: W
-    device_class: power
-    state_class: measurement
-    accuracy_decimals: 1
   - platform: total_daily_energy
-    name: Patio Lights
+    name: ${device_name}
     power_id: power
-    state_class: measurement
+    method: left
+    min_save_interval: 10min
 
 time:
   - platform: homeassistant

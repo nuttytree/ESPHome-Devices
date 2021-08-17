@@ -12,12 +12,12 @@ packages:
   device_base: !include ../packages/device_base.yaml
 
 external_components:
-  - source: github://cbpowell/ESPSense
-    components: [ espsense ]
   - source:
       type: local
       path: ../components 
-    components: [ total_daily_energy ]
+    components: [ binary_light_with_power, total_daily_energy ]
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
 
 binary_sensor:
   - platform: gpio
@@ -50,18 +50,14 @@ fan:
     name: "Basement Bathroom Fan"
 
 light:
-  - platform: binary
+  - platform: binary_light_with_power
     id: the_light
     name: "Basement Bathroom Light"
     output: light_output
-    on_turn_on:
-      - sensor.template.publish:
-          id: light_power
-          state: 48.0
-    on_turn_off:
-      - sensor.template.publish:
-          id: light_power
-          state: 0.0
+    power:
+      id: light_power
+      name: Basement Bathroom Light Power
+      light_wattage: 48.0
 
 output:
   - platform: gpio
@@ -77,13 +73,6 @@ status_led:
     inverted: true
 
 sensor:
-  - platform: template
-    name: Basement Bathroom Light Power
-    id: light_power
-    unit_of_measurement: W
-    device_class: power
-    state_class: measurement
-    accuracy_decimals: 1
   - platform: total_daily_energy
     name: Basement Bathroom Light
     power_id: light_power
