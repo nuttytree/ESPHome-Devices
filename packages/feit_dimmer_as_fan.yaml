@@ -6,7 +6,7 @@ external_components:
   - source:
       type: local
       path: ../components 
-    components: [ tuya, tuya_dimmer_as_fan ]
+    components: [ tuya, tuya_dimmer_as_fan, total_daily_energy ]
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
@@ -37,7 +37,8 @@ sensor:
   - platform: total_daily_energy
     name: ${device_name}
     power_id: power
-    state_class: measurement
+    method: left
+    min_save_interval: 10min
 
 time:
   - platform: homeassistant

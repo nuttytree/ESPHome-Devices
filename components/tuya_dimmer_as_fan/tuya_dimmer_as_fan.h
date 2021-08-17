@@ -8,7 +8,7 @@
 namespace esphome {
 namespace tuya {
 
-class TuyaDimmerAsFan : public Component {
+class TuyaDimmerAsFan : public PollingComponent {
  public:
   TuyaDimmerAsFan(Tuya *parent, fan::FanState *fan) : parent_(parent), fan_(fan) {}
   void setup() override;
@@ -18,6 +18,7 @@ class TuyaDimmerAsFan : public Component {
   void set_dimmer_max_value(uint32_t max_value) { this->dimmer_max_value_ = max_value; }
   void set_fan_wattage(float fan_wattage) { this->fan_wattage_ = fan_wattage; }
   void set_power_sensor(sensor::Sensor *power_sensor) { this->power_sensor_ = power_sensor; }
+  void update() override;
 
  protected:
   Tuya *parent_;

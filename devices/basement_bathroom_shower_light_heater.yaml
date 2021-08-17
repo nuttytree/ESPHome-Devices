@@ -14,6 +14,10 @@ packages:
 external_components:
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
+  - source:
+      type: local
+      path: ../components 
+    components: [ total_daily_energy ]
 
 binary_sensor:
   - platform: gpio
@@ -99,11 +103,13 @@ sensor:
   - platform: total_daily_energy
     name: Basement Bathroom Shower Light
     power_id: light_power
-    state_class: measurement
+    method: left
+    min_save_interval: 10min
   - platform: total_daily_energy
     name: Basement Bathroom Heater
     power_id: heat_power
-    state_class: measurement
+    method: left
+    min_save_interval: 10min
 
 time:
   - platform: homeassistant

@@ -17,6 +17,7 @@ from esphome.const import (
     DEVICE_CLASS_POWER,
     STATE_CLASS_MEASUREMENT,
     ICON_POWER,
+    CONF_UPDATE_INTERVAL,
 )
 from esphome.components.tuya import CONF_TUYA_ID, Tuya
 
@@ -104,6 +105,7 @@ CONFIG_SCHEMA = cv.All(
             ).extend(
                 {
                     cv.Optional(CONF_LIGHT_WATTAGE): cv.positive_float,
+                    cv.Optional(CONF_UPDATE_INTERVAL, default="60s"): cv.update_interval,
                 }
             ),
         }
@@ -166,6 +168,8 @@ async def to_code(config):
         power_sensor = await sensor.new_sensor(power_config)
         cg.add(var.set_light_wattage(power_config[CONF_LIGHT_WATTAGE]))
         cg.add(var.set_power_sensor(power_sensor))
-    cg.add(var.set_update_interval(60000))
+        cg.add(var.set_update_interval(power_config[CONF_UPDATE_INTERVAL]))
+    else:
+        cg.add(var.set_update_interval(4294967295)) # uint32_t max
     paren = await cg.get_variable(config[CONF_TUYA_ID])
     cg.add(var.set_tuya_parent(paren))

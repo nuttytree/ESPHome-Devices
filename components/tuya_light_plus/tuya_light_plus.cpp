@@ -91,10 +91,9 @@ void TuyaLightPlus::loop()
 
 void TuyaLightPlus::update()
 {
-  if (this->light_wattage_.has_value() && this->power_sensor_ != nullptr)
+  if (this->light_wattage_.has_value() && this->power_sensor_ != nullptr && this->state_->current_values.is_on())
   {
-    float power = this->state_->current_values.is_on() ? this->light_wattage_.value() : 0.0f;
-    this->power_sensor_->publish_state(power);
+    this->power_sensor_->publish_state(this->light_wattage_.value());
   }
 }
 
@@ -249,7 +248,11 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
     }
   }
 
-  update();
+  if (this->light_wattage_.has_value() && this->power_sensor_ != nullptr)
+  {
+    float power = this->state_->current_values.is_on() ? this->light_wattage_.value() : 0.0f;
+    this->power_sensor_->publish_state(power);
+  }
 }
 
 void TuyaLightPlus::on_day_night_changed_(std::string state)

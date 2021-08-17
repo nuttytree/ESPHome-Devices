@@ -6,7 +6,7 @@ external_components:
   - source:
       type: local
       path: ../components 
-    components: [ tuya, tuya_light_plus ]
+    components: [ tuya, tuya_light_plus, total_daily_energy ]
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
@@ -22,14 +22,11 @@ packages:
   uart:   !include uart/tuya.yaml
 
 sensor:
-  - platform: integration
+  - platform: total_daily_energy
     name: ${device_name}
-    sensor: power
-    integration_method: left
-    time_unit: h
-    unit_of_measurement: Wh
-    device_class: energy
-    state_class: measurement
+    power_id: power
+    method: left
+    min_save_interval: 10min
 
 time:
   - platform: homeassistant
