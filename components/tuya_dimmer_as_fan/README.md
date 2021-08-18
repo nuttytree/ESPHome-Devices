@@ -36,11 +36,13 @@ fan:
       id: my_fan_power
       name: My Fan Power
       fan_wattage: 21.6
+      update_interval: 60s
 ```
 
-## Added Configuration Variables
+## Configuration Variables (In addition to the standard variables)
 * dimmer_datapoint (Required, int): The datapoint id number of the dimmer value.
 * dimmer_max_value (Optional, int, default 255): The highest dimmer value allowed.
 * power.id (Optional, string) Manually specify the power sensor ID used for code generation.
 * power.name (Optional, string) The name for the power sensor.
 * power.fan_wattage (Optional, float) The total wattage of the fan(s) controled by this dimmer.
+* power.update_interval (Optional, Time, default: 60s) Amount of time between updates of the power value while on.

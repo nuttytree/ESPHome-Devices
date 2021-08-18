@@ -10,17 +10,20 @@ Home Assistant is open source home automation that puts local control and privac
 
 
 ## Custom Components
+### Binary Light With Power
+This an enhanced version of the standard [binary light](https://esphome.io/components/light/binary.html) component that adds an option to include a sensor to report current power usage based on a configured wattage of the light(s) it controls. More details on how to use this component are available [here](./components/binary_light_with_power/README.md).
+
+### GPIO Light With Power
+This an enhanced version of the standard [gpio switch](https://esphome.io/components/switch/gpio.html) component that adds an option to include a sensor to report current power usage based on a configured wattage of the device(s) it controls. More details on how to use this component are available [here](./components/gpio_switch_with_power/README.md).
+
 ### Tuya
 This is a copy of the standard Tuya component with a couple of fixes/tweaks that are still getting hashed out in the main branch of ESPHome that are needed to get my custom Tuya Light Plus component to work reliably.  Hopefully I can remove this component soon.
-
-### Tuya Light Plus
-This an enhanced version of the standard [Tuya light](https://esphome.io/components/light/tuya.html) component that adds a bunch of extra features. I use this component with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) but it will likely work with other Tuya dimmers. More details on features and how to use this component are available [here](./components/tuya_light_plus/README.md).
 
 ### Tuya Dimmer as Fan
 This a modified version of the [Tuya fan](https://esphome.io/components/fan/tuya.html) component I use with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) (but it will likely work with other Tuya dimmers) to control bathroom fans and adds several features. I created this component because I couldn't find a regular on/off switch with the same look and feel as the Feit dimmers so I decided to use the Feit dimmers but use this component to prevent "dimming" the fan. More details on features and how to use this component are available [here](./components/tuya_dimmer_as_fan/README.md).
 
-### Binary Light With Power
-This an enhanced version of the standard [binary light](https://esphome.io/components/light/binary.html) component that adds an option to include a sensor to report current power usage based on a configured wattage of the light(s) it controls. More details on how to use this component are available [here](./components/binary_light_with_power/README.md).
+### Tuya Light Plus
+This an enhanced version of the standard [Tuya light](https://esphome.io/components/light/tuya.html) component that adds a bunch of extra features. I use this component with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) but it will likely work with other Tuya dimmers. More details on features and how to use this component are available [here](./components/tuya_light_plus/README.md).
 
 ### ESPSense
 This excellent component is not mine and doesn't live in this repository but most of my devices are using it so I felt it was worthy of a mention here. More details are available [here](https://github.com/cbpowell/ESPSense).

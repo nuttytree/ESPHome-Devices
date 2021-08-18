@@ -60,10 +60,10 @@ light:
       id: my_light_power
       name: My Light Power
       light_wattage: 21.6
-
+      update_interval: 60s
 ```
 
-## Added Configuration Variables
+## Configuration Variables (In addition to the standard variables)
 * default_brightness (Optional, int 1-255): The default brightness level for the light.
 * auto_off_time (Optional, Time): The amount of time to wait before automatically turning the light off, 0 disables auto off
 * linked_lights (Optional, string): List of lights that will be controlled by this dimmer (note this one direction, changes to the linked light will not be applied to this light).
@@ -81,6 +81,7 @@ light:
 * power.id (Optional, string) Manually specify the power sensor ID used for code generation.
 * power.name (Optional, string) The name for the power sensor
 * power.light_wattage (Optional, float) The total wattage of the light(s) controled by this dimmer
+* power.update_interval (Optional, Time, default: 60s) Amount of time between updates of the power value while on.
 
 ## Operation
 This component adds 2 services to Home Assistant that can be used to update the settings of the dimmer:

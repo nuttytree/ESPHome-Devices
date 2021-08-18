@@ -30,9 +30,11 @@ light:
       id: my_light_power
       name: My Light Power
       light_wattage: 48.0
+      update_interval: 60s
 ```
 
-## Added Configuration Variables
+## Configuration Variables (In addition to the standard variables)
 * power.id (Optional, string) Manually specify the power sensor ID used for code generation.
 * power.name (Optional, string) The name for the power sensor
 * power.light_wattage (Optional, float) The total wattage of the light(s) controled by this dimmer
+* power.update_interval (Optional, Time, default: 60s) Amount of time between updates of the power value while on.
