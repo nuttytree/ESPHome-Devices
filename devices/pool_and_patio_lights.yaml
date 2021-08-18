@@ -16,6 +16,10 @@ esphome:
     - ../custom/TreoLedPoolLight.h
 
 external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ binary_light_with_power, total_daily_energy ]
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
@@ -93,7 +97,8 @@ sensor:
   - platform: total_daily_energy
     name: Pool Lights
     power_id: pool_light_power
-    state_class: measurement
+    method: left
+    min_save_interval: 10min
 
 status_led:
   pin:

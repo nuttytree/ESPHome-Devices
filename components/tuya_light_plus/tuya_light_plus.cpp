@@ -89,6 +89,14 @@ void TuyaLightPlus::loop()
   }
 }
 
+void TuyaLightPlus::update()
+{
+  if (this->light_wattage_.has_value() && this->power_sensor_ != nullptr && this->state_->current_values.is_on())
+  {
+    this->power_sensor_->publish_state(this->light_wattage_.value());
+  }
+}
+
 void TuyaLightPlus::add_new_double_click_while_off_callback(std::function<void()> &&callback)
 {
   this->has_double_click_while_off_ = true;

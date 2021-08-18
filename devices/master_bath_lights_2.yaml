@@ -22,7 +22,7 @@ light:
       sensor_type: text
       sensor_day_value: Day
       sensor_night_value: Night
-      day_default_brightness: 255
+      day_default_brightness: 128
       night_default_brightness: 1
       day_auto_off_time: 0 min
       night_auto_off_time: 15 min

@@ -177,7 +177,7 @@ time:
             int hour = now.hour;
             int minute = now.minute;
 
-            if (hour == 4 && minute == 45) 
+            if (hour == 3 && minute == 45) 
             {
               auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
               ha_service->set_service("switch.turn_off");
@@ -186,7 +186,7 @@ time:
               id(pool_cleaner).turn_off();
               id(pool_pump).turn_on();
             }
-            else if (hour >= 5 && hour <= 6) 
+            else if (hour >= 4 && hour <= 5) 
             {
               auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
               ha_service->set_service("switch.turn_off");
@@ -201,7 +201,7 @@ time:
                 id(pool_pump).turn_on();
               }
             }
-            else if (hour == 7)
+            else if (hour == 6)
             {
               auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
               ha_service->set_service("switch.turn_on");
@@ -210,11 +210,11 @@ time:
               id(pool_cleaner).turn_off();
               id(pool_pump).turn_on();
             }
-            else if (hour >= 8 && hour <= 21 && (minute == 0 || minute == 30))
+            else if (hour >= 7 && hour <= 20 && (minute == 0 || minute == 30))
             {
               id(pool_pump).turn_off();
             }
-            else if (hour >= 8 && hour <= 21 && (minute == 15 || minute == 45))
+            else if (hour >= 8 && hour <= 20 && (minute == 15 || minute == 45))
             {
               auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
               ha_service->set_service("switch.turn_on");
@@ -223,7 +223,7 @@ time:
               id(pool_cleaner).turn_off();
               id(pool_pump).turn_on();
             }
-            else if (hour == 22 && minute == 0)
+            else if (hour == 21 && minute == 0)
             {
               auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
               ha_service->set_service("switch.turn_off");

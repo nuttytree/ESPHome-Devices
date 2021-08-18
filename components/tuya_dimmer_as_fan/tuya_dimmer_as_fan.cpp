@@ -42,5 +42,13 @@ void TuyaDimmerAsFan::dump_config() {
   ESP_LOGCONFIG(TAG, "  Dimmer has datapoint ID %u", *this->dimmer_id_);
 }
 
+void TuyaDimmerAsFan::update()
+{
+  if (this->fan_wattage_.has_value() && this->power_sensor_ != nullptr && this->fan_->state)
+  {
+    this->power_sensor_->publish_state(this->fan_wattage_.value());
+  }
+}
+
 }  // namespace tuya
 }  // namespace esphome
