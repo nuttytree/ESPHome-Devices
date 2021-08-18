@@ -40,3 +40,7 @@ light:
     double_click_while_off_stays_off: true
     on_double_click_while_on:
       - script.execute: double_click
+    power:
+      id: power
+      name: ${device_name} Power
+      light_wattage: 21.6

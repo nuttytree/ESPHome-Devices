@@ -1,9 +1,9 @@
 #pragma once
 
-#include "esphome/core/component.h"
 #include "esphome/components/tuya/tuya.h"
 #include "esphome/components/light/light_output.h"
 #include "esphome/components/api/custom_api_device.h"
+#include "esphome/core/component.h"
 
 namespace esphome {
 namespace tuya {
@@ -13,7 +13,7 @@ enum DayNightSensorType {
   TEXT,
 };
 
-class TuyaLightPlus : public Component, public light::LightOutput, public api::CustomAPIDevice {
+class TuyaLightPlus : public light::LightOutput, public PollingComponent, public api::CustomAPIDevice {
  public:
   void setup() override;
   void dump_config() override;
@@ -23,10 +23,13 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
   void set_tuya_parent(Tuya *parent) { this->parent_ = parent; }
   void set_min_value(uint32_t min_value) { this->min_value_ = min_value; }
   void set_max_value(uint32_t max_value) { this->max_value_ = max_value; }
+  void set_light_wattage(float light_wattage) { this->light_wattage_ = light_wattage; }
+  void set_power_sensor(sensor::Sensor *power_sensor) { this->power_sensor_ = power_sensor; }
   light::LightTraits get_traits() override;
   void setup_state(light::LightState *state) override;
   void write_state(light::LightState *state) override;
   void loop() override;
+  void update() override;
 
   void set_linked_lights(const std::string linked_lights) { this->linked_lights_ = linked_lights; }
   void set_day_night_sensor(const std::string day_night_sensor) { this->day_night_sensor_ = day_night_sensor; }
@@ -71,6 +74,8 @@ class TuyaLightPlus : public Component, public light::LightOutput, public api::C
   optional<float> night_default_brightness_{};
   optional<uint32_t> day_auto_off_time_{};
   optional<uint32_t> night_auto_off_time_{};
+  optional<float> light_wattage_{};
+  sensor::Sensor *power_sensor_;
   CallbackManager<void()> double_click_while_off_callback_{};
   CallbackManager<void()> double_click_while_on_callback_{};
   bool has_double_click_while_off_{false};

@@ -6,14 +6,20 @@ external_components:
   - source:
       type: local
       path: ../components 
-    components: [ tuya, tuya_dimmer_as_fan ]
+    components: [ tuya, tuya_dimmer_as_fan, total_daily_energy ]
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
 
 packages:
   base:   !include device_base.yaml
   logger: !include logger/logger_no_serial.yaml
   uart:   !include uart/tuya.yaml
 
-tuya:
+espsense:
+  plugs:
+    - name: ${device_name}
+      power_sensor: power
+      voltage: 120
 
 fan:
   - platform: tuya_dimmer_as_fan
@@ -22,3 +28,19 @@ fan:
     switch_datapoint: 1
     dimmer_datapoint: 2
     dimmer_max_value: 1000
+    power:
+      id: power
+      name: ${device_name} Power
+      fan_wattage: ${fan_wattage}
+
+sensor:
+  - platform: total_daily_energy
+    name: ${device_name}
+    power_id: power
+    method: left
+    min_save_interval: 10min
+
+time:
+  - platform: homeassistant
+
+tuya:

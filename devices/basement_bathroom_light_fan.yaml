@@ -11,6 +11,14 @@ substitutions:
 packages:
   device_base: !include ../packages/device_base.yaml
 
+external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ binary_light_with_power, total_daily_energy ]
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
+
 binary_sensor:
   - platform: gpio
     id: light_button
@@ -29,6 +37,12 @@ binary_sensor:
       then:
         - fan.toggle: the_fan
 
+espsense:
+  plugs:
+    - name: Basement Bathroom Light
+      power_sensor: light_power
+      voltage: 120
+
 fan:
   - platform: binary
     id: the_fan
@@ -36,10 +50,14 @@ fan:
     name: "Basement Bathroom Fan"
 
 light:
-  - platform: binary
+  - platform: binary_light_with_power
     id: the_light
     name: "Basement Bathroom Light"
     output: light_output
+    power:
+      id: light_power
+      name: Basement Bathroom Light Power
+      light_wattage: 48.0
 
 output:
   - platform: gpio
@@ -53,3 +71,13 @@ status_led:
   pin:
     number: 0
     inverted: true
+
+sensor:
+  - platform: total_daily_energy
+    name: Basement Bathroom Light
+    power_id: light_power
+    method: left
+    min_save_interval: 10min
+
+time:
+  - platform: homeassistant

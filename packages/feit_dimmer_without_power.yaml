@@ -1,0 +1,16 @@
+substitutions:
+  platform: ESP8266
+  board: esp01_1m
+
+external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ tuya, tuya_light_plus ]
+
+packages:
+  base:   !include device_base.yaml
+  logger: !include logger/logger_no_serial.yaml
+  uart:   !include uart/tuya.yaml
+
+tuya:

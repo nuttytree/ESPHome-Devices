@@ -1,6 +1,6 @@
 # Tuya Light Plus Component
 ## Overview
-This an enhanced version of the standard Tuya light component that adds a bunch of extra features. I use this component with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) but it will likely work with other Tuya dimmers. Extra features include the following:
+This an enhanced version of the standard [Tuya light](https://esphome.io/components/light/tuya.html) component that adds a bunch of extra features. I use this component with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) but it will likely work with other Tuya dimmers. Extra features include the following:
 * Resets the brightness level back to a default level when turned off so that it always comes on at the same level instead of the level it was at when turned off.
 * The default level can be different during the "day" vs at "night" when everyone is in bed.  Day and Night are based on a sensor (binary or text)in Home Assistant.
 * The default level can be updated via a service that is added to Home Assistant by this component.
@@ -11,6 +11,7 @@ This an enhanced version of the standard Tuya light component that adds a bunch 
 * Double clicking the dimmer while off can be configured to leave the light in an off or on state.
 * Adds an option to configure action(s) to run when the dimmer is double clicked while on (this double click always turns the light off otherwise you get strange flash when double clicking).
 * Allows you to "link" other light(s) in Home Assistant that will be controlled by this dimmer (on/off and level).
+* Can add a sensor to report current power usage based on a configured wattage of the light(s) it controls. Currently this reports the specified wattage regardless of the dimmer level (my lights run at the max level 95% of the time so for me this is pretty accurate).  Eventually I want to determine approximately what the dimmer level to power reduction ratio is so that it can more accurately report the power.
 
 
 ## Setup
@@ -35,7 +36,7 @@ Add and configure the Tuya Light Plus component
 ```yaml
 light:
   - platform: tuya_light_plus
-    name: my_dimmer
+    name: My Light
     switch_datapoint: 1
     dimmer_datapoint: 2
     max_value: 1000
@@ -55,16 +56,14 @@ light:
     double_click_while_off_stays_off: false
     on_double_click_while_on:
       - script.execute: double_click
+    power:
+      id: my_light_power
+      name: My Light Power
+      light_wattage: 21.6
+      update_interval: 60s
 ```
 
-## Configuration Variables
-* id (Optional, ID): Manually specify the ID used for code generation.
-* name (Required, string): The name of the light.
-* switch_datapoint (Required, int): The datapoint id number of the power switch.
-* dimmer_datapoint (Required, int): The datapoint id number of the dimmer value.
-* min_value_datapoint (Optional, int): The datapoint id number of the MCU minimum value setting. If this is set then ESPHome will sync the min_value to the MCU on startup.
-* min_value (Optional, int, default 0): The lowest dimmer value allowed.
-* max_value (Optional, int, default 255): The highest dimmer value allowed.
+## Configuration Variables (In addition to the standard variables)
 * default_brightness (Optional, int 1-255): The default brightness level for the light.
 * auto_off_time (Optional, Time): The amount of time to wait before automatically turning the light off, 0 disables auto off
 * linked_lights (Optional, string): List of lights that will be controlled by this dimmer (note this one direction, changes to the linked light will not be applied to this light).
@@ -79,7 +78,10 @@ light:
 * on_double_click_while_off (Optional): List of actions to run when the dimmer is double clicked while off
 * double_click_while_off_stays_off (Optional, bool, default: true): Determines if the light remains off or turns on after a double click while off
 * on_double_click_while_on (Optional): List of actions to run when the dimmer is double clicked while on
-
+* power.id (Optional, string) Manually specify the power sensor ID used for code generation.
+* power.name (Optional, string) The name for the power sensor
+* power.light_wattage (Optional, float) The total wattage of the light(s) controled by this dimmer
+* power.update_interval (Optional, Time, default: 60s) Amount of time between updates of the power value while on.
 
 ## Operation
 This component adds 2 services to Home Assistant that can be used to update the settings of the dimmer:
