@@ -1,20 +1,40 @@
-from esphome.components import light
+from esphome.components import light, sensor
 from esphome import pins
 import esphome.config_validation as cv
 import esphome.codegen as cg
 from esphome.const import (
     CONF_OUTPUT_ID,
     CONF_PIN,
+    CONF_POWER,
+    UNIT_WATT,
+    DEVICE_CLASS_POWER,
+    STATE_CLASS_MEASUREMENT,
+    ICON_POWER,
+    CONF_UPDATE_INTERVAL,
 )
 
+CONF_LIGHT_WATTAGE = "light_wattage"
+
 light_ns = cg.esphome_ns.namespace("light")
-TreoLight = light_ns.class_("TreoLedPoolLight", light.LightOutput, cg.Component)
+TreoLight = light_ns.class_("TreoLedPoolLight", light.LightOutput, cg.PollingComponent)
 
 CONFIG_SCHEMA = cv.All(
-    light.BINARY_LIGHT_SCHEMA.extend(
+    light.LIGHT_SCHEMA.extend(
         {
             cv.GenerateID(CONF_OUTPUT_ID): cv.declare_id(TreoLight),
             cv.Required(CONF_PIN): pins.gpio_output_pin_schema,
+            cv.Optional(CONF_POWER): sensor.sensor_schema(
+                unit_of_measurement_=UNIT_WATT,
+                accuracy_decimals_=1,
+                device_class_=DEVICE_CLASS_POWER,
+                state_class_=STATE_CLASS_MEASUREMENT,
+                icon_=ICON_POWER,
+            ).extend(
+                {
+                    cv.Optional(CONF_LIGHT_WATTAGE): cv.positive_float,
+                    cv.Optional(CONF_UPDATE_INTERVAL, default="60s"): cv.update_interval,
+                }
+            ),
         }
     ).extend(cv.COMPONENT_SCHEMA),
 )
@@ -27,3 +47,12 @@ async def to_code(config):
 
     pin = await cg.gpio_pin_expression(config[CONF_PIN])
     cg.add(var.set_pin(pin))
+
+    if CONF_POWER in config:
+        power_config = config[CONF_POWER]
+        power_sensor = await sensor.new_sensor(power_config)
+        cg.add(var.set_light_wattage(power_config[CONF_LIGHT_WATTAGE]))
+        cg.add(var.set_power_sensor(power_sensor))
+        cg.add(var.set_update_interval(power_config[CONF_UPDATE_INTERVAL]))
+    else:
+        cg.add(var.set_update_interval(4294967295)) # uint32_t max

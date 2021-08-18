@@ -2,35 +2,49 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/light/light_output.h"
+#include "esphome/components/sensor/sensor.h"
 
 namespace esphome {
 namespace light {
 
 class TreoColorLightEffect;
 
-class TreoLedPoolLight : public Component, public LightOutput {
+class TreoLedPoolLight : public LightOutput, public PollingComponent {
  public:
   void set_pin(GPIOPin *pin) { pin_ = pin; }
+  void set_light_wattage(float light_wattage) { this->light_wattage_ = light_wattage; }
+  void set_power_sensor(sensor::Sensor *power_sensor) { this->power_sensor_ = power_sensor; }
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
   LightTraits get_traits() override;
   void setup() override;
   void setup_state(LightState *state) override;
   void write_state(LightState *state) override;
+  void update() override;
+
+  void next_color();
+
+  TreoLedPoolLight& operator= (const LightOutput& x) {return *this;}
 
  protected:
   friend TreoColorLightEffect;
 
-  void set_color_(uint8_t color, bool is_recursive = false);
+  void apply_state_();
+  void set_color_(uint8_t color);
+  void color_change_callback_();
+  void reset_color_();
 
   GPIOPin *pin_;
   ESPPreferenceObject rtc_;
-  uint8_t current_color_;
   LightState *state_{nullptr};
-  optional<LightState> desired_state_{};
+  optional<float> light_wattage_{};
+  sensor::Sensor *power_sensor_;
+  bool current_state_;
+  uint8_t current_color_;
+  uint8_t target_color_;
   bool is_changing_colors_{false};
 };
 
-class TreoColorLightEffect : public light::LightEffect {
+class TreoColorLightEffect : public LightEffect {
   public:
     TreoColorLightEffect(const std::string &name, TreoLedPoolLight *treo_light, const uint8_t color)
       : LightEffect(name), treo_light_(treo_light), color_(color) {}
