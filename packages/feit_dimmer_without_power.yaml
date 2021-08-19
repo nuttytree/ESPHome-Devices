@@ -6,7 +6,7 @@ external_components:
   - source:
       type: local
       path: ../components 
-    components: [ tuya, tuya_light_plus ]
+    components: [ tuya_light_plus ]
 
 packages:
   base:   !include device_base.yaml

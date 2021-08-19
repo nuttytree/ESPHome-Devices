@@ -7,11 +7,11 @@ This a modified version of the [Tuya fan](https://esphome.io/components/fan/tuya
 
 
 ## Setup
-Using the [External Components](https://esphome.io/components/external_components.html) feature in ESPHome you can add this component to your devices directly from my GitHub repo.  Note currently this component requires pulling in my custom version of the Tuya component as well to prevent communication issues between the ESP8266 and the Tuya MCU.
+Using the [External Components](https://esphome.io/components/external_components.html) feature in ESPHome you can add this component to your devices directly from my GitHub repo.
 ```yaml
 external_components:
   - source: github://nuttytree/esphome
-    components: [ tuya, tuya_dimmer_as_fan ]
+    components: [ tuya_dimmer_as_fan ]
 ```
 
 Like the standard Tuya fan component you need to have the [UART](https://esphome.io/components/uart.html) and [Tuya](https://esphome.io/components/tuya.html) components.

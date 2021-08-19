@@ -23,11 +23,11 @@ CONFIG_SCHEMA = light.BINARY_LIGHT_SCHEMA.extend(
         cv.GenerateID(CONF_OUTPUT_ID): cv.declare_id(LightWithPower),
         cv.Required(CONF_OUTPUT): cv.use_id(output.BinaryOutput),
         cv.Optional(CONF_POWER): sensor.sensor_schema(
-            unit_of_measurement_=UNIT_WATT,
-            accuracy_decimals_=1,
-            device_class_=DEVICE_CLASS_POWER,
-            state_class_=STATE_CLASS_MEASUREMENT,
-            icon_=ICON_POWER,
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon=ICON_POWER,
         ).extend(
             {
                 cv.Optional(CONF_LIGHT_WATTAGE): cv.positive_float,

@@ -15,9 +15,11 @@ external_components:
   - source:
       type: local
       path: ../components 
-    components: [ treo_led_pool_light, binary_light_with_power, total_daily_energy ]
+    components: [ treo_led_pool_light, binary_light_with_power ]
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
+  - source: github://esphome/esphome@dev
+    components: [ total_daily_energy ]
 
 binary_sensor:
   - platform: gpio

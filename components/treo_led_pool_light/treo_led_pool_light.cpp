@@ -11,6 +11,7 @@ static const uint32_t RESTORE_COLOR_VERSION = 0x7B715952UL;
 
 LightTraits TreoLedPoolLight::get_traits() {
   auto traits = light::LightTraits();
+  traits.set_supported_color_modes({light::ColorMode::ON_OFF});
   return traits;
 }
 
