@@ -21,9 +21,6 @@ This an enhanced version of the standard [gpio switch](https://esphome.io/compon
 ### TREO LED Pool Light
 This is a custom light component that works with [TREO LED Pool Lights](https://www.srsmith.com/en-us/products/pool-lighting/treo-led-pool-light/) and exposes the different colors as "effects" so thay can be selected from Home Assistant. More details on how to use this component are available [here](./components/treo_led_pool_light/README.md).
 
-### Tuya
-This is a copy of the standard Tuya component with a couple of fixes/tweaks that are still getting hashed out in the main branch of ESPHome that are needed to get my custom Tuya Light Plus component to work reliably.  Hopefully I can remove this component soon.
-
 ### Tuya Dimmer as Fan
 This a modified version of the [Tuya fan](https://esphome.io/components/fan/tuya.html) component I use with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) (but it will likely work with other Tuya dimmers) to control bathroom fans and adds several features. I created this component because I couldn't find a regular on/off switch with the same look and feel as the Feit dimmers so I decided to use the Feit dimmers but use this component to prevent "dimming" the fan. More details on features and how to use this component are available [here](./components/tuya_dimmer_as_fan/README.md).
 

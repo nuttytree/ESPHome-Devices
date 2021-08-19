@@ -12,12 +12,14 @@ packages:
   device_base: !include ../packages/device_base.yaml
 
 external_components:
-  - source: github://cbpowell/ESPSense
-    components: [ espsense ]
   - source:
       type: local
       path: ../components 
-    components: [ binary_light_with_power, gpio_switch_with_power, total_daily_energy ]
+    components: [ binary_light_with_power, gpio_switch_with_power ]
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
+  - source: github://esphome/esphome@dev
+    components: [ total_daily_energy ]
 
 binary_sensor:
   - platform: gpio

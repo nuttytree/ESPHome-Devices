@@ -6,9 +6,11 @@ external_components:
   - source:
       type: local
       path: ../components 
-    components: [ tuya, tuya_dimmer_as_fan, total_daily_energy ]
+    components: [ tuya_dimmer_as_fan ]
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
+  - source: github://esphome/esphome@dev
+    components: [ total_daily_energy ]
 
 packages:
   base:   !include device_base.yaml

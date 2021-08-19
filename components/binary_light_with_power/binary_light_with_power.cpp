@@ -5,8 +5,7 @@ namespace binary_power {
 
 light::LightTraits BinaryLightWithPower::get_traits() {
   auto traits = light::LightTraits();
-  // TODO: Enable this with the 1.21.x version of ESPHome
-  // traits.set_supported_color_modes({light::ColorMode::ON_OFF});
+  traits.set_supported_color_modes({light::ColorMode::ON_OFF});
   return traits;
 }
 

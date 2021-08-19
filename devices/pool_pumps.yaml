@@ -115,11 +115,13 @@ sensor:
   - platform: total_daily_energy
     name: "Pool Pump Total Daily Energy"
     power_id: pool_pump_power
-    state_class: "measurement"
+    method: left
+    min_save_interval: 10min
   - platform: total_daily_energy
     name: "Pool Cleaner Total Daily Energy"
     power_id: pool_cleaner_power
-    state_class: "measurement"
+    method: left
+    min_save_interval: 10min
 
 status_led:
   pin:

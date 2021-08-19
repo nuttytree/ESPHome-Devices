@@ -31,11 +31,11 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_DIMMER_DATAPOINT): cv.uint8_t,
             cv.Optional(CONF_MAX_VALUE): cv.int_,
             cv.Optional(CONF_POWER): sensor.sensor_schema(
-                unit_of_measurement_=UNIT_WATT,
-                accuracy_decimals_=1,
-                device_class_=DEVICE_CLASS_POWER,
-                state_class_=STATE_CLASS_MEASUREMENT,
-                icon_=ICON_POWER,
+                unit_of_measurement=UNIT_WATT,
+                accuracy_decimals=1,
+                device_class=DEVICE_CLASS_POWER,
+                state_class=STATE_CLASS_MEASUREMENT,
+                icon=ICON_POWER,
             ).extend(
                 {
                     cv.Optional(CONF_FAN_WATTAGE): cv.positive_float,
