@@ -16,6 +16,8 @@ LightTraits TreoLedPoolLight::get_traits() {
 
 void TreoLedPoolLight::setup() {
   this->pin_->setup();
+
+  this->register_service(&TreoLedPoolLight::color_sync_reset, "color_sync_reset");
 }
 
 void TreoLedPoolLight::setup_state(light::LightState *state) {
@@ -53,6 +55,40 @@ void TreoLedPoolLight::next_color() {
   auto call = this->state_->turn_on();
   call.set_effect(this->current_color_ < 8 ? this->current_color_ + 1 : 1);
   call.perform();
+}
+
+void TreoLedPoolLight::color_sync_reset() {
+  this->is_changing_colors_ = true;
+  this->target_color_ = 1;
+  this->pin_->digital_write(false);
+
+  // After being off for at least 5 seconds we toggle on/off 3 times 
+  // and then wait at least 5 seconds before allowing any other changes.
+  this->set_timeout("COLOR_RESET_ON_1", 5500, [this]() { 
+    this->pin_->digital_write(true);
+    this->set_timeout("COLOR_RESET_OFF_1", 250 * 1, [this]() { this->pin_->digital_write(false); });
+    
+    this->set_timeout("COLOR_RESET_ON_2", 500, [this]() { this->pin_->digital_write(true); });
+    this->set_timeout("COLOR_RESET_OFF_2", 750, [this]() { this->pin_->digital_write(false); });
+    
+    this->set_timeout("COLOR_RESET_ON_3", 1000, [this]() { this->pin_->digital_write(true); });
+    this->set_timeout("COLOR_RESET_OFF_3", 1250, [this]() { this->pin_->digital_write(false); });
+
+    this->set_timeout("COLOR_RESET_FINISH", 6750, [this]() { 
+      this->current_color_ = 1;
+      this->rtc_.save(&this->current_color_);
+
+      this->is_changing_colors_ = false;
+      
+      bool curent_target_state;
+      this->state_->current_values_as_binary(&curent_target_state);
+      if (curent_target_state) {
+        auto call = this->state_->turn_on();
+        call.set_effect(1);
+        call.perform();
+      }
+    });
+  });
 }
 
 void TreoLedPoolLight::apply_state_() {
@@ -102,40 +138,6 @@ void TreoLedPoolLight::color_change_callback_() {
     this->is_changing_colors_ = false;
     this->apply_state_();
   }
-}
-
-void TreoLedPoolLight::reset_color_() {
-  this->is_changing_colors_ = true;
-  this->target_color_ = 1;
-  this->pin_->digital_write(false);
-
-  // After being off for at least 5 seconds we toggle on/off 3 times 
-  // and then wait at least 5 seconds before allowing any other changes.
-  this->set_timeout("COLOR_RESET_ON_1", 5500, [this]() { 
-    this->pin_->digital_write(true);
-    this->set_timeout("COLOR_RESET_OFF_1", COLOR_CHANGE_ON_OFF_TIME * 1, [this]() { this->pin_->digital_write(false); });
-    
-    this->set_timeout("COLOR_RESET_ON_2", COLOR_CHANGE_ON_OFF_TIME * 2, [this]() { this->pin_->digital_write(true); });
-    this->set_timeout("COLOR_RESET_OFF_2", COLOR_CHANGE_ON_OFF_TIME * 3, [this]() { this->pin_->digital_write(false); });
-    
-    this->set_timeout("COLOR_RESET_ON_3", COLOR_CHANGE_ON_OFF_TIME * 4, [this]() { this->pin_->digital_write(true); });
-    this->set_timeout("COLOR_RESET_OFF_3", COLOR_CHANGE_ON_OFF_TIME * 5, [this]() { this->pin_->digital_write(false); });
-
-    this->set_timeout("COLOR_RESET_FINISH", COLOR_CHANGE_ON_OFF_TIME * 5 + 5500, [this]() { 
-      this->current_color_ = 1;
-      this->rtc_.save(&this->current_color_);
-
-      this->is_changing_colors_ = false;
-      
-      bool curent_target_state;
-      this->state_->current_values_as_binary(&curent_target_state);
-      if (curent_target_state) {
-        auto call = this->state_->turn_on();
-        call.set_effect(this->target_color_);
-        call.perform();
-      }
-    });
-  });
 }
 
 }  // namespace light

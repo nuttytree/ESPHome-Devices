@@ -31,3 +31,6 @@ light:
 * power.name (Optional, string) The name for the power sensor
 * power.light_wattage (Optional, float) The total wattage of the light(s) controled by this dimmer
 * power.update_interval (Optional, Time, default: 60s) Amount of time between updates of the power value while on.
+
+## Operation
+It is possible for the color of the lights to get out of sync with each other and/or this component. To resolve this issue this component adds a service named esphome.{device_name}_color_sync_reset that goes through the series of power cycles defined in the lights user guide that will reset all lights and this component back to the slow color change "effect".

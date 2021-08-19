@@ -16,7 +16,9 @@ from esphome.const import (
 CONF_LIGHT_WATTAGE = "light_wattage"
 
 light_ns = cg.esphome_ns.namespace("light")
-TreoLight = light_ns.class_("TreoLedPoolLight", light.LightOutput, cg.PollingComponent)
+api_ns = cg.esphome_ns.namespace("api")
+APIServer = api_ns.class_("APIServer", cg.Component, cg.Controller)
+TreoLight = light_ns.class_("TreoLedPoolLight", light.LightOutput, cg.PollingComponent, APIServer)
 
 CONFIG_SCHEMA = cv.All(
     light.LIGHT_SCHEMA.extend(

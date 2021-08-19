@@ -1,15 +1,16 @@
 #pragma once
 
-#include "esphome/core/component.h"
+#include "esphome/components/api/custom_api_device.h"
 #include "esphome/components/light/light_output.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/core/component.h"
 
 namespace esphome {
 namespace light {
 
 class TreoColorLightEffect;
 
-class TreoLedPoolLight : public LightOutput, public PollingComponent {
+class TreoLedPoolLight : public LightOutput, public PollingComponent, public api::CustomAPIDevice {
  public:
   void set_pin(GPIOPin *pin) { pin_ = pin; }
   void set_light_wattage(float light_wattage) { this->light_wattage_ = light_wattage; }
@@ -22,6 +23,7 @@ class TreoLedPoolLight : public LightOutput, public PollingComponent {
   void update() override;
 
   void next_color();
+  void color_sync_reset();
 
   TreoLedPoolLight& operator= (const LightOutput& x) {return *this;}
 
@@ -31,7 +33,6 @@ class TreoLedPoolLight : public LightOutput, public PollingComponent {
   void apply_state_();
   void set_color_(uint8_t color);
   void color_change_callback_();
-  void reset_color_();
 
   GPIOPin *pin_;
   ESPPreferenceObject rtc_;
