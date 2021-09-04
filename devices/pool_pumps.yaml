@@ -12,6 +12,12 @@ packages:
   device_base: !include ../packages/device_base.yaml
 
 external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ pool_controller ]
+  - source: github://esphome/esphome@dev
+    components: [ total_daily_energy ]
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
@@ -29,6 +35,10 @@ espsense:
 i2c:
   sda: GPIO12
   scl: GPIO14
+
+pool_controller:
+  pump_switch_id: pool_pump
+  cleaner_switch_id: pool_cleaner
 
 sensor:
   - platform: ade7953
@@ -108,10 +118,6 @@ sensor:
   - platform: adc
     id: temp_analog_reading
     pin: A0
-  - platform: template
-    name: "Pool Mode Id"
-    id: pool_mode_id
-    internal: true
   - platform: total_daily_energy
     name: "Pool Pump Total Daily Energy"
     power_id: pool_pump_power
@@ -134,143 +140,14 @@ switch:
     name: "Pool Pump"
     id: pool_pump
     icon: mdi:pump
-    on_turn_off:
-      then:
-        - switch.turn_off: pool_cleaner
+    restore_mode: Always Off
   - platform: gpio
     pin: GPIO15
     name: "Pool Cleaner"
     id: pool_cleaner
     icon: mdi:robot-vacuum
-    on_turn_on:
-      then:
-        - switch.turn_on: pool_pump
-
-text_sensor:
-  - platform: homeassistant
-    name: "Pool Mode Text"
-    entity_id: input_select.pool_mode
-    on_value:
-      then:
-        - sensor.template.publish:
-            id: pool_mode_id
-            state: !lambda 'return x == "Off" ? 0 : x == "Normal" ? 1 : x == "Continuous Without Heat" ? 2 : x == "Continuous With Heat" ? 3 : id(pool_mode_id).state;'
+    restore_mode: Always Off
 
 time:
   - platform: homeassistant
     id: the_time
-    on_time:
-      seconds: 0
-      minutes: 0,15,30,45
-      then:
-        lambda: |-
-          if (id(pool_mode_id).state == 0)
-          {
-            auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
-            ha_service->set_service("switch.turn_off");
-            ha_service->add_data("entity_id", "switch.pool_heater");
-            ha_service->play();
-            id(pool_cleaner).turn_off();
-            id(pool_pump).turn_off();
-          }
-          else if (id(pool_mode_id).state == 1)
-          {
-            auto now = id(the_time).now(); 
-            int hour = now.hour;
-            int minute = now.minute;
-
-            if (hour == 3 && minute == 45) 
-            {
-              auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
-              ha_service->set_service("switch.turn_off");
-              ha_service->add_data("entity_id", "switch.pool_heater");
-              ha_service->play();
-              id(pool_cleaner).turn_off();
-              id(pool_pump).turn_on();
-            }
-            else if (hour >= 4 && hour <= 5) 
-            {
-              auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
-              ha_service->set_service("switch.turn_off");
-              ha_service->add_data("entity_id", "switch.pool_heater");
-              ha_service->play();
-              if (id(pool_pump).state)
-              {
-                id(pool_cleaner).turn_on();
-              }
-              else
-              {
-                id(pool_pump).turn_on();
-              }
-            }
-            else if (hour == 6)
-            {
-              auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
-              ha_service->set_service("switch.turn_on");
-              ha_service->add_data("entity_id", "switch.pool_heater");
-              ha_service->play();
-              id(pool_cleaner).turn_off();
-              id(pool_pump).turn_on();
-            }
-            else if (hour >= 7 && hour <= 20 && (minute == 0 || minute == 30))
-            {
-              id(pool_pump).turn_off();
-            }
-            else if (hour >= 8 && hour <= 20 && (minute == 15 || minute == 45))
-            {
-              auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
-              ha_service->set_service("switch.turn_on");
-              ha_service->add_data("entity_id", "switch.pool_heater");
-              ha_service->play();
-              id(pool_cleaner).turn_off();
-              id(pool_pump).turn_on();
-            }
-            else if (hour == 21 && minute == 0)
-            {
-              auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
-              ha_service->set_service("switch.turn_off");
-              ha_service->add_data("entity_id", "switch.pool_heater");
-              ha_service->play();
-              id(pool_cleaner).turn_off();
-              id(pool_pump).turn_on();
-            }
-            else
-            {
-              auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
-              ha_service->set_service("switch.turn_off");
-              ha_service->add_data("entity_id", "switch.pool_heater");
-              ha_service->play();
-              id(pool_cleaner).turn_off();
-              id(pool_pump).turn_off();
-            }
-          }
-          else if (id(pool_mode_id).state == 2)
-          {
-            auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
-            ha_service->set_service("switch.turn_off");
-            ha_service->add_data("entity_id", "switch.pool_heater");
-            ha_service->play();
-            if (id(pool_pump).state)
-            {
-              id(pool_cleaner).turn_on();
-            }
-            else
-            {
-              id(pool_pump).turn_on();
-            }
-          }
-          else if (id(pool_mode_id).state == 3)
-          {
-            auto ha_service = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
-            ha_service->set_service("switch.turn_on");
-            ha_service->add_data("entity_id", "switch.pool_heater");
-            ha_service->play();
-            if (id(pool_pump).state)
-            {
-              id(pool_cleaner).turn_on();
-            }
-            else
-            {
-              id(pool_pump).turn_on();
-            }
-          }
