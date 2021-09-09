@@ -9,7 +9,7 @@ namespace pool_controller {
 
 static const char *const TAG = "pool_controller";
 
-static const uint32_t RUNTIME_30_MINUTES_PER_HALF_HOUR = 1800000;
+static const uint32_t RUNTIME_30_MINUTES_PER_HALF_HOUR = UINT32_MAX;
 static const uint32_t RUNTIME_15_MINUTES_PER_HALF_HOUR = 900000;
 static const uint32_t RUNTIME_10_MINUTES_PER_HALF_HOUR = 600000;
 
@@ -111,8 +111,7 @@ void PoolController::loop() {
 
 void PoolController::manage_pump_() {
   uint32_t desired_runtime = 0;
-  auto now = this->time_->now(); 
-  int hour = now.hour;
+  int hour = this->time_->now().hour;
   switch (this->pump_mode_) {
     case PumpMode::PUMP_MODE_OFF:
       if (this->pump_switch_->state) {
@@ -150,8 +149,7 @@ void PoolController::manage_pump_() {
 
 void PoolController::manage_cleaner_() {
   bool desired_state = false;
-  auto now = this->time_->now(); 
-  int hour = now.hour;
+  int hour = this->time_->now().hour;
   switch (this->cleaner_mode_) {
     case CleanerMode::CLEANER_MODE_OFF:
       if (this->cleaner_switch_->state) {

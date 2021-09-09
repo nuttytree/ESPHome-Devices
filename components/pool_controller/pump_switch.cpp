@@ -9,6 +9,8 @@ static const uint32_t MINIMUM_PUMP_ON_TIME = 10000;
 // Minimum time the pump needs to be off, turning on before this will result in a delayed turn on (10000 = 10 seconds)
 static const uint32_t MINIMUM_PUMP_OFF_TIME = 10000;
 
+static const uint32_t FORTY_EIGHT_HOURS = 172800000;
+
 PumpSwitch::PumpSwitch(switch_::Switch *physical_switch) {
   this->set_name(physical_switch->get_name());
   this->set_icon(physical_switch->get_icon());
@@ -43,6 +45,7 @@ void PumpSwitch::setup() {
 
 void PumpSwitch::loop() {
   this->update_physical_switch_();
+  this->check_current_();
 }
 
 void PumpSwitch::update() {
@@ -122,6 +125,36 @@ void PumpSwitch::update_physical_switch_() {
     }
 
     this->physical_switch_->turn_off();
+  }
+}
+
+void PumpSwitch::check_current_() {
+  if (!this->current_sensor_->has_state()) {
+    return;
+  }
+
+  auto now = millis();
+
+  // If we haven't had another out of range event in 48 hours it was probably an anomaly so reset
+  if (this->last_current_out_of_range_at_ != 0 && now - this->last_current_out_of_range_at_ > FORTY_EIGHT_HOURS) {
+    this->last_current_out_of_range_at_ = 0;
+  }
+
+  float current = this->current_sensor_->get_state();
+  if (current == 0 || (current >= this->min_current_ && current <= this->max_current_)) {
+    if (this->current_out_of_range_at_ != 0) {
+      this->current_out_of_range_at_ = 0;
+    }
+  } else {
+    if (this->current_out_of_range_at_ == 0) {
+      this->current_out_of_range_at_ = now;
+    } else if (now - this->current_out_of_range_at_ > this->max_current_out_of_range_time_) {
+      this->physical_switch_->turn_off();
+      if (this->last_current_out_of_range_at_ != 0) {
+        this->is_disabled_ = true;
+      }
+      this->last_current_out_of_range_at_ = now;
+    }
   }
 }
 
