@@ -65,7 +65,7 @@ async def to_code(config):
     cleaner_config = config[CONF_CLEANER]
     
     cleaner_switch = await cg.get_variable(cleaner_config[CONF_SWITCH_ID])
-    cg.add(var.set_pump_switch(cleaner_switch))
+    cg.add(var.set_cleaner_switch(cleaner_switch))
     
     cleaner_current = await cg.get_variable(cleaner_config[CONF_CURRENT_ID])
-    cg.add(var.set_pump_current_monitoring(cleaner_current, cleaner_config[CONF_MIN_CURRENT], cleaner_config[CONF_MAX_CURRENT], cleaner_config[CONF_MAX_OUT_OF_RANGE_DURATION]))
+    cg.add(var.set_cleaner_current_monitoring(cleaner_current, cleaner_config[CONF_MIN_CURRENT], cleaner_config[CONF_MAX_CURRENT], cleaner_config[CONF_MAX_OUT_OF_RANGE_DURATION]))

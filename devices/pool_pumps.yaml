@@ -42,7 +42,7 @@ pool_controller:
     current_id: pool_pump_current
     min_current: 6.50
     max_current: 6.70
-    max_out_of_range_duration: 2s
+    max_out_of_range_duration: 5s
   cleaner:
     switch_id: pool_cleaner
     current_id: pool_cleaner_current
@@ -55,30 +55,29 @@ sensor:
     voltage:
       name: ${device_name} Voltage
       id: voltage
-      state_class: measurement
       filters:
         - multiply: 2
     current_a:
       name: Pool Cleaner Current
       id: pool_cleaner_current
-      state_class: measurement
+      filters:
+        - lambda: "return x < .1 ? 0 : x;"
     current_b:
       name: Pool Pump Current
       id: pool_pump_current
-      state_class: measurement
+      filters:
+        - lambda: "return x < .1 ? 0 : x;"
     active_power_a:
       name: Pool Cleaner Power
       id: pool_cleaner_power
-      state_class: measurement
       filters:
         - lambda: "return x < .1 ? 0 : x * 2;"
     active_power_b:
       name: Pool Pump Power
       id: pool_pump_power
-      state_class: measurement
       filters:
         - lambda: "return abs(x) < .1 ? 0 : abs(x) * 2;"
-    update_interval: 2s
+    update_interval: 1s
   - platform: ntc
     sensor: temp_resistance_reading
     name: ${device_name} Temperature
