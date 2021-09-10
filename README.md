@@ -9,8 +9,22 @@ ESPHome is a system to control your ESP8266/ESP32 by simple yet powerful configu
 Home Assistant is open source home automation that puts local control and privacy first. Powered by a worldwide community of tinkerers and DIY enthusiasts. Perfect to run on a Raspberry Pi or a local server.  For more information check out [Home-Assistant.io](https://www.home-assistant.io/).
 
 
+## Folder Structure
+* `build` - Technically not included in the repo but all of my devices are configured with this as their build path
+* `components` - Custom components
+* `custom` - Other custom code that are not components
+* `devices` - Yaml files for my devices
+* `other` - Other misc files
+* `packages` - Shared packages used by my devices
+* `scripts` - Couple of PowerShell scripts for managing the repo
+
+
+## Secrets Management
+You will notice that throughout the various folders I have secrets.yaml files. These files all do an include of the secrets.yaml file in the root folder (that for obvious reasons is not included in the repo). On my computer the secrets.yaml file in the root folder is a [symlink](https://en.wikipedia.org/wiki/Symbolic_link) to a file in my OneDrive folder. This way I have multiple backups of this file and don't have to worry about losing it and getting locked out of all my devices.
+
+
 ## Custom Components
-I have been working on updating most of my custom code into components that can easily be pulled directly from GitHub into your device configuration using the [external components](https://esphome.io/components/external_components.html) component. I have run into frequent issues with changes in ESPHome breaking my components so I am now tagging my repo with the version of ESPHome it is compatible with. I generally upgrade pretty quickly so as soon as I have confirmed things are working and/or made the neccessary changes I will add a tag for the new version of ESPHome.
+I have been working on updating most of my custom code into components that can easily be pulled directly from GitHub into your device configuration using the [external components](https://esphome.io/components/external_components.html) component. I have run into frequent issues with changes in ESPHome breaking my components so I am now tagging my repo with the version of ESPHome it is compatible with. I generally upgrade pretty quickly so as soon as I have confirmed things are working and/or made the neccessary changes I will add a tag for the new version of ESPHome. While I primarily design these components for my own personal use cases I hope that at least some of them are useful for others. If you are using one of my components and have an enhancement/feature you would like to see feel free to add an issue and I will see what I can do to get it added.
 
 ### Binary Light With Power
 This an enhanced version of the standard [binary light](https://esphome.io/components/light/binary.html) component that adds an option to include a sensor to report current power usage based on a configured wattage of the light(s) it controls. More details on how to use this component are available [here](./components/binary_light_with_power/README.md).
@@ -18,14 +32,17 @@ This an enhanced version of the standard [binary light](https://esphome.io/compo
 ### GPIO Light With Power
 This an enhanced version of the standard [gpio switch](https://esphome.io/components/switch/gpio.html) component that adds an option to include a sensor to report current power usage based on a configured wattage of the device(s) it controls. More details on how to use this component are available [here](./components/gpio_switch_with_power/README.md).
 
+### Pool Controller
+This is component is curently running on a [Shelly 2.5 Double Relay Switch](https://shelly.cloud/products/shelly-25-smart-home-automation-relay/) and is used to control the main pump and the auxiliary pump (that runs a pool cleaner) on my pool. Eventually I want to expand this to run on an ESP32 and manage all aspects of my pool (pumps, lights, heat, fill, drain, pH, ORP, etc.). More details on how to use this component are available [here](./components/pool_controller/README.md).
+
 ### TREO LED Pool Light
 This is a custom light component that works with [TREO LED Pool Lights](https://www.srsmith.com/en-us/products/pool-lighting/treo-led-pool-light/) and exposes the different colors as "effects" so thay can be selected from Home Assistant. More details on how to use this component are available [here](./components/treo_led_pool_light/README.md).
 
 ### Tuya Dimmer as Fan
-This a modified version of the [Tuya fan](https://esphome.io/components/fan/tuya.html) component I use with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) (but it will likely work with other Tuya dimmers) to control bathroom fans and adds several features. I created this component because I couldn't find a regular on/off switch with the same look and feel as the Feit dimmers so I decided to use the Feit dimmers but use this component to prevent "dimming" the fan. More details on features and how to use this component are available [here](./components/tuya_dimmer_as_fan/README.md).
+This a modified version of the [Tuya fan](https://esphome.io/components/fan/tuya.html) component I use with [Feit Dimmers](https://www.feit.com/product/smart-wi-fi-dimmer/) (but it will likely work with other Tuya dimmers) to control bathroom fans and adds several features. I created this component because I couldn't find a regular on/off switch with the same look and feel as the Feit dimmers so I decided to use the Feit dimmers but use this component to prevent "dimming" the fan. More details on features and how to use this component are available [here](./components/tuya_dimmer_as_fan/README.md).
 
 ### Tuya Light Plus
-This an enhanced version of the standard [Tuya light](https://esphome.io/components/light/tuya.html) component that adds a bunch of extra features. I use this component with [Feit Dimmers](https://www.amazon.com/gp/product/B07SXDFH38/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1) but it will likely work with other Tuya dimmers. More details on features and how to use this component are available [here](./components/tuya_light_plus/README.md).
+This an enhanced version of the standard [Tuya light](https://esphome.io/components/light/tuya.html) component that adds a bunch of extra features. I use this component with [Feit Dimmers](https://www.feit.com/product/smart-wi-fi-dimmer/) but it will likely work with other Tuya dimmers. More details on features and how to use this component are available [here](./components/tuya_light_plus/README.md).
 
 ### ESPSense
 This excellent component is not mine and doesn't live in this repository but most of my devices are using it so I felt it was worthy of a mention here. More details are available [here](https://github.com/cbpowell/ESPSense).
@@ -51,7 +68,7 @@ This is a [NodeMCU](https://www.amazon.com/gp/product/B010N1SPRK/ref=ppx_yo_dt_b
 This is a [WEMOS D1 Mini Pro](https://www.amazon.com/gp/product/B07G9HZ5LM/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that is connected to a [relay](https://www.amazon.com/gp/product/B00VRUAHLE/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) to control the power to the landscape lights around my patio.  I used the WEMOS D1 Mini Pro because it has an external antenna.  I initially used a [WEMOS D1 Mini clone](https://www.amazon.com/gp/product/B076F52NQD/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) but the power supply for my lights was to far from the house and I kept having connectivity issues.
 
 ### [Pool Pumps](./devices/pool_pumps.yaml)
-This is a [Shelly 2.5 Double Relay Switch](https://www.amazon.com/gp/product/B07RRD13DJ/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) that is controlling the main pump on my pool and the auxillary pump that runs the pool cleaner.  It turns the pump on and off through out the day and off at night (when we are least likely to be using the pool and when you get the most heat/water loss if the pump is running) and turns on the cleaner for a couple of hours in the morning.  It also has some modes for Off (during the winter) and Continous when I need extra cleaning.
+This is a [Shelly 2.5 Double Relay Switch](https://shelly.cloud/products/shelly-25-smart-home-automation-relay/) that is controlling the main pump on my pool and the auxillary pump that runs the pool cleaner via my custom [Pool Controller Component](./components/pool_controller/README.md).
 
 ### [Scripture of the Day Melissa](./devices/scripture_of_the_day_melissa.yaml)/[Scripture of the Day Mayson](./devices/scripture_of_the_day_mayson.yaml)
 This project was one of the first projects I have done that I would call woodworking.  I made 2 of these as Christmas presents for my wife and son.  They consist of an [ESP32 e-Paper Panel Driver Board](https://www.waveshare.com/product/displays/e-paper-esp32-driver-board.htm) powered by a [lithium battery](https://www.amazon.com/dp/B0867KDMY7/?coliid=IE0LBNACFHG4U&colid=1LOK862UA8LA0&psc=1&ref_=lv_ov_lig_dp_it) and [TP4056 lithium battery charger module](https://www.amazon.com/dp/B06XQRQR3Q/?coliid=I1B2ELKKLLKAK0&colid=1LOK862UA8LA0&psc=1&ref_=lv_ov_lig_dp_it) and driving a [Waveshare 7.5inch 800×480 E-Ink display](https://www.waveshare.com/7.5inch-e-paper.htm).  The ESP32 sits in deep-sleep most of the time but wakes up every night, grabs a random scripture from the [Our Manna Daily Verses API](http://www.ourmanna.com/verses/api/), updates the display with the verse, and goes back to sleep.
