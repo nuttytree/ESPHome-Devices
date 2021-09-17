@@ -8,3 +8,6 @@
 /build/
 **/platformio.ini
 /secrets.yaml
+__pycache__/
+*.py[cod]
+*$py.class

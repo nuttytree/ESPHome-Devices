@@ -11,12 +11,40 @@ substitutions:
 packages:
   device_base: !include ../packages/device_base.yaml
 
+external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ binary_light_with_power ]
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
+
+espsense:
+  plugs:
+    - name: ${device_name}
+      power_sensor: power
+      voltage: 120
+
 light:
-  - platform: binary
-    name: "Patio Lights"
+  - platform: binary_light_with_power
+    name: ${device_name}
     output: patio_lights_output
+    power:
+      id: power
+      name: ${device_name} Power
+      light_wattage: 15.3
 
 output:
   - platform: gpio
     id: patio_lights_output
     pin: D1
+
+sensor:
+  - platform: total_daily_energy
+    name: ${device_name}
+    power_id: power
+    method: left
+    min_save_interval: 10min
+
+time:
+  - platform: homeassistant

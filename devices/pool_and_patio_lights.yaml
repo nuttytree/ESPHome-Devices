@@ -11,9 +11,13 @@ substitutions:
 packages:
   device_base: !include ../packages/device_base.yaml
 
-esphome:
-  includes:
-    - ../custom/TreoLedPoolLight.h
+external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ treo_led_pool_light, binary_light_with_power ]
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
 
 binary_sensor:
   - platform: gpio
@@ -43,7 +47,7 @@ binary_sensor:
     on_press:
       then:
         - lambda: |-
-            Treo->next_color();
+            static_cast<TreoLedPoolLight *>(id(pool_lights).get_output())->next_color();
   - platform: homeassistant
     id: patio_lights
     entity_id: light.patio_lights
@@ -54,15 +58,28 @@ binary_sensor:
       then:
         - switch.turn_off: patio_lights_indicator
 
+espsense:
+  plugs:
+    - name: Pool Lights
+      power_sensor: pool_light_power
+      voltage: 120
+
 light:
-  - platform: custom
-    lambda: |-
-      Treo = new TreoLedPoolLight(15);
-      App.register_component(Treo);
-      return {Treo};
-    lights:
-      - id: pool_lights
-        name: "Pool Lights"
+  - platform: treo_led_pool_light
+    id: pool_lights
+    name: "Pool Lights"
+    pin: 15
+    power:
+      id: pool_light_power
+      name: Pool Lights Power
+      light_wattage: 10.0
+
+sensor:
+  - platform: total_daily_energy
+    name: Pool Lights
+    power_id: pool_light_power
+    method: left
+    min_save_interval: 10min
 
 status_led:
   pin:
@@ -73,3 +90,6 @@ switch:
   - platform: gpio
     id: patio_lights_indicator
     pin: 13
+
+time:
+  - platform: homeassistant
