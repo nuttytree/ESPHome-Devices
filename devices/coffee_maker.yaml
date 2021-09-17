@@ -51,6 +51,9 @@ interval:
           // Coffee should be wet now so turn off and let it bloom
           else if (id(power_switch).state && brewStage == 1 && millis() >= brewStageChange) {
             id(power_switch).turn_off();
+            if (isBoldBrew) {
+              id(bold_switch).turn_on();
+            }
             brewStage = 2;  //Bloom
             brewStageChange = millis() + 45000;
           }
