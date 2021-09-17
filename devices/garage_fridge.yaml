@@ -60,9 +60,9 @@ sensor:
     address: 0xEF01142F57328028
     filters:
       - lambda: return x * (9.0/5.0) + 32.0;
-    on_value:
-      then:
-        - script.execute: fridge_heater_control
+    # on_value:
+    #   then:
+    #     - script.execute: fridge_heater_control
   - platform: dallas
     id: comp_temp
     name: "Garage Fridge Compressor Temperature"
@@ -90,9 +90,9 @@ sensor:
       - sliding_window_moving_average:
           window_size: 60
           send_every: 1
-    on_value:
-      then:
-        - script.execute: fridge_heater_control
+    # on_value:
+    #   then:
+    #     - script.execute: fridge_heater_control
 
 switch:
   - platform: gpio
