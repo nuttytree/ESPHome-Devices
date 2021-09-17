@@ -18,7 +18,7 @@ external_components:
     components: [ pool_controller ]
 ```
 
-Add and configure the Pool COntroller Component
+Add and configure the Pool Controller Component
 ```yaml
 pool_controller:
   pump:
