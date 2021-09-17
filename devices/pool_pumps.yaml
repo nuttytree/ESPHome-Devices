@@ -16,8 +16,6 @@ external_components:
       type: local
       path: ../components 
     components: [ pool_controller ]
-  - source: github://esphome/esphome@dev
-    components: [ total_daily_energy ]
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
 

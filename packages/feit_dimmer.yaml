@@ -9,8 +9,6 @@ external_components:
     components: [ tuya_light_plus ]
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
-  - source: github://esphome/esphome@dev
-    components: [ total_daily_energy ]
 
 espsense:
   plugs:
