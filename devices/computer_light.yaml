@@ -1,10 +1,10 @@
 substitutions:
   device_id: computer_light
   device_name: Computer Light
-  ip_address: !secret computer_light_ip
-  ota_pwd: !secret computer_light_ota_pwd
-  api_pwd: !secret computer_light_api_pwd
-  ap_wifi_pwd: !secret computer_light_ap_wifi_pwd
+  ip_address: !secret computer-light-ip
+  ota_pwd: !secret computer-light-ota-pwd
+  api_pwd: !secret computer-light-api-pwd
+  ap_wifi_pwd: !secret computer-light-ap-pwd
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml

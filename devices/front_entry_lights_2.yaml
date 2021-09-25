@@ -1,10 +1,10 @@
 substitutions:
   device_id: front_entry_lights_2
   device_name: Front Entry Lights 2
-  ip_address: !secret front_entry_lights_2_ip
-  ota_pwd: !secret front_entry_lights_2_ota_pwd
-  api_pwd: !secret front_entry_lights_2_api_pwd
-  ap_wifi_pwd: !secret front_entry_lights_2_ap_wifi_pwd
+  ip_address: !secret front-entry-lights_2-ip
+  ota_pwd: !secret front-entry-lights-2-ota-pwd
+  api_pwd: !secret front-entry-lights-2-api-pwd
+  ap_wifi_pwd: !secret front-entry-lights-2-ap-pwd
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer_without_power.yaml

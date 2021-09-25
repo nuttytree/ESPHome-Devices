@@ -3,10 +3,10 @@ substitutions:
   device_name: Master Bed
   platform: ESP8266
   board: nodemcuv2
-  ip_address: !secret master_bed_ip
-  ota_pwd: !secret master_bed_ota_pwd
-  api_pwd: !secret master_bed_api_pwd
-  ap_wifi_pwd: !secret master_bed_ap_wifi_pwd
+  ip_address: !secret master-bed-ip
+  ota_pwd: !secret master-bed-ota-pwd
+  api_pwd: !secret master-bed-api-pwd
+  ap_wifi_pwd: !secret master-bed-ap-pwd
 
 packages:
   device_base: !include ../packages/device_base.yaml

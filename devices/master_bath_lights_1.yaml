@@ -1,10 +1,10 @@
 substitutions:
   device_id: master_bath_lights
   device_name: Master Bathroom Lights
-  ip_address: !secret master_bath_lights_ip
-  ota_pwd: !secret master_bath_lights_ota_pwd
-  api_pwd: !secret master_bath_lights_api_pwd
-  ap_wifi_pwd: !secret master_bath_lights_ap_wifi_pwd
+  ip_address: !secret master-bath-lights-ip
+  ota_pwd: !secret master-bath-lights-ota-pwd
+  api_pwd: !secret master-bath-lights-api-pwd
+  ap_wifi_pwd: !secret master-bath-lights-ap-pwd
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml
