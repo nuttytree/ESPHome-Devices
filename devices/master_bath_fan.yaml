@@ -1,10 +1,10 @@
 substitutions:
   device_id: master_bath_fan
   device_name: Master Bathroom Fan
-  ip_address: !secret master_bath_fan_ip
-  ota_pwd: !secret master_bath_fan_ota_pwd
-  api_pwd: !secret master_bath_fan_api_pwd
-  ap_wifi_pwd: !secret master_bath_fan_ap_wifi_pwd
+  ip_address: !secret master-bath-fan-ip
+  ota_pwd: !secret master-bath-fan-ota-pwd
+  api_pwd: !secret master-bath-fan-api-pwd
+  ap_wifi_pwd: !secret master-bath-fan-ap-pwd
   fan_wattage: "26.6"
 
 packages:

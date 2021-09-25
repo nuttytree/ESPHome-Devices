@@ -10,16 +10,16 @@ external_components:
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
+packages:
+  base:   !include device_base.yaml
+  logger: !include logger/logger_no_serial.yaml
+  uart:   !include uart/tuya.yaml
+
 espsense:
   plugs:
     - name: ${device_name}
       power_sensor: power
       voltage: 120
-
-packages:
-  base:   !include device_base.yaml
-  logger: !include logger/logger_no_serial.yaml
-  uart:   !include uart/tuya.yaml
 
 sensor:
   - platform: total_daily_energy

@@ -3,10 +3,10 @@ substitutions:
   device_name: Fire Pit and Fountain
   platform: ESP8266
   board: d1_mini
-  ip_address: !secret fire_pit_fountain_ip
-  ota_pwd: !secret fire_pit_fountain_ota_pwd
-  api_pwd: !secret fire_pit_fountain_api_pwd
-  ap_wifi_pwd: !secret fire_pit_fountain_ap_wifi_pwd
+  ip_address: !secret fire-pit-fountain-ip
+  ota_pwd: !secret fire-pit-fountain-ota-pwd
+  api_pwd: !secret fire-pit-fountain-api-pwd
+  ap_wifi_pwd: !secret fire-pit-fountain-ap-pwd
 
 packages:
   device_base: !include ../packages/device_base.yaml

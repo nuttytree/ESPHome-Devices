@@ -1,10 +1,10 @@
 substitutions:
   device_id: living_room_lights
   device_name: Living Room Lights
-  ip_address: !secret living_room_lights_ip
-  ota_pwd: !secret living_room_lights_ota_pwd
-  api_pwd: !secret living_room_lights_api_pwd
-  ap_wifi_pwd: !secret living_room_lights_ap_wifi_pwd
+  ip_address: !secret living-room-lights-ip
+  ota_pwd: !secret living-room-lights-ota-pwd
+  api_pwd: !secret living-room-lights-api-pwd
+  ap_wifi_pwd: !secret living-room-lights-ap-pwd
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml
