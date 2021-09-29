@@ -21,6 +21,7 @@ void PoolSelect::setup() {
 }
 
 void PoolSelect::control(const std::string &value) {
+  ESP_LOGD(TAG, "%s changed to option %s", this->get_name().c_str(), value.c_str());
   this->publish_state(value);
 
   auto options = this->traits.get_options();

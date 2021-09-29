@@ -1,10 +1,10 @@
 substitutions:
   device_id: kitchen_bar_lights
   device_name: Kitchen Bar Lights
-  ip_address: !secret kitchen_bar_lights_ip
-  ota_pwd: !secret kitchen_bar_lights_ota_pwd
-  api_pwd: !secret kitchen_bar_lights_api_pwd
-  ap_wifi_pwd: !secret kitchen_bar_lights_ap_wifi_pwd
+  ip_address: !secret kitchen-bar-lights-ip
+  ota_pwd: !secret kitchen-bar-lights-ota-pwd
+  api_pwd: !secret kitchen-bar-lights-api-pwd
+  ap_wifi_pwd: !secret kitchen-bar-lights-ap-pwd
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml

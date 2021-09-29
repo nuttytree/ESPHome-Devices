@@ -3,10 +3,10 @@ substitutions:
   device_name: Garage Fridge
   platform: ESP8266
   board: nodemcuv2
-  ip_address: !secret garage_fridge_ip
-  ota_pwd: !secret garage_fridge_ota_pwd
-  api_pwd: !secret garage_fridge_api_pwd
-  ap_wifi_pwd: !secret garage_fridge_ap_wifi_pwd
+  ip_address: !secret garage-fridge-ip
+  ota_pwd: !secret garage-fridge-ota-pwd
+  api_pwd: !secret garage-fridge-api-pwd
+  ap_wifi_pwd: !secret garage-fridge-ap-pwd
 
 packages:
   device_base: !include ../packages/device_base.yaml

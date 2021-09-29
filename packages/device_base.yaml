@@ -1,9 +1,9 @@
 substitutions:
   log_level: none
-  wifi_ssid: !secret wifi_ssid
-  wifi_password: !secret wifi_password
-  ip_subnet: !secret ip_subnet
-  ip_gateway: !secret ip_gateway
+  wifi_ssid: !secret wifi-ssid
+  wifi_password: !secret wifi-password
+  ip_subnet: !secret ip-subnet
+  ip_gateway: !secret ip-gateway
 
 esphome:
   name: ${device_id}

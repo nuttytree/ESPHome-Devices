@@ -1,10 +1,10 @@
 substitutions:
   device_id: office_light
   device_name: Office Light
-  ip_address: !secret office_light_ip
-  ota_pwd: !secret office_light_ota_pwd
-  api_pwd: !secret office_light_api_pwd
-  ap_wifi_pwd: !secret office_light_ap_wifi_pwd
+  ip_address: !secret office-light-ip
+  ota_pwd: !secret office-light-ota-pwd
+  api_pwd: !secret office-light-api-pwd
+  ap_wifi_pwd: !secret office-light-ap-pwd
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml

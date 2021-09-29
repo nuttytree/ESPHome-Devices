@@ -3,10 +3,10 @@ substitutions:
   device_name: Pool Pumps
   platform: ESP8266
   board: modwifi
-  ip_address: !secret pool_pumps_ip
-  ota_pwd: !secret pool_pumps_ota_pwd
-  api_pwd: !secret pool_pumps_api_pwd
-  ap_wifi_pwd: !secret pool_pumps_ap_wifi_pwd
+  ip_address: !secret pool-pumps-ip
+  ota_pwd: !secret pool-pumps-ota-pwd
+  api_pwd: !secret pool-pumps-api-pwd
+  ap_wifi_pwd: !secret pool-pumps-ap-pwd
 
 packages:
   device_base: !include ../packages/device_base.yaml
@@ -38,15 +38,15 @@ pool_controller:
   pump:
     switch_id: pool_pump
     current_id: pool_pump_current
-    min_current: 6.50
-    max_current: 6.70
+    min_current: 3.45
+    max_current: 6.75
     max_out_of_range_duration: 5s
   cleaner:
     switch_id: pool_cleaner
     current_id: pool_cleaner_current
-    min_current: 4.55
-    max_current: 5.10
-    max_out_of_range_duration: 5s
+    min_current: 4.50
+    max_current: 5.30
+    max_out_of_range_duration: 10s
 
 sensor:
   - platform: ade7953
@@ -69,12 +69,12 @@ sensor:
       name: Pool Cleaner Power
       id: pool_cleaner_power
       filters:
-        - lambda: "return x < .1 ? 0 : x * 2;"
+        - lambda: "return x < 1.0 ? 0 : x * 2;"
     active_power_b:
       name: Pool Pump Power
       id: pool_pump_power
       filters:
-        - lambda: "return abs(x) < .1 ? 0 : abs(x) * 2;"
+        - lambda: "return fabs(x) < 1 ? 0 : fabs(x) * 2;"
     update_interval: 1s
   - platform: ntc
     sensor: temp_resistance_reading
