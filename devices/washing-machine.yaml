@@ -1,0 +1,10 @@
+substitutions:
+  device_id: washing-machine
+  device_name: Washing Machine
+  ip_address: !secret washing-machine-ip
+  ota_pwd: !secret washing-machine-ota-pwd
+  api_pwd: !secret washing-machine-api-pwd
+  ap_wifi_pwd: !secret washing-machine-ap-wifi-pwd
+
+packages:
+  feit_dimmer: !include ../packages/topgreener_smart_plug.yaml

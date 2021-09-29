@@ -59,7 +59,7 @@ if ($Args[0] -eq "add")
     $secrets["${device}-ota-pwd"] = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 16 | % {[char]$_})
     $secrets["${device}-ap-pwd"] = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 16 | % {[char]$_})
 
-    Out-File $PSScriptRoot\..\secrets.yaml -InputObject (ConvertTo-YAML $secrets)
+    Out-File $PSScriptRoot\..\secrets.yaml -InputObject (ConvertTo-YAML $secrets) -Encoding utf8
 }
 
 if (!$secrets.Contains("${device}-ip"))
