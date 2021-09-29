@@ -1,7 +1,7 @@
 substitutions:
   device_id: front_entry_lights_2
   device_name: Front Entry Lights 2
-  ip_address: !secret front-entry-lights_2-ip
+  ip_address: !secret front-entry-lights-2-ip
   ota_pwd: !secret front-entry-lights-2-ota-pwd
   api_pwd: !secret front-entry-lights-2-api-pwd
   ap_wifi_pwd: !secret front-entry-lights-2-ap-pwd
