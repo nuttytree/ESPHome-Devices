@@ -1,9 +1,8 @@
-Push-Location $PSScriptRoot\..\devices
-
-$files = Get-ChildItem "*.yaml" -Exclude "secrets.yaml"
+$files = Get-ChildItem $PSScriptRoot\..\devices\*.yaml -Exclude "secrets.yaml"
 $failures = New-Object Collections.Generic.List[String]
 foreach ($file in $files) {
-    esphome compile $file.Name
+    $fileName = $file.Name
+    esphome compile  $PSScriptRoot\..\devices\$fileName
     if ($LASTEXITCODE -ne "0") {
         $failures.Add($file.Name)
     }
@@ -18,5 +17,3 @@ else {
         Write-Output $failure
     }
 }
-
-Pop-Location
