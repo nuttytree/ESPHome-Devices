@@ -1,0 +1,10 @@
+substitutions:
+  device_id: sump_pump
+  device_name: Sump Pump
+  ip_address: !secret sump-pump-ip
+  ota_pwd: !secret sump-pump-ota-pwd
+  api_pwd: !secret sump-pump-api-pwd
+  ap_wifi_pwd: !secret sump-pump-ap-pwd
+
+packages:
+  feit_dimmer: !include ../packages/topgreener_smart_plug.yaml
