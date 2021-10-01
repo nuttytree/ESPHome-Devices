@@ -17,6 +17,7 @@ CONF_KP = "kp"
 CONF_KI = "ki"
 CONF_KD = "kd"
 CONF_HEAT_OUTPUT = "heat_output"
+CONF_FRIDGE_HEAT_SENSOR_NAME = "fridge_heat_sensor_name"
 CONF_MIN_INTEGRAL = "min_integral"
 CONF_MAX_INTEGRAL = "max_integral"
 CONF_FRIDGE_CONTROL = "fridge_control"
@@ -59,6 +60,7 @@ CONFIG_SCHEMA = (
         {
             cv.GenerateID(CONF_ID): cv.declare_id(GarageFridge),
             cv.Required(CONF_HEAT_OUTPUT): cv.use_id(output.FloatOutput),
+            cv.Required(CONF_FRIDGE_HEAT_SENSOR_NAME): cv.string,
             cv.Required(CONF_FRIDGE_CONTROL): FRIDGE_CONFIG_SCHEMA,
             cv.Required(CONF_FREEZER_CONTROL): FREEZER_CONFIG_SCHEMA,
         }
@@ -70,7 +72,8 @@ async def to_code(config):
     await cg.register_component(var, config)
 
     out = await cg.get_variable(config[CONF_HEAT_OUTPUT])
-    cg.add(var.set_heat_output(out))
+    cg.add(var.set_fridge_heat_output(out))
+    cg.add(var.set_fridge_heat_sensor_name(config[CONF_FRIDGE_HEAT_SENSOR_NAME]))
 
     fridge = config[CONF_FRIDGE_CONTROL]
     fridge_sens = await cg.get_variable(fridge[CONF_SENSOR])

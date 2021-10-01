@@ -34,6 +34,7 @@ esp32_ble_tracker:
 
 garage_fridge:
   heat_output: fridge_heater_output
+  fridge_heat_sensor_name: Garage Fridge Heater
   fridge_control:
     sensor: fridge_temp
     min_temperature: 34
