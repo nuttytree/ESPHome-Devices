@@ -4,6 +4,10 @@ namespace esphome {
 namespace garage_fridge {
 
 void GarageFridgeHeatOutput::write_state(float state) { 
+  if (isnan(state)) {
+    return;
+  }
+
   this->state_ = state;
   if (this->active_) {
     this->physical_output_->set_level(state);

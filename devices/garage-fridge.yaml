@@ -19,17 +19,6 @@ external_components:
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
-# climate:
-#   - platform: pid
-#     name: Garage Fridge Heater Control
-#     sensor: fridge_temp
-#     default_target_temperature: 35°F
-#     heat_output: fridge_heater_output
-#     control_parameters:
-#       kp: 0.49460
-#       ki: 0.00487
-#       kd: 12.56301
-
 esp32_ble_tracker:
 
 garage_fridge:
@@ -49,9 +38,11 @@ garage_fridge:
     ki: 0.00487
     kd: 12.56301
 
+modbus:
+
 output:
   - platform: slow_pwm
-    pin: D1
+    pin: D5
     id: fridge_heater_output
     period: 15s
 
@@ -74,3 +65,22 @@ sensor:
       name: Garage Freezer Humidity
     battery_level:
       name: Garage Freezer Sensor Battery Level
+  - platform: pzemac
+    current:
+      name: ${device_name} Current
+    voltage:
+      name: ${device_name} Voltage
+    energy:
+      name: ${device_name}
+    power:
+      name: ${device_name} Power
+    frequency:
+      name: ${device_name} Power Frequency
+    power_factor:
+      name: ${device_name} Power Factor
+    update_interval: 2s
+
+uart:
+  rx_pin: D3
+  tx_pin: D1
+  baud_rate: 9600
