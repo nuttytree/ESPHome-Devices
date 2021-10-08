@@ -7,6 +7,7 @@ substitutions:
   ota_pwd: !secret garage-fridge-ota-pwd
   api_pwd: !secret garage-fridge-api-pwd
   ap_wifi_pwd: !secret garage-fridge-ap-pwd
+  Xlog_level: debug
 
 packages:
   device_base: !include ../packages/device_base.yaml
@@ -20,6 +21,16 @@ external_components:
     components: [ espsense ]
 
 esp32_ble_tracker:
+  scan_parameters:
+    interval: 16ms
+    window: 16ms
+
+# espsense:
+#   plugs:
+#     - name: ${device_name}
+#       power_sensor: garage_fridge_power
+#       current_sensor: garage_fridge_current
+#       voltage_sensor: garage_fridge_voltage
 
 garage_fridge:
   heat_output: fridge_heater_output
@@ -48,7 +59,7 @@ output:
 
 sensor:
   - platform: inkbird_ibsth1_mini
-    mac_address: 38:81:D7:0A:9C:11
+    mac_address: "10:08:2C:1F:33:63"
     temperature:
       id: fridge_temp
       name: Garage Fridge Temperature
@@ -57,7 +68,7 @@ sensor:
     battery_level:
       name: Garage Fridge Sensor Battery Level
   - platform: inkbird_ibsth1_mini
-    mac_address: 38:81:D7:0A:9C:12
+    mac_address: "64:69:4E:9D:46:A9"
     temperature:
       id: freezer_temp
       name: Garage Freezer Temperature
@@ -66,19 +77,22 @@ sensor:
     battery_level:
       name: Garage Freezer Sensor Battery Level
   - platform: pzemac
+    update_interval: 2s
     current:
+      id: garage_fridge_current
       name: ${device_name} Current
     voltage:
+      id: garage_fridge_voltage
       name: ${device_name} Voltage
     energy:
       name: ${device_name}
     power:
+      id: garage_fridge_power
       name: ${device_name} Power
     frequency:
       name: ${device_name} Power Frequency
     power_factor:
       name: ${device_name} Power Factor
-    update_interval: 2s
 
 uart:
   rx_pin: D3

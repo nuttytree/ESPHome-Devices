@@ -7,10 +7,9 @@ namespace garage_fridge {
 
 static const char *const TAG = "garage_fridge";
 
-static const float DISABLED_TEMP = std::numeric_limits<float>::min();
-static const uint32_t UPDATE_INTERVAL_MS = 2000;
-static const uint32_t SAMPLE_WINDOW_MINUTES = 5;
-static const uint32_t TREND_TEMPERATURE_MINUTES = 1;
+static const uint32_t UPDATE_INTERVAL_MS = 10000;
+static const uint32_t SAMPLE_WINDOW_MINUTES = 10;
+static const uint32_t TREND_TEMPERATURE_MINUTES = 2;
 
 static const uint32_t SAMPLE_TEMPERATURE_READINGS_COUNT = SAMPLE_WINDOW_MINUTES * 60 * 1000 / UPDATE_INTERVAL_MS;
 static const uint32_t TREND_TEMPERATURE_READINGS_COUNT = TREND_TEMPERATURE_MINUTES * 60 * 1000 / UPDATE_INTERVAL_MS;
@@ -22,19 +21,20 @@ GarageFridge::GarageFridge() {
   this->fridge_pid_->set_component_source("garage.fridge");
   App.register_component(this->fridge_pid_);
   App.register_climate(this->fridge_pid_);
+  this->fridge_pid_->set_internal(true);
 
   this->freezer_pid_ = new pid::PIDClimate();
   this->freezer_pid_->set_component_source("garage.fridge");
   App.register_component(this->freezer_pid_);
   App.register_climate(this->freezer_pid_);
+  this->freezer_pid_->set_internal(true);
 
   this->fridge_heater_sensor_ = new sensor::Sensor();
+  App.register_sensor(this->fridge_heater_sensor_);
   this->fridge_heater_sensor_->set_accuracy_decimals(0);
-  this->fridge_heater_sensor_->set_device_class("heat");
   this->fridge_heater_sensor_->set_icon("mdi:radiator");
   this->fridge_heater_sensor_->set_state_class(sensor::StateClass::STATE_CLASS_MEASUREMENT);
   this->fridge_heater_sensor_->set_unit_of_measurement("%");
-  App.register_sensor(this->fridge_heater_sensor_);
 
   this->fridge_output_ = new GarageFridgeHeatOutput();
   this->fridge_output_->set_component_source("garage.fridge");
@@ -57,30 +57,44 @@ void GarageFridge::set_fridge_sensor(sensor::Sensor *sensor) {
   this->freezer_pid_->set_sensor(sensor);
 }
 
+void GarageFridge::setup() {
+  auto freezer_call = this->freezer_pid_->make_call();
+  freezer_call.set_target_temperature(this->cool_trigger_temp_);
+  freezer_call.set_mode(climate::CLIMATE_MODE_HEAT);
+  freezer_call.perform();
+
+  auto fridge_call = this->fridge_pid_->make_call();
+  fridge_call.set_target_temperature(this->fridge_min_temp_);
+  fridge_call.set_mode(climate::CLIMATE_MODE_HEAT);
+  fridge_call.perform();
+
+  this->fridge_output_->set_active();
+}
+
 void GarageFridge::update() {
-  float current_temp = this->freezer_sensor_->get_state();
-  if (isnan(current_temp)) {
+  float freezer_temp = this->freezer_sensor_->get_state();
+  if (isnan(freezer_temp)) {
     return;
   }
 
-  while (this->freezer_temps_->size() >= SAMPLE_TEMPERATURE_READINGS_COUNT) {
-    this->freezer_temps_->pop_front();
+  while (this->freezer_temps_.size() >= SAMPLE_TEMPERATURE_READINGS_COUNT) {
+    this->freezer_temps_.pop_front();
   }
-  this->freezer_temps_->push_back(current_temp);
+  this->freezer_temps_.push_back(freezer_temp);
 
   // We only make decisions based on a full sample window of temperatures
-  if (this->freezer_temps_->size() < SAMPLE_TEMPERATURE_READINGS_COUNT) {
+  if (this->freezer_temps_.size() < SAMPLE_TEMPERATURE_READINGS_COUNT) {
     return;
   }
 
-  if (current_temp <= this->freezer_max_temp_) {
+  if (freezer_temp <= this->freezer_max_temp_) {
     // We are below the max temp so we are good
     this->set_freezer_needs_cooling(false);
-  } else if (current_temp > this->freezer_max_temp_ + 10.0f) {
+  } else if (freezer_temp > this->freezer_max_temp_ + 10.0f) {
     // If the current temp is more than 10 degrees over the max temp then the door is probably open so heating the fridge will only make matters worse
     this->set_freezer_needs_cooling(false);
   } else if (!this->freezer_needs_cooling_) {
-    float min = *(std::min_element(this->freezer_temps_->begin(), this->freezer_temps_->end()));
+    float min = *(std::min_element(this->freezer_temps_.begin(), this->freezer_temps_.end()));
     if (min > this->freezer_max_temp_) {
       // If all values are over the max temp then we look at which way the temp is currently trending
       float trend = this->get_freezer_trend();
@@ -91,8 +105,8 @@ void GarageFridge::update() {
   }
 }
 
-void GarageFridge::set_freezer_needs_cooling(bool needs_cooling, bool initial_set) {
-  if (needs_cooling == this->freezer_needs_cooling_ && !initial_set) {
+void GarageFridge::set_freezer_needs_cooling(bool needs_cooling) {
+  if (needs_cooling == this->freezer_needs_cooling_) {
     return;
   }
 
@@ -100,13 +114,7 @@ void GarageFridge::set_freezer_needs_cooling(bool needs_cooling, bool initial_se
   if (needs_cooling) {
     this->fridge_output_->set_inactive();
     this->freezer_output_->set_active();
-    auto call = this->freezer_pid_->make_call();
-    call.set_target_temperature(this->cool_trigger_temp_);
-    call.perform();
   } else {
-    auto call = this->freezer_pid_->make_call();
-    call.set_target_temperature(DISABLED_TEMP);
-    call.perform();
     this->freezer_output_->set_inactive();
     this->fridge_output_->set_active();
   }
@@ -114,8 +122,8 @@ void GarageFridge::set_freezer_needs_cooling(bool needs_cooling, bool initial_se
 
 float GarageFridge::get_freezer_trend() {
   // https://stackoverflow.com/questions/11449617/how-to-fit-the-2d-scatter-data-with-a-line-with-c
-  auto start_trend_values = this->freezer_temps_->end() - TREND_TEMPERATURE_READINGS_COUNT + 1;
-  std::vector<float> trend_values = {start_trend_values, this->freezer_temps_->end()};
+  auto start_trend_values = this->freezer_temps_.end() - TREND_TEMPERATURE_READINGS_COUNT + 1;
+  std::vector<float> trend_values = {start_trend_values, this->freezer_temps_.end()};
 
   double sumX=0, sumY=0, sumXY=0, sumX2=0;
   for(int i=0; i<TREND_TEMPERATURE_READINGS_COUNT; i++) {

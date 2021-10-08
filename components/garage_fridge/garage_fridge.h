@@ -29,8 +29,8 @@ class GarageFridge : public PollingComponent {
   void set_freezer_kd(float kd) { this->freezer_pid_->set_kd(kd); }
   void set_freezer_min_integral(float min_integral) { this->freezer_pid_->set_min_integral(min_integral); }
   void set_freezer_max_integral(float max_integral) { this->freezer_pid_->set_max_integral(max_integral); }
-  float get_setup_priority() const override { return setup_priority::HARDWARE; }
-  void setup() override { this->set_freezer_needs_cooling(false, true); }
+  float get_setup_priority() const override { return setup_priority::LATE; }
+  void setup() override;
   void update() override;
 
  protected:
@@ -44,10 +44,10 @@ class GarageFridge : public PollingComponent {
   float freezer_max_temp_{};
   float cool_trigger_temp_{};
 
-  std::deque<float> *freezer_temps_;
-  bool freezer_needs_cooling_;
+  std::deque<float> freezer_temps_;
+  bool freezer_needs_cooling_{false};
 
-  void set_freezer_needs_cooling(bool needs_cooling, bool initial_set = false);
+  void set_freezer_needs_cooling(bool needs_cooling);
   float get_freezer_trend();
 };
 
