@@ -16,7 +16,7 @@ external_components:
   - source:
       type: local
       path: ../components 
-    components: [ garage_fridge ]
+    components: [ garage_fridge, inkbird_ibsth1_mini ]
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
