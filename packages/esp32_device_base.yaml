@@ -1,0 +1,10 @@
+substitutions:
+  platform: esp32
+  framework_type: arduino
+
+esp32:
+  framework:
+    type: ${framework_type}
+
+packages:
+  base:   !include device_base.yaml
