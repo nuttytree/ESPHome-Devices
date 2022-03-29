@@ -1,7 +1,6 @@
 substitutions:
-  device_id: patio_lights
+  device_id: patio-lights
   device_name: Patio Lights
-  platform: ESP8266
   board: d1_mini
   ip_address: !secret patio-lights-ip
   ota_pwd: !secret patio-lights-ota-pwd

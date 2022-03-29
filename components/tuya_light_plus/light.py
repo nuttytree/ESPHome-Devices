@@ -42,9 +42,7 @@ CONF_ON_DOUBLE_CLICK_WHILE_ON = "on_double_click_while_on"
 CONF_LIGHT_WATTAGE = "light_wattage"
 
 tuya_ns = cg.esphome_ns.namespace("tuya")
-api_ns = cg.esphome_ns.namespace("api")
-APIServer = api_ns.class_("APIServer", cg.Component, cg.Controller)
-TuyaLight = tuya_ns.class_("TuyaLightPlus", light.LightOutput, cg.PollingComponent, APIServer)
+TuyaLight = tuya_ns.class_("TuyaLightPlus", light.LightOutput, cg.PollingComponent)
 DoubleClickWhileOffTrigger = tuya_ns.class_('DoubleClickWhileOffTrigger', auto.Trigger.template())
 DoubleClickWhileOnTrigger = tuya_ns.class_('DoubleClickWhileOnTrigger', auto.Trigger.template())
 

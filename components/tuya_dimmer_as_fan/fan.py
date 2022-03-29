@@ -1,7 +1,7 @@
 from esphome.components import fan, sensor
 import esphome.config_validation as cv
 import esphome.codegen as cg
-from esphome.components.tuya import CONF_TUYA_ID, Tuya
+from esphome.components.tuya import tuya_ns, CONF_TUYA_ID, Tuya
 from esphome.const import (
     CONF_OUTPUT_ID,
     CONF_SWITCH_DATAPOINT,
@@ -19,8 +19,8 @@ CONF_DIMMER_DATAPOINT = "dimmer_datapoint"
 CONF_MAX_VALUE = "dimmer_max_value"
 CONF_FAN_WATTAGE = "fan_wattage"
 
-tuya_ns = cg.esphome_ns.namespace("tuya")
-TuyaFan = tuya_ns.class_("TuyaDimmerAsFan", cg.Component)
+TuyaFan = tuya_ns.class_("TuyaDimmerAsFan", cg.PollingComponent, fan.Fan)
+
 
 CONFIG_SCHEMA = cv.All(
     fan.FAN_SCHEMA.extend(
@@ -49,12 +49,10 @@ CONFIG_SCHEMA = cv.All(
 
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_TUYA_ID])
-    state = await fan.create_fan_state(config)
 
-    var = cg.new_Pvariable(
-        config[CONF_OUTPUT_ID], parent, state
-    )
+    var = cg.new_Pvariable(config[CONF_OUTPUT_ID], parent)
     await cg.register_component(var, config)
+    await fan.register_fan(var, config)
 
     cg.add(var.set_switch_id(config[CONF_SWITCH_DATAPOINT]))
     cg.add(var.set_dimmer_id(config[CONF_DIMMER_DATAPOINT]))

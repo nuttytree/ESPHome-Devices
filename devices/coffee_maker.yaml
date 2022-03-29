@@ -1,7 +1,6 @@
 substitutions:
   device_id: coffee_maker
   device_name: Coffee Maker
-  platform: ESP8266
   board: nodemcuv2
   ip_address: !secret coffee-maker-ip
   ota_pwd: !secret coffee-maker-ota-pwd

@@ -29,4 +29,5 @@ light:
     power:
       id: power
       name: ${device_name} Power
+      icon: mdi:flash
       light_wattage: 11.8

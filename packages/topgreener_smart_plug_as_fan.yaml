@@ -13,7 +13,7 @@ packages:
 
 binary_sensor:
   - platform: gpio
-    id: power_button
+    id: button
     pin:
       number: GPIO3
       inverted: True
@@ -26,6 +26,17 @@ espsense:
     - name: ${device_name}
       power_sensor: power
       voltage: 120
+
+fan:
+  - platform: binary
+    name: ${device_name}
+    output: relay
+
+output:
+  - platform: gpio
+    name: ${device_name}
+    id: relay
+    pin: GPIO14
 
 sensor:
   - platform: hlw8012
@@ -48,7 +59,6 @@ sensor:
     update_interval: 2s
   - platform: total_daily_energy
     name: ${device_name}
-    icon: mdi:flash
     power_id: power
     method: trapezoid
     min_save_interval: 10min
@@ -58,13 +68,5 @@ status_led:
     number: GPIO13
     inverted: False
 
-switch:
-  - platform: gpio
-    name: ${device_name} Power Switch
-    icon: mdi:power
-    id: relay
-    pin: GPIO14
-    restore_mode: ${restore_mode}
-    
 time:
   - platform: homeassistant

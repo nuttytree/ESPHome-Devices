@@ -9,7 +9,7 @@ static const char *const TAG = "pool_select";
 void PoolSelect::setup() {
   std::string value;
   size_t index;
-  this->pref_ = global_preferences.make_preference<size_t>(this->get_object_id_hash());
+  this->pref_ = global_preferences->make_preference<size_t>(this->get_object_id_hash());
   if (!this->pref_.load(&index)) {
     value = "Off";
     ESP_LOGD(TAG, "State from initial (could not load): %s", value.c_str());

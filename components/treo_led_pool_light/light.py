@@ -9,16 +9,14 @@ from esphome.const import (
     UNIT_WATT,
     DEVICE_CLASS_POWER,
     STATE_CLASS_MEASUREMENT,
-    ICON_POWER,
+    ICON_FLASH,
     CONF_UPDATE_INTERVAL,
 )
 
 CONF_LIGHT_WATTAGE = "light_wattage"
 
 light_ns = cg.esphome_ns.namespace("light")
-api_ns = cg.esphome_ns.namespace("api")
-APIServer = api_ns.class_("APIServer", cg.Component, cg.Controller)
-TreoLight = light_ns.class_("TreoLedPoolLight", light.LightOutput, cg.PollingComponent, APIServer)
+TreoLight = light_ns.class_("TreoLedPoolLight", light.LightOutput, cg.PollingComponent)
 
 CONFIG_SCHEMA = cv.All(
     light.LIGHT_SCHEMA.extend(
@@ -30,7 +28,7 @@ CONFIG_SCHEMA = cv.All(
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
-                icon=ICON_POWER,
+                icon=ICON_FLASH,
             ).extend(
                 {
                     cv.Optional(CONF_LIGHT_WATTAGE): cv.positive_float,

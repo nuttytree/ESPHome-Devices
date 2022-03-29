@@ -1,0 +1,69 @@
+substitutions:
+  board: esp01_1m
+  light_wattage: '0'
+
+external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ binary_light_with_power ]
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
+
+packages:
+  base:   !include device_base.yaml
+  logger: !include logger/logger.yaml
+
+binary_sensor:
+  - platform: gpio
+    id: on_button
+    pin:
+      number: GPIO4
+    filters:
+      - delayed_on_off: 50ms
+    on_press:
+      then:
+        - light.turn_on: shelly_light
+  - platform: gpio
+    id: off_button
+    pin:
+      number: GPIO14
+    filters:
+      - delayed_on_off: 50ms
+    on_press:
+      then:
+        - light.turn_off: shelly_light
+
+espsense:
+  plugs:
+    - name: ${device_name}
+      power_sensor: light_power
+      voltage: 120
+
+light:
+  - platform: binary_light_with_power
+    id: shelly_light
+    name: ${device_name}
+    output: shelly_relay
+    power:
+      id: light_power
+      name: ${device_name} Power
+      light_wattage: ${light_wattage}
+
+output:
+  - platform: gpio
+    pin: GPIO5
+    id: shelly_relay
+
+sensor:
+  - platform: total_daily_energy
+    name: ${device_name}
+    power_id: light_power
+    method: left
+    min_save_interval: 10min
+
+status_led:
+  pin: GPIO0
+    
+time:
+  - platform: homeassistant
