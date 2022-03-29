@@ -13,6 +13,8 @@ from esphome.const import (
     CONF_UPDATE_INTERVAL,
 )
 
+DEPENDENCIES = ["api"]
+
 CONF_LIGHT_WATTAGE = "light_wattage"
 
 light_ns = cg.esphome_ns.namespace("light")

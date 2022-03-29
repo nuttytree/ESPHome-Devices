@@ -1,5 +1,5 @@
-#include "esphome/core/log.h"
 #include "treo_led_pool_light.h"
+#include "esphome/core/log.h"
 
 namespace esphome {
 namespace light {

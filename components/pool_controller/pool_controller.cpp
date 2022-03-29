@@ -1,8 +1,8 @@
+#include "pool_controller.h"
 #include "esphome/components/time/automation.h"
 #include "esphome/core/application.h"
 #include "esphome/core/base_automation.h"
 #include "esphome/core/log.h"
-#include "pool_controller.h"
 
 namespace esphome {
 namespace pool_controller {

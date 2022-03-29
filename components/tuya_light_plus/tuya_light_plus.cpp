@@ -1,5 +1,5 @@
-#include "esphome/core/log.h"
 #include "tuya_light_plus.h"
+#include "esphome/core/log.h"
 
 namespace esphome {
 namespace tuya {

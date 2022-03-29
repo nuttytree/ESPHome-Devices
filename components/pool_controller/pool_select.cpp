@@ -1,5 +1,5 @@
-#include "esphome/core/log.h"
 #include "pool_select.h"
+#include "esphome/core/log.h"
 
 namespace esphome {
 namespace pool_controller {

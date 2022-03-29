@@ -1,6 +1,6 @@
+#include "tuya_dimmer_as_fan.h"
 #include "esphome/core/log.h"
 #include "esphome/components/fan/fan_helpers.h"
-#include "tuya_dimmer_as_fan.h"
 
 namespace esphome {
 namespace tuya {

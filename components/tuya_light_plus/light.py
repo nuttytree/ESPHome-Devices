@@ -21,7 +21,7 @@ from esphome.const import (
 )
 from esphome.components.tuya import CONF_TUYA_ID, Tuya
 
-DEPENDENCIES = ["tuya"]
+DEPENDENCIES = ["api", "tuya"]
 
 CONF_DIMMER_DATAPOINT = "dimmer_datapoint"
 CONF_MIN_VALUE_DATAPOINT = "min_value_datapoint"
