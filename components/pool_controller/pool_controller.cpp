@@ -1,8 +1,8 @@
+#include "pool_controller.h"
 #include "esphome/components/time/automation.h"
 #include "esphome/core/application.h"
 #include "esphome/core/base_automation.h"
 #include "esphome/core/log.h"
-#include "pool_controller.h"
 
 namespace esphome {
 namespace pool_controller {
@@ -25,7 +25,7 @@ PoolController::PoolController() {
   App.register_component(this->pump_select_);
   App.register_select(this->pump_select_);
   this->pump_select_->set_name("Pool Pump Mode");
-  this->pump_select_->traits.set_icon("mdi:pump");
+  this->pump_select_->set_icon("mdi:pump");
   this->pump_select_->traits.set_options({"Off", "Normal", "Always Except Peak", "Always"});
   this->pump_select_->add_on_state_callback([this](std::string value) -> void {
     auto options = this->pump_select_->traits.get_options();
@@ -38,7 +38,7 @@ PoolController::PoolController() {
   App.register_component(this->cleaner_select_);
   App.register_select(this->cleaner_select_);
   this->cleaner_select_->set_name("Pool Cleaner Mode");
-  this->cleaner_select_->traits.set_icon("mdi:robot-vacuum");
+  this->cleaner_select_->set_icon("mdi:robot-vacuum");
   this->cleaner_select_->traits.set_options({"Off", "Normal", "When Pump Is On"});
   this->cleaner_select_->add_on_state_callback([this](std::string value) -> void {
     auto options = this->cleaner_select_->traits.get_options();
