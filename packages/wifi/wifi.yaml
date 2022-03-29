@@ -10,4 +10,4 @@ wifi:
     ssid: ${device_id}
     password: ${ap_wifi_pwd}
 
-captive_portal:
+#captive_portal:

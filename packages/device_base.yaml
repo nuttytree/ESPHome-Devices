@@ -4,13 +4,14 @@ substitutions:
   wifi_password: !secret wifi-password
   ip_subnet: !secret ip-subnet
   ip_gateway: !secret ip-gateway
+  platform: esp8266
 
 esphome:
   name: ${device_id}
-  platform: ${platform}
-  board: ${board}
-  arduino_version: latest
   build_path: ../build/${device_id}
+
+${platform}:
+  board: ${board}
 
 packages:
   wifi:             !include wifi/wifi.yaml
@@ -20,7 +21,7 @@ packages:
   status_sensor:    !include binary_sensor/status.yaml
   uptime_sensor:    !include sensor/uptime.yaml
   wifi_sensor:      !include sensor/wifi.yaml
-  restart_switch:   !include switch/restart.yaml
+  restart_button:   !include button/restart.yaml
   version_sensor:   !include text_sensor/version.yaml
   wifi_info_sensor: !include text_sensor/wifi_info.yaml
 

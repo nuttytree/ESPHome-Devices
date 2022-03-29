@@ -1,16 +1,17 @@
 substitutions:
   device_id: garage-fridge
   device_name: Garage Fridge
-  platform: ESP32
-  board: wemos_d1_mini32
+  board: m5stack-atom
+  framework_type: esp-idf
   ip_address: !secret garage-fridge-ip
   ota_pwd: !secret garage-fridge-ota-pwd
   api_pwd: !secret garage-fridge-api-pwd
   ap_wifi_pwd: !secret garage-fridge-ap-pwd
-  Xlog_level: debug
+
 
 packages:
-  device_base: !include ../packages/device_base.yaml
+  device_base: !include ../packages/esp32_device_base.yaml
+  logger: !include ../packages/logger/logger_no_serial.yaml
 
 external_components:
   - source: github://cbpowell/ESPSense
@@ -19,13 +20,21 @@ external_components:
 climate:
   - platform: pid
     name: Garage Fridge
+    id: fridge_heater
+    entity_category: config
     sensor: fridge_temp
     default_target_temperature: 34°F
     heat_output: fridge_heater_output
+    visual:
+      min_temperature: 32°F
+      max_temperature: 38°F
+      temperature_step: .1
     control_parameters:
-      kp: 0.49460
-      ki: 0.00487
-      kd: 12.56301
+      kp: 1.0
+      ki: 0.006
+      kd: 3
+      min_integral: 0.0
+      max_integral: 0.5
 
 esp32_ble_tracker:
   scan_parameters:
@@ -43,9 +52,9 @@ modbus:
 
 output:
   - platform: slow_pwm
-    pin: 23
+    pin: 22
     id: fridge_heater_output
-    period: 15s
+    period: 10s
 
 sensor:
   - platform: inkbird_ibsth1_mini
@@ -53,6 +62,7 @@ sensor:
     temperature:
       id: fridge_temp
       name: Garage Fridge Temperature
+      accuracy_decimals: 2
     humidity:
       name: Garage Fridge Humidity
     battery_level:
@@ -62,11 +72,13 @@ sensor:
     temperature:
       id: freezer_temp
       name: Garage Freezer Temperature
+      accuracy_decimals: 2
     humidity:
       name: Garage Freezer Humidity
     battery_level:
       name: Garage Freezer Sensor Battery Level
   - platform: pzemac
+    id: pzem
     update_interval: 2s
     current:
       id: garage_fridge_current
@@ -76,6 +88,7 @@ sensor:
       name: ${device_name} Voltage
     energy:
       name: ${device_name}
+      icon: mdi:flash
     power:
       id: garage_fridge_power
       name: ${device_name} Power
@@ -83,8 +96,33 @@ sensor:
       name: ${device_name} Power Frequency
     power_factor:
       name: ${device_name} Power Factor
+  - platform: pid
+    name: "Garage Fridge Proportional Term"
+    type: PROPORTIONAL
+    entity_category: diagnostic
+  - platform: pid
+    name: "Garage Fridge Integral Term"
+    type: INTEGRAL
+    entity_category: diagnostic
+  - platform: pid
+    name: "Garage Fridge Derivative Term"
+    type: DERIVATIVE
+    entity_category: diagnostic
+  - platform: pid
+    name: "Garage Fridge Error"
+    type: ERROR
+    entity_category: diagnostic
+  - platform: pid
+    name: "Garage Fridge PID Result"
+    type: RESULT
+    entity_category: diagnostic
+  - platform: pid
+    name: "Garage Fridge Heat Output"
+    type: HEAT
+    entity_category: diagnostic
+     
 
 uart:
-  rx_pin: 3
-  tx_pin: 1
-  baud_rate: 9600
+    tx_pin: GPIO21
+    rx_pin: GPIO25
+    baud_rate: 9600
