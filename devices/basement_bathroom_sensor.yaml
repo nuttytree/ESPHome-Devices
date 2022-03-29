@@ -1,7 +1,6 @@
 substitutions:
   device_id: basement_bathroom_sensor
   device_name: Basement Bathroom Sensor
-  platform: ESP8266
   board: d1_mini
   ip_address: !secret basement-bathroom-sensor-ip
   ota_pwd: !secret basement-bathroom-sensor-ota-pwd

@@ -1,7 +1,6 @@
 substitutions:
   device_id: fire_pit_fountain
   device_name: Fire Pit and Fountain
-  platform: ESP8266
   board: d1_mini
   ip_address: !secret fire-pit-fountain-ip
   ota_pwd: !secret fire-pit-fountain-ota-pwd

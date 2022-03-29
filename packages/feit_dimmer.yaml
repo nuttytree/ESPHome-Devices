@@ -1,5 +1,4 @@
 substitutions:
-  platform: ESP8266
   board: esp01_1m
 
 external_components:
@@ -24,6 +23,7 @@ espsense:
 sensor:
   - platform: total_daily_energy
     name: ${device_name}
+    icon: mdi:flash
     power_id: power
     method: left
     min_save_interval: 10min

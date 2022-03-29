@@ -1,12 +1,11 @@
 substitutions:
-  device_id: master_bath_humidity_temp_sensor
+  device_id: master-bath-hum-temp-sensor
   device_name: Master Bathroom Humidity and Temperature Sensor
-  platform: ESP8266
   board: d1_mini
-  ip_address: !secret master-bath-humidity-temp-sensor-ip
-  ota_pwd: !secret master-bath-humidity-temp-sensor-ota-pwd
-  api_pwd: !secret master-bath-humidity-temp-sensor-api-pwd
-  ap_wifi_pwd: !secret master-bath-humidity-temp-sensor-ap-pwd
+  ip_address: !secret master-bath-hum-temp-sensor-ip
+  ota_pwd: !secret master-bath-hum-temp-sensor-ota-pwd
+  api_pwd: !secret master-bath-hum-temp-sensor-api-pwd
+  ap_wifi_pwd: !secret master-bath-hum-temp-sensor-ap-pwd
 
 packages:
   device_base: !include ../packages/device_base.yaml

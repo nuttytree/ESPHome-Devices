@@ -1,7 +1,6 @@
 substitutions:
   device_id: master_bed
   device_name: Master Bed
-  platform: ESP8266
   board: nodemcuv2
   ip_address: !secret master-bed-ip
   ota_pwd: !secret master-bed-ota-pwd

@@ -1,7 +1,6 @@
 substitutions:
   device_id: basement_bathroom_light_fan
   device_name: Basement Bathroom Light and Fan
-  platform: ESP8266
   board: esp01_1m
   ip_address: !secret basement-bathroom-light-fan-ip
   ota_pwd: !secret basement-bathroom-light-fan-ota-pwd

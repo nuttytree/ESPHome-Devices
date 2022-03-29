@@ -1,7 +1,6 @@
 substitutions:
   device_id: pool_pumps
   device_name: Pool Pumps
-  platform: ESP8266
   board: modwifi
   ip_address: !secret pool-pumps-ip
   ota_pwd: !secret pool-pumps-ota-pwd
@@ -97,11 +96,13 @@ sensor:
     pin: A0
   - platform: total_daily_energy
     name: "Pool Pump Total Daily Energy"
+    icon: mdi:flash
     power_id: pool_pump_power
     method: left
     min_save_interval: 10min
   - platform: total_daily_energy
     name: "Pool Cleaner Total Daily Energy"
+    icon: mdi:flash
     power_id: pool_cleaner_power
     method: left
     min_save_interval: 10min

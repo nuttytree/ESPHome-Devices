@@ -11,7 +11,7 @@ from esphome.const import (
     UNIT_WATT,
     DEVICE_CLASS_POWER,
     STATE_CLASS_MEASUREMENT,
-    ICON_POWER,
+    ICON_FLASH,
     CONF_UPDATE_INTERVAL,
 )
 
@@ -47,7 +47,7 @@ CONFIG_SCHEMA = switch.SWITCH_SCHEMA.extend(
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
-            icon=ICON_POWER,
+            icon=ICON_FLASH,
         ).extend(
             {
                 cv.Optional(CONF_DEVICE_WATTAGE): cv.positive_float,
