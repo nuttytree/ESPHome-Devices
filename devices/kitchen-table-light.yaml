@@ -1,10 +1,14 @@
 substitutions:
-  device_id: front_entry_lights
-  device_name: Front Entry Lights
-  ip_address: !secret front-entry-lights-ip
-  ota_pwd: !secret front-entry-lights-ota-pwd
-  api_pwd: !secret front-entry-lights-api-pwd
-  ap_wifi_pwd: !secret front-entry-lights-ap-pwd
+  device_id: kitchen-table-light
+  device_name: Kitchen Table Light
+  ip_address: !secret kitchen-table-light-ip
+  ota_pwd: !secret kitchen-table-light-ota-pwd
+  api_pwd: !secret kitchen-table-light-api-pwd
+  ap_wifi_pwd: !secret kitchen-table-light-ap-pwd
+  wifi_ssid: !secret new-wifi-ssid
+  wifi_password: !secret new-wifi-password
+  ip_subnet: !secret new-ip-subnet
+  ip_gateway: !secret new-ip-gateway
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml
@@ -29,4 +33,4 @@ light:
     power:
       id: power
       name: ${device_name} Power
-      light_wattage: 33.8
+      light_wattage: 55.1

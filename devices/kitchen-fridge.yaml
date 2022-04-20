@@ -5,6 +5,10 @@ substitutions:
   ota_pwd: !secret kitchen-fridge-ota-pwd
   api_pwd: !secret kitchen-fridge-api-pwd
   ap_wifi_pwd: !secret kitchen-fridge-ap-pwd
+  wifi_ssid: !secret new-wifi-ssid
+  wifi_password: !secret new-wifi-password
+  ip_subnet: !secret new-ip-subnet
+  ip_gateway: !secret new-ip-gateway
 
 packages:
   feit_dimmer: !include ../packages/topgreener_smart_plug.yaml
