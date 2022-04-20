@@ -1,11 +1,15 @@
 substitutions:
-  device_id: basement_bath_shower_light_heat
+  device_id: basement-bath-shower-light-heat
   device_name: Basement Bathroom Shower Light and Heater
   board: esp01_1m
   ip_address: !secret basement-bathroom-shower-light-heater-ip
   ota_pwd: !secret basement-bathroom-shower-light-heater-ota-pwd
   api_pwd: !secret basement-bathroom-shower-light-heater-api-pwd
   ap_wifi_pwd: !secret basement-bathroom-shower-light-heater-ap-pwd
+  wifi_ssid: !secret new-wifi-ssid
+  wifi_password: !secret new-wifi-password
+  ip_subnet: !secret new-ip-subnet
+  ip_gateway: !secret new-ip-gateway
 
 packages:
   device_base: !include ../packages/device_base.yaml

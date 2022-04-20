@@ -1,11 +1,15 @@
 substitutions:
-  device_id: basement_bathroom_sensor
+  device_id: basement-bathroom-sensor
   device_name: Basement Bathroom Sensor
   board: d1_mini
   ip_address: !secret basement-bathroom-sensor-ip
   ota_pwd: !secret basement-bathroom-sensor-ota-pwd
   api_pwd: !secret basement-bathroom-sensor-api-pwd
   ap_wifi_pwd: !secret basement-bathroom-sensor-ap-pwd
+  wifi_ssid: !secret new-wifi-ssid
+  wifi_password: !secret new-wifi-password
+  ip_subnet: !secret new-ip-subnet
+  ip_gateway: !secret new-ip-gateway
 
 packages:
   device_base: !include ../packages/device_base.yaml

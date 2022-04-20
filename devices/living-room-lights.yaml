@@ -1,10 +1,14 @@
 substitutions:
-  device_id: computer_light
-  device_name: Computer Light
-  ip_address: !secret computer-light-ip
-  ota_pwd: !secret computer-light-ota-pwd
-  api_pwd: !secret computer-light-api-pwd
-  ap_wifi_pwd: !secret computer-light-ap-pwd
+  device_id: living-room-lights
+  device_name: Living Room Lights
+  ip_address: !secret living-room-lights-ip
+  ota_pwd: !secret living-room-lights-ota-pwd
+  api_pwd: !secret living-room-lights-api-pwd
+  ap_wifi_pwd: !secret living-room-lights-ap-pwd
+  wifi_ssid: !secret new-wifi-ssid
+  wifi_password: !secret new-wifi-password
+  ip_subnet: !secret new-ip-subnet
+  ip_gateway: !secret new-ip-gateway
 
 packages:
   feit_dimmer: !include ../packages/feit_dimmer.yaml
@@ -29,5 +33,4 @@ light:
     power:
       id: power
       name: ${device_name} Power
-      icon: mdi:flash
-      light_wattage: 11.8
+      light_wattage: 117.6

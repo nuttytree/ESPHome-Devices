@@ -1,10 +1,14 @@
 substitutions:
-  device_id: basement_stair_lights
+  device_id: basement-stair-lights
   device_name: Basement Stair Lights
   ip_address: !secret basement-stair-lights-ip
   ota_pwd: !secret basement-stair-lights-ota-pwd
   api_pwd: !secret basement-stair-lights-api-pwd
   ap_wifi_pwd: !secret basement-stair-lights-ap-pwd
+  wifi_ssid: !secret new-wifi-ssid
+  wifi_password: !secret new-wifi-password
+  ip_subnet: !secret new-ip-subnet
+  ip_gateway: !secret new-ip-gateway
 
 script:
   - id: double_click
