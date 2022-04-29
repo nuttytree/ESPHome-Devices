@@ -1,5 +1,5 @@
-#include "esphome/core/log.h"
 #include "tuya_light_plus.h"
+#include "esphome/core/log.h"
 
 namespace esphome {
 namespace tuya {
@@ -178,10 +178,8 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
         }
       }
     
-      // When the light is turned on at the switch the level of the Tuya device will stll be 0 so we set it to the current state value
-      float brightness;
-      this->state_->current_values_as_brightness(&brightness);
-      this->parent_->set_integer_datapoint_value(*this->dimmer_id_, this->brightness_to_tuya_level_(brightness));
+      // When the light is turned on at the switch the level of the Tuya device will stll be 0 so we set it to the default brightness or 1.0 if no default
+      this->parent_->set_integer_datapoint_value(*this->dimmer_id_, this->brightness_to_tuya_level_(this->default_brightness_.value_or(1.0)));
     }
 
     // Turned off with the physical button
@@ -199,15 +197,12 @@ void TuyaLightPlus::handle_tuya_datapoint_(tuya::TuyaDatapoint datapoint)
     this->tuya_state_is_on_ = datapoint.value_bool;
     this->state_->current_values.set_state(datapoint.value_bool);
 
-    // If the light was turned off we set the brightness of the Tuya device to 0 to prevent flashes during double clicks and if there is a
-    // default brightness set the current brightness value to the default so that if it is turned on remotely it will be at the default value
+    // If the light was turned off we set the brightness of the Tuya device to 0 to prevent flashes during double clicks and set the current
+    // brightness value to the default value or 1.0 if no default so that if it is turned on remotely it will be at the default value
     if (!datapoint.value_bool)
     {
       this->parent_->set_integer_datapoint_value(*this->dimmer_id_, 0);
-      if (this->default_brightness_.has_value())
-      {
-        this->state_->current_values.set_brightness(*this->default_brightness_);
-      }
+      this->state_->current_values.set_brightness(this->default_brightness_.value_or(1.0));
     }
   }
   else if (datapoint.id == *this->dimmer_id_)

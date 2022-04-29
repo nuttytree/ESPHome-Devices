@@ -45,7 +45,7 @@ void PumpSwitch::setup() {
 
 void PumpSwitch::loop() {
   this->update_physical_switch_();
-  this->check_current_();
+  //this->check_current_();
 }
 
 void PumpSwitch::update() {

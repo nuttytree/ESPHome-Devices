@@ -1,0 +1,135 @@
+substitutions:
+  device_id: pool-pumps
+  device_name: Pool Pumps
+  board: modwifi
+  ip_address: !secret pool-pumps-ip
+  ota_pwd: !secret pool-pumps-ota-pwd
+  api_pwd: !secret pool-pumps-api-pwd
+  ap_wifi_pwd: !secret pool-pumps-ap-pwd
+  wifi_ssid: !secret new-wifi-ssid
+  wifi_password: !secret new-wifi-password
+  ip_subnet: !secret new-ip-subnet
+  ip_gateway: !secret new-ip-gateway
+
+packages:
+  device_base: !include ../packages/device_base.yaml
+
+external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ pool_controller ]
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
+
+espsense:
+  plugs:
+    - name: Pool Pump
+      power_sensor: pool_pump_power
+      current_sensor: pool_pump_current
+      voltage_sensor: voltage
+    - name: Pool Cleaner
+      power_sensor: pool_cleaner_power
+      current_sensor: pool_cleaner_current
+      voltage_sensor: voltage
+
+i2c:
+  sda: GPIO12
+  scl: GPIO14
+
+pool_controller:
+  pump:
+    switch_id: pool_pump
+    current_id: pool_pump_current
+    min_current: 3.45
+    max_current: 6.75
+    max_out_of_range_duration: 5s
+  cleaner:
+    switch_id: pool_cleaner
+    current_id: pool_cleaner_current
+    min_current: 4.50
+    max_current: 5.30
+    max_out_of_range_duration: 10s
+
+sensor:
+  - platform: ade7953
+    voltage:
+      name: ${device_name} Voltage
+      id: voltage
+      filters:
+        - multiply: 2
+    current_a:
+      name: Pool Cleaner Current
+      id: pool_cleaner_current
+      filters:
+        - lambda: "return x < .1 ? 0 : x;"
+    current_b:
+      name: Pool Pump Current
+      id: pool_pump_current
+      filters:
+        - lambda: "return x < .1 ? 0 : x;"
+    active_power_a:
+      name: Pool Cleaner Power
+      id: pool_cleaner_power
+      filters:
+        - lambda: "return x < 1.0 ? 0 : x * 2;"
+    active_power_b:
+      name: Pool Pump Power
+      id: pool_pump_power
+      filters:
+        - lambda: "return fabs(x) < 1 ? 0 : fabs(x) * 2;"
+    update_interval: 1s
+  - platform: ntc
+    sensor: temp_resistance_reading
+    name: ${device_name} Temperature
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    icon: "mdi:thermometer"
+    state_class: measurement
+    calibration:
+      b_constant: 3350
+      reference_resistance: 10kOhm
+      reference_temperature: 0°C
+  - platform: resistance
+    id: temp_resistance_reading
+    sensor: temp_analog_reading
+    configuration: DOWNSTREAM
+    resistor: 32kOhm
+  - platform: adc
+    id: temp_analog_reading
+    pin: A0
+  - platform: total_daily_energy
+    name: "Pool Pump Total Daily Energy"
+    icon: mdi:flash
+    power_id: pool_pump_power
+    method: left
+    min_save_interval: 10min
+  - platform: total_daily_energy
+    name: "Pool Cleaner Total Daily Energy"
+    icon: mdi:flash
+    power_id: pool_cleaner_power
+    method: left
+    min_save_interval: 10min
+
+status_led:
+  pin:
+    number: GPIO0
+    inverted: yes
+
+switch:
+  - platform: gpio
+    pin: GPIO4
+    name: "Pool Pump"
+    id: pool_pump
+    icon: mdi:pump
+    restore_mode: Always Off
+  - platform: gpio
+    pin: GPIO15
+    name: "Pool Cleaner"
+    id: pool_cleaner
+    icon: mdi:robot-vacuum
+    restore_mode: Always Off
+
+time:
+  - platform: homeassistant
+    id: the_time

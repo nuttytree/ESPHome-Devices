@@ -1,5 +1,5 @@
-#include "esphome/core/log.h"
 #include "treo_led_pool_light.h"
+#include "esphome/core/log.h"
 
 namespace esphome {
 namespace light {
@@ -32,7 +32,7 @@ void TreoLedPoolLight::setup_state(light::LightState *state) {
   auto *effectFast = new TreoColorLightEffect("Fast Change", this, 8);
   state->add_effects({ effectSlow, effectWhite , effectBlue , effectGreen , effectRed , effectAmber , effectMagenta , effectFast });
 
-  this->rtc_ = global_preferences.make_preference<uint8_t>(state->get_object_id_hash() ^ RESTORE_COLOR_VERSION);
+  this->rtc_ = global_preferences->make_preference<uint8_t>(state->get_object_id_hash() ^ RESTORE_COLOR_VERSION);
   this->rtc_.load(&this->current_color_);
   this->target_color_ = this->current_color_;
 

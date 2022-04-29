@@ -1,0 +1,14 @@
+substitutions:
+  device_id: network-equipment
+  device_name: Network Equipment
+  ip_address: !secret network-equipment-ip
+  ota_pwd: !secret network-equipment-ota-pwd
+  api_pwd: !secret network-equipment-api-pwd
+  ap_wifi_pwd: !secret network-equipment-ap-pwd
+  wifi_ssid: !secret new-wifi-ssid
+  wifi_password: !secret new-wifi-password
+  ip_subnet: !secret new-ip-subnet
+  ip_gateway: !secret new-ip-gateway
+
+packages:
+  feit_dimmer: !include ../packages/topgreener_smart_plug.yaml

@@ -1,0 +1,36 @@
+substitutions:
+  device_id: living-room-lights
+  device_name: Living Room Lights
+  ip_address: !secret living-room-lights-ip
+  ota_pwd: !secret living-room-lights-ota-pwd
+  api_pwd: !secret living-room-lights-api-pwd
+  ap_wifi_pwd: !secret living-room-lights-ap-pwd
+  wifi_ssid: !secret new-wifi-ssid
+  wifi_password: !secret new-wifi-password
+  ip_subnet: !secret new-ip-subnet
+  ip_gateway: !secret new-ip-gateway
+
+packages:
+  feit_dimmer: !include ../packages/feit_dimmer.yaml
+
+light:
+  - platform: tuya_light_plus
+    id: tuya_light
+    name: ${device_name}
+    switch_datapoint: 1
+    dimmer_datapoint: 2
+    max_value: 1000
+    linked_lights:
+    day_night:
+      sensor_id: sensor.day_night
+      sensor_type: text
+      sensor_day_value: Day
+      sensor_night_value: Night
+      day_default_brightness: 255
+      night_default_brightness: 1
+      day_auto_off_time: 0 min
+      night_auto_off_time: 15 min
+    power:
+      id: power
+      name: ${device_name} Power
+      light_wattage: 117.6

@@ -1,9 +1,22 @@
-Push-Location $PSScriptRoot\..\devices
+Write-Output "`nBacking up build folder"
+if (Test-Path $PSScriptRoot\..\build\_backup)
+{
+    Remove-Item -Path $PSScriptRoot\..\build\_backup -Recurse -Force
+}
+if (Test-Path $PSScriptRoot\..\_backup)
+{
+    Remove-Item -Path $PSScriptRoot\..\_backup -Recurse -Force
+}
+New-Item $PSScriptRoot\..\_backup -ItemType Directory | Out-Null
+Move-Item -Path $PSScriptRoot\..\build\* -Destination $PSScriptRoot\..\_backup -Force
+Move-Item -Path $PSScriptRoot\..\_backup -Destination $PSScriptRoot\..\build -Force
 
-$files = Get-ChildItem "*.yaml" -Exclude "secrets.yaml"
+Write-Output "`nCompiling all devices"
+$files = Get-ChildItem $PSScriptRoot\..\devices\*.yaml -Exclude "secrets.yaml"
 $failures = New-Object Collections.Generic.List[String]
 foreach ($file in $files) {
-    esphome compile $file.Name
+    $fileName = $file.Name
+    esphome compile  $PSScriptRoot\..\devices\$fileName
     if ($LASTEXITCODE -ne "0") {
         $failures.Add($file.Name)
     }
@@ -18,5 +31,3 @@ else {
         Write-Output $failure
     }
 }
-
-Pop-Location

@@ -1,0 +1,53 @@
+substitutions:
+  platform: esp32
+  board: esp32dev
+  log_level: none
+  wifi_ssid: secret_wifi_ssid
+  wifi_password: secret_wifi_password
+  device_id: scripture-of-the-day-test
+  device_name: Scripture of the Day Test
+
+esphome:
+  name: ${device_id}
+  platform: ${platform}
+  board: ${board}
+  arduino_version: latest
+  build_path: ../build/${device_id}
+
+packages:
+  wifi:   !include ../packages/wifi/wifi_dhcp.yaml
+  logger: !include ../packages/logger/logger.yaml
+
+external_components:
+  - source:
+      type: local
+      path: ../../esphome/esphome/components
+    components: [ ds3231 ]
+
+i2c:
+
+ds3231:
+  id: ds_rtc
+
+time:
+  - platform: sntp
+    id: sntp_cmp
+    timezone: America/Chicago
+  - platform: ds3231
+    id: rtc
+    timezone: America/Chicago
+    on_time_sync:
+      then:
+        - ds3231.set_alarm_1:
+            id: ds_rtc
+            alarm_type: match_day_of_month_hour_minute_second
+            second: 1
+            minute: 2
+            hour: 3
+            day: 4
+        - ds3231.reset_alarm_1:
+            id: ds_rtc
+        - ds3231.set_alarm_2:
+            id: ds_rtc
+            alarm_type: every_minute
+        - ds3231.reset_alarm_2: ds_rtc

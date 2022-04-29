@@ -1,0 +1,72 @@
+# Model TGWF115PQM
+substitutions:
+  board: esp01_1m
+  restore_mode: ALWAYS_ON
+
+external_components:
+  - source: github://cbpowell/ESPSense
+    components: [ espsense ]
+
+packages:
+  base:   !include device_base.yaml
+  logger: !include logger/logger_no_serial.yaml
+
+binary_sensor:
+  - platform: gpio
+    id: button
+    pin:
+      number: GPIO3
+      inverted: True
+    on_press:
+      then:
+        - switch.toggle: relay
+        
+espsense:
+  plugs:
+    - name: ${device_name}
+      power_sensor: power
+      voltage: 120
+
+fan:
+  - platform: binary
+    name: ${device_name}
+    output: relay
+
+output:
+  - platform: gpio
+    name: ${device_name}
+    id: relay
+    pin: GPIO14
+
+sensor:
+  - platform: hlw8012
+    sel_pin:
+      number: GPIO12
+      inverted: True
+    cf_pin: GPIO04
+    cf1_pin: GPIO5
+    current_resistor: "0.0019"
+    voltage_divider: "2150"
+    current:
+      name: ${device_name} Current
+      unit_of_measurement: A
+    power:
+      id: power
+      name: ${device_name} Power
+      unit_of_measurement: W
+    initial_mode: CURRENT
+    change_mode_every: 4294967295
+    update_interval: 2s
+  - platform: total_daily_energy
+    name: ${device_name}
+    power_id: power
+    method: trapezoid
+    min_save_interval: 10min
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: False
+
+time:
+  - platform: homeassistant
