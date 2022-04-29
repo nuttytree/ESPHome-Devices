@@ -1,11 +1,15 @@
 substitutions:
-  device_id: pool_pumps
+  device_id: pool-pumps
   device_name: Pool Pumps
   board: modwifi
   ip_address: !secret pool-pumps-ip
   ota_pwd: !secret pool-pumps-ota-pwd
   api_pwd: !secret pool-pumps-api-pwd
   ap_wifi_pwd: !secret pool-pumps-ap-pwd
+  wifi_ssid: !secret new-wifi-ssid
+  wifi_password: !secret new-wifi-password
+  ip_subnet: !secret new-ip-subnet
+  ip_gateway: !secret new-ip-gateway
 
 packages:
   device_base: !include ../packages/device_base.yaml
