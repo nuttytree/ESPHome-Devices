@@ -116,11 +116,11 @@ class GarageDoorCover : public cover::Cover, public Component, public api::Custo
 
   protected:
     rtttl::Rtttl *buzzer_;
-    GPIOPin *control_pin_;
-    GPIOPin *closed_pin_;
-    GPIOPin *open_pin_;
-    GPIOPin *remote_pin_;
-    GPIOPin *remote_light_pin_;
+    esphome::esp8266::ESP8266GPIOPin *control_pin_;
+    esphome::esp8266::ESP8266GPIOPin *closed_pin_;
+    esphome::esp8266::ESP8266GPIOPin *open_pin_;
+    esphome::esp8266::ESP8266GPIOPin *remote_pin_;
+    esphome::esp8266::ESP8266GPIOPin *remote_light_pin_;
     GarageDoorLock *lock_sensor_;
 
     InternalState internal_state_{STATE_UNKNOWN};
@@ -156,11 +156,26 @@ class GarageDoorCover : public cover::Cover, public Component, public api::Custo
 GarageDoorCover::GarageDoorCover()
 {
   this->set_device_class("garage");
-  this->control_pin_ = new GPIOPin(PIN_CONTROL_RELAY, OUTPUT);
-  this->closed_pin_ = new GPIOPin(PIN_CLOSED_SENSOR, INPUT_PULLUP, true);
-  this->open_pin_ = new GPIOPin(PIN_OPEN_SENSOR, INPUT_PULLUP, true);
-  this->remote_pin_ = new GPIOPin(PIN_REMOTE_BUTTON, INPUT_PULLUP, true);
-  this->remote_light_pin_ = new GPIOPin(PIN_REMOTE_LIGHT_BUTTON, INPUT_PULLUP, true);
+  this->control_pin_ = new esphome::esp8266::ESP8266GPIOPin();
+  this->control_pin_->set_pin(PIN_CONTROL_RELAY);
+  this->control_pin_->set_inverted(false);
+  this->control_pin_->set_flags(gpio::Flags::FLAG_OUTPUT);
+  this->closed_pin_ = new esphome::esp8266::ESP8266GPIOPin();
+  this->closed_pin_->set_pin(PIN_CLOSED_SENSOR);
+  this->closed_pin_->set_inverted(true);
+  this->closed_pin_->set_flags(gpio::Flags::FLAG_PULLUP);
+  this->open_pin_ = new esphome::esp8266::ESP8266GPIOPin();
+  this->open_pin_->set_pin(PIN_OPEN_SENSOR);
+  this->open_pin_->set_inverted(true);
+  this->open_pin_->set_flags(gpio::Flags::FLAG_PULLUP);
+  this->remote_pin_ = new esphome::esp8266::ESP8266GPIOPin();
+  this->remote_pin_->set_pin(PIN_REMOTE_BUTTON);
+  this->remote_pin_->set_inverted(true);
+  this->remote_pin_->set_flags(gpio::Flags::FLAG_PULLUP);
+  this->remote_light_pin_ = new esphome::esp8266::ESP8266GPIOPin();
+  this->remote_light_pin_->set_pin(PIN_REMOTE_LIGHT_BUTTON);
+  this->remote_light_pin_->set_inverted(true);
+  this->remote_light_pin_->set_flags(gpio::Flags::FLAG_PULLUP);
   this->lock_sensor_ = new GarageDoorLock();
 }
 

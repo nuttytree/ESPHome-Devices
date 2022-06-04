@@ -1,0 +1,103 @@
+substitutions:
+  log_level: debug
+  device_id: second-garage-door
+  device_name: Second Garage Door
+  board: d1_mini
+  ip_address: !secret second-garage-door-ip
+  ota_pwd: !secret second-garage-door-ota-pwd
+  api_pwd: !secret second-garage-door-api-pwd
+  ap_wifi_pwd: !secret second-garage-door-ap-pwd
+
+packages:
+  device_base: !include ../packages/device_base.yaml
+
+external_components:
+  - source:
+      type: local
+      path: ../components 
+    components: [ garage_door ]
+
+binary_sensor:
+  - platform: gpio
+    id: closed_in
+    pin:
+      number: D2
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - delayed_on: 50ms
+      - delayed_off: 50ms
+  - platform: gpio
+    id: open_in
+    pin:
+      number: D7
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - delayed_on: 50ms
+      - delayed_off: 50ms
+  - platform: gpio
+    id: remote_in
+    pin:
+      number: D5
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+  - platform: gpio
+    id: remote_light_in
+    pin:
+      number: D6
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+
+cover:
+  - platform: garage_door
+    name: ${device_name}
+    open_duration: 12947ms
+    close_duration: 12875ms
+    control_output: control_out
+    button_sensor: button_in
+    closed_sensor: closed_in
+    open_sensor: open_in
+    remote_sensor: remote_in
+    remote_light_sensor: remote_light_in
+    warning_rtttl: warning_rtttl
+    last_open_time_sensor:
+      name: ${device_name} Last Open Time
+    last_close_time_sensor:
+      name: ${device_name} Last Close Time
+
+logger:
+  logs:
+    sensor: NONE
+
+output:
+  - platform: gpio
+    id: control_out
+    pin: D1
+  - platform: esp8266_pwm
+    id: rtttl_out
+    pin: D8
+
+rtttl:
+  id: warning_rtttl
+  output: rtttl_out
+
+sensor:
+  - platform: adc
+    id: button_in
+    pin: A0
+    raw: true
+    update_interval: 75ms
+
+status_led:
+  pin:
+    number: D4
+    inverted: false
