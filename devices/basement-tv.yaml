@@ -5,10 +5,6 @@ substitutions:
   ota_pwd: !secret basement-tv-ota-pwd
   api_pwd: !secret basement-tv-api-pwd
   ap_wifi_pwd: !secret basement-tv-ap-pwd
-  wifi_ssid: !secret new-wifi-ssid
-  wifi_password: !secret new-wifi-password
-  ip_subnet: !secret new-ip-subnet
-  ip_gateway: !secret new-ip-gateway
 
 packages:
   feit_dimmer: !include ../packages/topgreener_smart_plug.yaml
