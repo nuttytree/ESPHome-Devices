@@ -12,6 +12,9 @@ packages:
   device_base: !include ../packages/esp32_device_base.yaml
   logger: !include ../packages/logger/logger_no_serial.yaml
 
+wifi:
+  power_save_mode: light
+
 external_components:
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
