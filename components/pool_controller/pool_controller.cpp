@@ -27,9 +27,7 @@ PoolController::PoolController() {
   this->pump_select_->set_name("Pool Pump Mode");
   this->pump_select_->set_icon("mdi:pump");
   this->pump_select_->traits.set_options({"Off", "Normal", "Always Except Peak", "Always"});
-  this->pump_select_->add_on_state_callback([this](std::string value) -> void {
-    auto options = this->pump_select_->traits.get_options();
-    size_t index = std::find(options.begin(), options.end(), value) - options.begin();
+  this->pump_select_->add_on_state_callback([this](const std::string &value, size_t index) {
     this->pump_mode_ = static_cast<PumpMode>(index);
   });
 
@@ -40,9 +38,7 @@ PoolController::PoolController() {
   this->cleaner_select_->set_name("Pool Cleaner Mode");
   this->cleaner_select_->set_icon("mdi:robot-vacuum");
   this->cleaner_select_->traits.set_options({"Off", "Normal", "When Pump Is On"});
-  this->cleaner_select_->add_on_state_callback([this](std::string value) -> void {
-    auto options = this->cleaner_select_->traits.get_options();
-    size_t index = std::find(options.begin(), options.end(), value) - options.begin();
+  this->cleaner_select_->add_on_state_callback([this](const std::string &value, size_t index) {
     this->cleaner_mode_ = static_cast<CleanerMode>(index);
   });
 

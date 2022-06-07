@@ -6,10 +6,6 @@ substitutions:
   api_pwd: !secret garage-lights-api-pwd
   ap_wifi_pwd: !secret garage-lights-ap-pwd
   light_wattage: '378'
-  wifi_ssid: !secret new-wifi-ssid
-  wifi_password: !secret new-wifi-password
-  ip_subnet: !secret new-ip-subnet
-  ip_gateway: !secret new-ip-gateway
 
 packages:
   shelly_1l: !include ../packages/shelly_1l.yaml
