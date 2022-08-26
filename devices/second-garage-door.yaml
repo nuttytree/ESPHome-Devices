@@ -1,5 +1,4 @@
 substitutions:
-  log_level: debug
   device_id: second-garage-door
   device_name: Second Garage Door
   board: d1_mini
@@ -7,9 +6,10 @@ substitutions:
   ota_pwd: !secret second-garage-door-ota-pwd
   api_pwd: !secret second-garage-door-api-pwd
   ap_wifi_pwd: !secret second-garage-door-ap-pwd
+  log_level: debug
 
 packages:
-  device_base: !include ../packages/device_base.yaml
+  device_base: !include ../packages/device_base_esp8266.yaml
 
 external_components:
   - source:
@@ -19,7 +19,9 @@ external_components:
 
 binary_sensor:
   - platform: gpio
+    name: ${device_name} Closed Sensor
     id: closed_in
+    entity_category: diagnostic
     pin:
       number: D2
       inverted: true
@@ -30,7 +32,9 @@ binary_sensor:
       - delayed_on: 50ms
       - delayed_off: 50ms
   - platform: gpio
+    name: ${device_name} Open Sensor
     id: open_in
+    entity_category: diagnostic
     pin:
       number: D7
       inverted: true

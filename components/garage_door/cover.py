@@ -23,6 +23,10 @@ CONF_REMOTE_LIGHT_SENSOR = "remote_light_sensor"
 CONF_WARNING_RTTTL = "warning_rtttl"
 CONF_CLOSE_WARNING_TONES = "close_warning_tones"
 DEFAULT_CLOSE_WARNING_TONES = "Imperial:d=4, o=5, b=100:e, e, e, 8c, 16p, 16g, e, 8c, 16p, 16g, e, p, b, b, b, 8c6, 16p, 16g, d#, 8c, 16p, 16g, e, 8p"
+CONF_CONTROL_ACTIVE_DURATION = "control_active_duration"
+CONF_CONTROL_INACTIVE_DURATION = "control_inactive_duration"
+CONF_REVERSES_ON_STOP_OPENING = "reverses_on_stop_opening"
+CONF_REVERSES_ON_STOP_CLOSING = "reverses_on_stop_closing"
 CONF_LAST_OPEN_TIME_SENSOR = "last_open_time_sensor"
 CONF_LAST_CLOSE_TIME_SENSOR = "last_close_time_sensor"
 DEVICE_CLASS = "garage"
@@ -44,6 +48,10 @@ CONFIG_SCHEMA = (
             cv.Required(CONF_REMOTE_LIGHT_SENSOR): cv.use_id(binary_sensor.BinarySensor),
             cv.Required(CONF_WARNING_RTTTL): cv.use_id(rtttl.Rtttl),
             cv.Optional(CONF_CLOSE_WARNING_TONES, default=DEFAULT_CLOSE_WARNING_TONES): cv.string,
+            cv.Optional(CONF_CONTROL_ACTIVE_DURATION, default="200ms"): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_CONTROL_INACTIVE_DURATION, default="200ms"): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_REVERSES_ON_STOP_OPENING, default="false"): cv.boolean,
+            cv.Optional(CONF_REVERSES_ON_STOP_CLOSING, default="false"): cv.boolean,
             cv.Optional(CONF_LAST_OPEN_TIME_SENSOR): sensor.sensor_schema(
                 unit_of_measurement=UNIT_MILLISECOND,
                 device_class=DEVICE_CLASS_DURATION,
@@ -96,6 +104,18 @@ async def to_code(config):
 
     close_warning_tones = config[CONF_CLOSE_WARNING_TONES]
     cg.add(var.set_close_warning_tones(close_warning_tones))
+
+    control_active_duration = config[CONF_CONTROL_ACTIVE_DURATION]
+    cg.add(var.set_control_active_duration(control_active_duration))
+
+    control_inactive_duration = config[CONF_CONTROL_INACTIVE_DURATION]
+    cg.add(var.set_control_inactive_duration(control_inactive_duration))
+
+    reverses_on_stop_opening = config[CONF_REVERSES_ON_STOP_OPENING]
+    cg.add(var.set_reverses_on_stop_opening(reverses_on_stop_opening))
+
+    reverses_on_stop_closing = config[CONF_REVERSES_ON_STOP_CLOSING]
+    cg.add(var.set_reverses_on_stop_closing(reverses_on_stop_closing))
 
     if CONF_LAST_OPEN_TIME_SENSOR in config:
         last_open_time_config = config[CONF_LAST_OPEN_TIME_SENSOR]

@@ -7,10 +7,6 @@ using namespace esphome::lock;
 
 static const char* TAG = "GarageDoor";
 
-// Minimum number of milliseconds to keep the control pin active/inactive when changing states
-const uint32_t CONTROL_PIN_ACTIVE_DURATION = 200;
-const uint32_t CONTROL_PIN_INACTIVE_DURATION = 200;
-
 // Number of milliseconds between publishing the state while the door is opening or closing
 const uint32_t DOOR_MOVING_PUBLISH_INTERVAL = 1000;
 
@@ -247,13 +243,13 @@ void GarageDoor::ensure_target_state_() {
   const uint32_t now = millis();
 
   if (this->control_output_state_) {
-    if (now - this->control_output_state_change_time_ >= CONTROL_PIN_ACTIVE_DURATION) {
+    if (now - this->control_output_state_change_time_ >= this->control_active_duration_) {
       this->control_output_->turn_off();
       this->control_output_state_ = false;
       this->control_output_state_change_time_ = now;
     }
     return;
-  } else if (now - this->control_output_state_change_time_ < CONTROL_PIN_INACTIVE_DURATION) {
+  } else if (now - this->control_output_state_change_time_ < this->control_inactive_duration_) {
     return;
   }
 
@@ -418,7 +414,11 @@ void GarageDoor::activate_control_output_() {
       this->set_state_(PHYSICAL_STATE_OPENING, INTERNAL_STATE_OPENING);
       break;
     case PHYSICAL_STATE_OPENING:
-      this->set_state_(PHYSICAL_STATE_STOPPED_OPENING, INTERNAL_STATE_STOPPED);
+      if (this->reverses_on_stop_opening_) {
+        this->set_state_(PHYSICAL_STATE_CLOSING, INTERNAL_STATE_CLOSING);
+      } else {
+        this->set_state_(PHYSICAL_STATE_STOPPED_OPENING, INTERNAL_STATE_STOPPED);
+      }
       break;
     case PHYSICAL_STATE_STOPPED_OPENING:
       this->set_state_(PHYSICAL_STATE_CLOSING, INTERNAL_STATE_CLOSING);
@@ -427,7 +427,11 @@ void GarageDoor::activate_control_output_() {
       this->set_state_(PHYSICAL_STATE_CLOSING, INTERNAL_STATE_CLOSING);
       break;
     case PHYSICAL_STATE_CLOSING:
-      this->set_state_(PHYSICAL_STATE_STOPPED_CLOSING, INTERNAL_STATE_STOPPED);
+      if (this->reverses_on_stop_closing_) {
+        this->set_state_(PHYSICAL_STATE_OPENING, INTERNAL_STATE_OPENING);
+      } else {
+        this->set_state_(PHYSICAL_STATE_STOPPED_CLOSING, INTERNAL_STATE_STOPPED);
+      }
       break;
     case PHYSICAL_STATE_STOPPED_CLOSING:
       this->set_state_(PHYSICAL_STATE_OPENING, INTERNAL_STATE_OPENING);

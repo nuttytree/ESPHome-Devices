@@ -93,6 +93,10 @@ class GarageDoor : public cover::Cover, public Component, public api::CustomAPID
   void set_remote_light_sensor(binary_sensor::BinarySensor *remote_light_sensor);
   void set_warning_rtttl(rtttl::Rtttl *warning_rtttl);
   void set_close_warning_tones(const std::string &close_warning_tones) { this->close_warning_tones_ = close_warning_tones; }
+  void set_control_active_duration(uint32_t control_active_duration) { this->control_active_duration_ = control_active_duration; }
+  void set_control_inactive_duration(uint32_t control_inactive_duration) { this->control_inactive_duration_ = control_inactive_duration; }
+  void set_reverses_on_stop_opening(bool reverses_on_stop_opening) { this->reverses_on_stop_opening_ = reverses_on_stop_opening; }
+  void set_reverses_on_stop_closing(bool reverses_on_stop_closing) { this->reverses_on_stop_closing_ = reverses_on_stop_closing; }
   void set_last_open_time_sensor(sensor::Sensor *last_open_time_sensor) { this->last_open_time_sensor_ = last_open_time_sensor; }
   void set_last_close_time_sensor(sensor::Sensor *last_close_time_sensor) { this->last_close_time_sensor_ = last_close_time_sensor; }
   float get_setup_priority() const override { return setup_priority::DATA; }
@@ -114,6 +118,10 @@ class GarageDoor : public cover::Cover, public Component, public api::CustomAPID
   binary_sensor::BinarySensor *remote_light_sensor_;
   rtttl::Rtttl *warning_rtttl_;
   std::string close_warning_tones_;
+  uint32_t control_active_duration_;
+  uint32_t control_inactive_duration_;
+  bool reverses_on_stop_opening_{false};
+  bool reverses_on_stop_closing_{false};
   sensor::Sensor *last_open_time_sensor_{nullptr};
   sensor::Sensor *last_close_time_sensor_{nullptr};
 
