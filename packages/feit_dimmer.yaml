@@ -10,8 +10,7 @@ external_components:
     components: [ espsense ]
 
 packages:
-  base:   !include device_base.yaml
-  logger: !include logger/logger_no_serial.yaml
+  base:   !include device_base_esp8266.yaml
   uart:   !include uart/tuya.yaml
 
 espsense:
@@ -26,7 +25,6 @@ sensor:
     icon: mdi:flash
     power_id: power
     method: left
-    min_save_interval: 10min
 
 time:
   - platform: homeassistant

@@ -8,7 +8,7 @@ substitutions:
   ap_wifi_pwd: !secret patio-lights-ap-pwd
 
 packages:
-  device_base: !include ../packages/device_base.yaml
+  device_base: !include ../packages/device_base_esp8266.yaml
 
 external_components:
   - source:
@@ -43,7 +43,6 @@ sensor:
     name: ${device_name}
     power_id: power
     method: left
-    min_save_interval: 10min
 
 time:
   - platform: homeassistant
