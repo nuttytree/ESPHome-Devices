@@ -2,14 +2,14 @@
 substitutions:
   board: esp01_1m
   restore_mode: ALWAYS_ON
+  log_baud_rate: '0'
 
 external_components:
   - source: github://cbpowell/ESPSense
     components: [ espsense ]
 
 packages:
-  base:   !include device_base.yaml
-  logger: !include logger/logger_no_serial.yaml
+  base:   !include device_base_esp8266.yaml
 
 binary_sensor:
   - platform: gpio
@@ -61,7 +61,6 @@ sensor:
     name: ${device_name}
     power_id: power
     method: trapezoid
-    min_save_interval: 10min
 
 status_led:
   pin:

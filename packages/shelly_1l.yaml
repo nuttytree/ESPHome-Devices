@@ -11,7 +11,7 @@ external_components:
     components: [ espsense ]
 
 packages:
-  base:   !include device_base.yaml
+  base:   !include device_base_esp8266.yaml
   logger: !include logger/logger.yaml
 
 binary_sensor:
@@ -60,7 +60,6 @@ sensor:
     name: ${device_name}
     power_id: light_power
     method: left
-    min_save_interval: 10min
 
 status_led:
   pin: GPIO0

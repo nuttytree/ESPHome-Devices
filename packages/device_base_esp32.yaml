@@ -1,6 +1,6 @@
 substitutions:
   platform: esp32
-  framework_type: arduino
+  framework_type: esp-idf
 
 esp32:
   framework:

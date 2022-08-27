@@ -1,5 +1,6 @@
 substitutions:
   board: esp01_1m
+  log_baud_rate: '0'
 
 external_components:
   - source:
@@ -10,8 +11,7 @@ external_components:
     components: [ espsense ]
 
 packages:
-  base:   !include device_base.yaml
-  logger: !include logger/logger_no_serial.yaml
+  base:   !include device_base_esp8266.yaml
   uart:   !include uart/tuya.yaml
 
 espsense:
@@ -37,7 +37,6 @@ sensor:
     name: ${device_name}
     power_id: power
     method: left
-    min_save_interval: 10min
 
 time:
   - platform: homeassistant

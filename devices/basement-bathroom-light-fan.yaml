@@ -8,7 +8,7 @@ substitutions:
   ap_wifi_pwd: !secret basement-bathroom-light-fan-ap-pwd
 
 packages:
-  device_base: !include ../packages/device_base.yaml
+  device_base: !include ../packages/device_base_esp8266.yaml
 
 external_components:
   - source:
@@ -76,7 +76,6 @@ sensor:
     name: Basement Bathroom Light
     power_id: light_power
     method: left
-    min_save_interval: 10min
 
 time:
   - platform: homeassistant

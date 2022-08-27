@@ -8,7 +8,7 @@ substitutions:
   ap_wifi_pwd: !secret pool-pumps-ap-pwd
 
 packages:
-  device_base: !include ../packages/device_base.yaml
+  device_base: !include ../packages/device_base_esp8266.yaml
 
 external_components:
   - source:
@@ -99,13 +99,15 @@ sensor:
     icon: mdi:flash
     power_id: pool_pump_power
     method: left
-    min_save_interval: 10min
+    filters:
+      - throttle: 1min
   - platform: total_daily_energy
     name: "Pool Cleaner Total Daily Energy"
     icon: mdi:flash
     power_id: pool_cleaner_power
     method: left
-    min_save_interval: 10min
+    filters:
+      - throttle: 1min
 
 status_led:
   pin:

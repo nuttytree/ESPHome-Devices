@@ -8,7 +8,7 @@ substitutions:
   ap_wifi_pwd: !secret master-bath-hum-temp-sensor-ap-pwd
 
 packages:
-  device_base: !include ../packages/device_base.yaml
+  device_base: !include ../packages/device_base_esp8266.yaml
 
 binary_sensor:
   - platform: template
