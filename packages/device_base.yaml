@@ -1,10 +1,11 @@
 substitutions:
   log_level: none
+  log_baud_rate: '115200'
   wifi_ssid: !secret wifi-ssid
   wifi_password: !secret wifi-password
   ip_subnet: !secret ip-subnet
   ip_gateway: !secret ip-gateway
-  platform: esp8266
+  flash_write_interval: 10min
 
 esphome:
   name: ${device_id}
@@ -12,6 +13,9 @@ esphome:
 
 ${platform}:
   board: ${board}
+
+preferences:
+  flash_write_interval: ${flash_write_interval}
 
 packages:
   wifi:             !include wifi/wifi.yaml

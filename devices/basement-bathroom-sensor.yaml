@@ -8,7 +8,7 @@ substitutions:
   ap_wifi_pwd: !secret basement-bathroom-sensor-ap-pwd
 
 packages:
-  device_base: !include ../packages/device_base.yaml
+  device_base: !include ../packages/device_base_esp8266.yaml
 
 esphome:
   on_boot:

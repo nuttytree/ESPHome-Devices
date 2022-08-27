@@ -1,2 +1,3 @@
 logger:
   level: ${log_level}
+  baud_rate: ${log_baud_rate}

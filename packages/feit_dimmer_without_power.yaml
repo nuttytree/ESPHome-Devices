@@ -8,8 +8,7 @@ external_components:
     components: [ tuya_light_plus ]
 
 packages:
-  base:   !include device_base.yaml
-  logger: !include logger/logger_no_serial.yaml
+  base:   !include device_base_esp8266.yaml
   uart:   !include uart/tuya.yaml
 
 tuya:
