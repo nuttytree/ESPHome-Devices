@@ -4,10 +4,6 @@ substitutions:
   restore_mode: ALWAYS_ON
   log_baud_rate: '0'
 
-external_components:
-  - source: github://cbpowell/ESPSense
-    components: [ espsense ]
-
 packages:
   base:   !include device_base_esp8266.yaml
 
@@ -21,12 +17,6 @@ binary_sensor:
       then:
         - switch.toggle: relay
         
-espsense:
-  plugs:
-    - name: ${device_name}
-      power_sensor: power
-      voltage: 120
-
 fan:
   - platform: binary
     name: ${device_name}
@@ -66,6 +56,3 @@ status_led:
   pin:
     number: GPIO13
     inverted: False
-
-time:
-  - platform: homeassistant

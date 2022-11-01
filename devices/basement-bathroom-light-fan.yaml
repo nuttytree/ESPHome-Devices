@@ -15,8 +15,6 @@ external_components:
       type: local
       path: ../components 
     components: [ binary_light_with_power ]
-  - source: github://cbpowell/ESPSense
-    components: [ espsense ]
 
 binary_sensor:
   - platform: gpio
@@ -35,12 +33,6 @@ binary_sensor:
     on_press:
       then:
         - fan.toggle: the_fan
-
-espsense:
-  plugs:
-    - name: Basement Bathroom Light
-      power_sensor: light_power
-      voltage: 120
 
 fan:
   - platform: binary
@@ -76,6 +68,3 @@ sensor:
     name: Basement Bathroom Light
     power_id: light_power
     method: left
-
-time:
-  - platform: homeassistant

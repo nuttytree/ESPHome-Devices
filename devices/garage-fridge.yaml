@@ -14,10 +14,6 @@ packages:
 wifi:
   power_save_mode: light
 
-external_components:
-  - source: github://cbpowell/ESPSense
-    components: [ espsense ]
-
 climate:
   - platform: pid
     name: Garage Fridge
@@ -39,15 +35,8 @@ climate:
 
 esp32_ble_tracker:
   scan_parameters:
-    interval: 16ms
-    window: 16ms
-
-# espsense:
-#   plugs:
-#     - name: ${device_name}
-#       power_sensor: garage_fridge_power
-#       current_sensor: garage_fridge_current
-#       voltage_sensor: garage_fridge_voltage
+    interval: 1100ms
+    window: 1100ms
 
 modbus:
 
