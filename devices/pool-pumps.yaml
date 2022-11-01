@@ -15,19 +15,6 @@ external_components:
       type: local
       path: ../components 
     components: [ pool_controller ]
-  - source: github://cbpowell/ESPSense
-    components: [ espsense ]
-
-espsense:
-  plugs:
-    - name: Pool Pump
-      power_sensor: pool_pump_power
-      current_sensor: pool_pump_current
-      voltage_sensor: voltage
-    - name: Pool Cleaner
-      power_sensor: pool_cleaner_power
-      current_sensor: pool_cleaner_current
-      voltage_sensor: voltage
 
 i2c:
   sda: GPIO12
@@ -127,7 +114,3 @@ switch:
     id: pool_cleaner
     icon: mdi:robot-vacuum
     restore_mode: Always Off
-
-time:
-  - platform: homeassistant
-    id: the_time

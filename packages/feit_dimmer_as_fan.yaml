@@ -7,18 +7,10 @@ external_components:
       type: local
       path: ../components 
     components: [ tuya_dimmer_as_fan ]
-  - source: github://cbpowell/ESPSense
-    components: [ espsense ]
 
 packages:
   base:   !include device_base_esp8266.yaml
   uart:   !include uart/tuya.yaml
-
-espsense:
-  plugs:
-    - name: ${device_name}
-      power_sensor: power
-      voltage: 120
 
 fan:
   - platform: tuya_dimmer_as_fan
@@ -37,8 +29,5 @@ sensor:
     name: ${device_name}
     power_id: power
     method: left
-
-time:
-  - platform: homeassistant
 
 tuya:

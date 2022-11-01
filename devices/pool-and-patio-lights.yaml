@@ -15,8 +15,6 @@ external_components:
       type: local
       path: ../components 
     components: [ treo_led_pool_light, binary_light_with_power ]
-  - source: github://cbpowell/ESPSense
-    components: [ espsense ]
 
 binary_sensor:
   - platform: gpio
@@ -57,12 +55,6 @@ binary_sensor:
       then:
         - switch.turn_off: patio_lights_indicator
 
-espsense:
-  plugs:
-    - name: Pool Lights
-      power_sensor: pool_light_power
-      voltage: 120
-
 light:
   - platform: treo_led_pool_light
     id: pool_lights
@@ -89,6 +81,3 @@ switch:
   - platform: gpio
     id: patio_lights_indicator
     pin: 13
-
-time:
-  - platform: homeassistant

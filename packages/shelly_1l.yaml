@@ -7,8 +7,6 @@ external_components:
       type: local
       path: ../components 
     components: [ binary_light_with_power ]
-  - source: github://cbpowell/ESPSense
-    components: [ espsense ]
 
 packages:
   base:   !include device_base_esp8266.yaml
@@ -34,12 +32,6 @@ binary_sensor:
       then:
         - light.turn_off: shelly_light
 
-espsense:
-  plugs:
-    - name: ${device_name}
-      power_sensor: light_power
-      voltage: 120
-
 light:
   - platform: binary_light_with_power
     id: shelly_light
@@ -63,6 +55,3 @@ sensor:
 
 status_led:
   pin: GPIO0
-    
-time:
-  - platform: homeassistant

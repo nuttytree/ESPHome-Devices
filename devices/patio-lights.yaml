@@ -15,14 +15,6 @@ external_components:
       type: local
       path: ../components 
     components: [ binary_light_with_power ]
-  - source: github://cbpowell/ESPSense
-    components: [ espsense ]
-
-espsense:
-  plugs:
-    - name: ${device_name}
-      power_sensor: power
-      voltage: 120
 
 light:
   - platform: binary_light_with_power
@@ -43,6 +35,3 @@ sensor:
     name: ${device_name}
     power_id: power
     method: left
-
-time:
-  - platform: homeassistant

@@ -1,0 +1,5 @@
+substitutions:
+  time_platform: homeassistant
+
+time:
+  - platform: ${time_platform}
