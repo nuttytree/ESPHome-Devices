@@ -5,7 +5,7 @@ substitutions:
 external_components:
   - source:
       type: local
-      path: ../components 
+      path: ./components 
     components: [ tuya_dimmer_as_fan ]
 
 packages:

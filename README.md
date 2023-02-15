@@ -10,14 +10,14 @@ Home Assistant is open source home automation that puts local control and privac
 
 
 ## Folder Structure
-* `build` - Technically not included in the repo but all of my devices are configured with this as their build path
-* `components` - Custom components
-* `custom` - Other custom code that are not components
-* `devices` - Yaml files for my devices
-* `images` - Pictures of some of my devices
-* `other` - Other misc files
-* `packages` - Shared packages used by my devices
-* `scripts` - Couple of PowerShell scripts for managing the repo
+* `/` - Yaml files for my devices and other core files
+* `/build` - Technically not included in the repo but all of my devices are configured with this as their build path
+* `/components` - Custom components
+* `/custom` - Other custom code that are not components
+* `/images` - Pictures of some of my devices
+* `/other` - Other misc files
+* `/packages` - Shared packages used by my devices
+* `/scripts` - Couple of PowerShell scripts for managing the repo
 
 
 ## Secrets Management
@@ -30,7 +30,7 @@ I have been working on updating most of my custom code into components that can 
 ### Binary Light With Power
 This an enhanced version of the standard [binary light](https://esphome.io/components/light/binary.html) component that adds an option to include a sensor to report current power usage based on a configured wattage of the light(s) it controls. More details on how to use this component are available [here](./components/binary_light_with_power/README.md).
 
-### GPIO Light With Power
+### GPIO Switch With Power
 This an enhanced version of the standard [gpio switch](https://esphome.io/components/switch/gpio.html) component that adds an option to include a sensor to report current power usage based on a configured wattage of the device(s) it controls. More details on how to use this component are available [here](./components/gpio_switch_with_power/README.md).
 
 ### Pool Controller

@@ -1,0 +1,37 @@
+substitutions:
+  device_id: patio-lights
+  device_name: Patio Lights
+  board: d1_mini
+  ip_address: !secret patio-lights-ip
+  ota_pwd: !secret patio-lights-ota-pwd
+  api_pwd: !secret patio-lights-api-pwd
+  ap_wifi_pwd: !secret patio-lights-ap-pwd
+
+packages:
+  device_base: !include ./packages/device_base_esp8266.yaml
+
+external_components:
+  - source:
+      type: local
+      path: ./components 
+    components: [ binary_light_with_power ]
+
+light:
+  - platform: binary_light_with_power
+    name: ${device_name}
+    output: patio_lights_output
+    power:
+      id: power
+      name: ${device_name} Power
+      light_wattage: 15.3
+
+output:
+  - platform: gpio
+    id: patio_lights_output
+    pin: D1
+
+sensor:
+  - platform: total_daily_energy
+    name: ${device_name}
+    power_id: power
+    method: left

@@ -1,6 +1,0 @@
-substitutions:
-  device_id: scripture_of_the_day_mayson
-  device_name: Scripture of the Day Mayson
-
-packages:
-  device_base: !include ../packages/scripture_of_the_day.yaml

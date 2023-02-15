@@ -4,7 +4,7 @@ substitutions:
 external_components:
   - source:
       type: local
-      path: ../components 
+      path: ./components 
     components: [ tuya_light_plus ]
 
 packages:
