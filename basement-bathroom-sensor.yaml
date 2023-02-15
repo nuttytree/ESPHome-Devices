@@ -1,0 +1,207 @@
+substitutions:
+  device_id: basement-bathroom-sensor
+  device_name: Basement Bathroom Sensor
+  board: d1_mini
+  ip_address: !secret basement-bathroom-sensor-ip
+  ota_pwd: !secret basement-bathroom-sensor-ota-pwd
+  api_pwd: !secret basement-bathroom-sensor-api-pwd
+  ap_wifi_pwd: !secret basement-bathroom-sensor-ap-pwd
+
+packages:
+  device_base: !include ./packages/device_base_esp8266.yaml
+
+esphome:
+  on_boot:
+    then:
+      - output.turn_on: motion_pwr
+
+binary_sensor:
+  - platform: gpio
+    name: Basement Bathroom Door
+    id: door
+    device_class: door
+    pin:
+      number: D7
+      mode: INPUT_PULLUP
+  
+  - platform: gpio
+    name: Basement Bathroom Motion
+    id: motion
+    device_class: motion
+    pin:
+      number: D0
+      mode: INPUT_PULLDOWN_16
+  
+  - platform: template
+    id: motion_delay_3s
+    lambda: return id(motion).state;
+    filters:
+      - delayed_off: 3s
+    on_press:
+      then:
+        - if:
+            condition:
+              and:
+                - binary_sensor.is_off: light
+                - binary_sensor.is_off: shower_light
+                - binary_sensor.is_off: heat
+            then:
+              - if:
+                  condition:
+                    binary_sensor.is_on: day_night
+                  then:
+                    - homeassistant.service:
+                        service: homeassistant.turn_on
+                        data:
+                          entity_id: light.basement_bathroom_light
+                  else:
+                    - homeassistant.service:
+                        service: homeassistant.turn_on
+                        data:
+                          entity_id: light.basement_shower_light
+
+  - platform: template
+    id: motion_delay_30s
+    lambda: return id(motion).state;
+    filters:
+      - delayed_off: 30s
+  
+  - platform: template
+    id: motion_delay_5m
+    lambda: return id(motion).state;
+    filters:
+      - delayed_off: 5min
+    on_release:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_off: trigger_humidity
+            then:
+              - homeassistant.service:
+                  service: homeassistant.turn_off
+                  data:
+                    entity_id: fan.basement_bathroom_fan
+  
+  - platform: template
+    id: motion_delay_20m
+    lambda: return id(motion).state;
+    filters:
+      - delayed_off: 20min
+  
+  - platform: template
+    id: trigger_motion
+    lambda: |-
+      if (id(door).state) {
+        return id(motion_delay_30s).state;
+      }
+      else {
+        return id(motion_delay_20m).state;
+      }
+    filters:
+      - delayed_off: 3s
+    on_release:
+      then:
+        - homeassistant.service:
+            service: homeassistant.turn_off
+            data:
+              entity_id: light.basement_bathroom_light
+        - homeassistant.service:
+            service: homeassistant.turn_off
+            data:
+              entity_id: light.basement_shower_light
+        - homeassistant.service:
+            service: homeassistant.turn_off
+            data:
+              entity_id: switch.basement_bathroom_heater
+
+  - platform: template
+    id: trigger_humidity
+    lambda: return (id(humidity).state - id(median_humidity).state) > 5;
+    filters:
+      - delayed_off: 5min
+    on_release:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_off: trigger_motion
+            then:
+              - homeassistant.service:
+                  service: homeassistant.turn_off
+                  data:
+                    entity_id: fan.basement_bathroom_fan
+  
+  - platform: homeassistant
+    id: day_night
+    entity_id: input_boolean.day_night
+  
+  - platform: homeassistant
+    id: light
+    entity_id: light.basement_bathroom_light
+
+  - platform: homeassistant
+    id: shower_light
+    entity_id: light.basement_shower_light
+
+  - platform: homeassistant
+    id: heat
+    entity_id: switch.basement_bathroom_heater
+
+i2c:
+  sda: D2
+  scl: D1
+  scan: true
+
+output:
+  - platform: gpio
+    pin: D3
+    id: bme_gnd
+  - platform: gpio
+    pin: D5
+    id: motion_gnd
+  - platform: gpio
+    pin: D6
+    id: motion_pwr
+  - platform: gpio
+    pin: D8
+    id: door_gnd
+
+sensor:
+  - platform: bme280
+    temperature:
+      id: temperature
+      name: "Basement Bathroom Temperature"
+    pressure:
+      id: pressure
+      name: "Basement Bathroom Pressure"
+    humidity:
+      id: humidity
+      name: "Basement Bathroom Humidity"
+    address: 0x76
+    update_interval: 15s
+  - platform: template
+    name: "Basement Bathroom Median Humidity"
+    id: median_humidity
+    unit_of_measurement: '%'
+    icon: mdi:water-percent
+    lambda: return id(humidity).state;
+    update_interval: 60s
+    on_raw_value:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_on: trigger_humidity
+            then:
+              - homeassistant.service:
+                  service: homeassistant.turn_on
+                  data:
+                    entity_id: fan.basement_bathroom_fan
+    filters:
+      - median:
+          window_size: 360
+          send_every: 2
+          send_first_at: 2
+
+status_led:
+  pin:
+    number: D4
+    inverted: true

@@ -1,0 +1,10 @@
+substitutions:
+  device_id: kitchen-fridge
+  device_name: Kitchen Fridge
+  ip_address: !secret kitchen-fridge-ip
+  ota_pwd: !secret kitchen-fridge-ota-pwd
+  api_pwd: !secret kitchen-fridge-api-pwd
+  ap_wifi_pwd: !secret kitchen-fridge-ap-pwd
+
+packages:
+  feit_dimmer: !include ./packages/topgreener_smart_plug.yaml

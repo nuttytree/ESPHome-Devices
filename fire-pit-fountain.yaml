@@ -1,0 +1,53 @@
+substitutions:
+  device_id: fire-pit-fountain
+  device_name: Fire Pit and Fountain
+  board: d1_mini
+  ip_address: !secret fire-pit-fountain-ip
+  ota_pwd: !secret fire-pit-fountain-ota-pwd
+  api_pwd: !secret fire-pit-fountain-api-pwd
+  ap_wifi_pwd: !secret fire-pit-fountain-ap-pwd
+
+packages:
+  device_base: !include ./packages/device_base_esp8266.yaml
+
+binary_sensor:
+  - platform: gpio
+    id: fountain_toggle
+    pin:
+      number: D6
+      mode: INPUT_PULLUP
+      inverted: True
+    on_press:
+      then:
+        - switch.toggle: fountain
+  - platform: gpio
+    id: fire_pit_toggle
+    pin:
+      number: D7
+      mode: INPUT_PULLUP
+      inverted: True
+    on_multi_click:
+      - timing:
+          - ON for at least 3s
+          - OFF for at least .1s
+        then:
+          - switch.toggle: fire_pit
+      - timing:
+          - ON for at most 3s
+          - OFF for at least .1s
+        then:
+          - switch.turn_off: fire_pit
+
+switch:
+  - platform: gpio
+    id: fountain
+    name: "Fountain"
+    icon: mdi:fountain
+    pin: D1
+    inverted: true
+  - platform: gpio
+    id: fire_pit
+    name: "Fire Pit"
+    icon: mdi:fire
+    pin: D2
+    inverted: true

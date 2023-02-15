@@ -1,0 +1,125 @@
+substitutions:
+  device_id: master-bed
+  device_name: Master Bed
+  board: nodemcuv2
+  ip_address: !secret master-bed-ip
+  ota_pwd: !secret master-bed-ota-pwd
+  api_pwd: !secret master-bed-api-pwd
+  ap_wifi_pwd: !secret master-bed-ap-pwd
+
+packages:
+  device_base: !include ./packages/device_base_esp8266.yaml
+
+esphome:
+  includes:
+  - ../custom/bed_sensor.h
+
+binary_sensor:
+  - platform: template
+    name: "Melissa is in Bed"
+    id: melissa_in_bed
+    device_class: occupancy
+    on_state:
+      then:
+        - sensor.template.publish:
+            id: master_bed_count
+            state: !lambda 'return id(melissa_in_bed).state + id(chris_in_bed).state + id(someone_in_bed).state;'
+  - platform: template
+    name: "Chris is in Bed"
+    id: chris_in_bed
+    device_class: occupancy
+    on_state:
+      then:
+        - sensor.template.publish:
+            id: master_bed_count
+            state: !lambda 'return id(melissa_in_bed).state + id(chris_in_bed).state + id(someone_in_bed).state;'
+  - platform: template
+    name: "Someone is in Bed"
+    id: someone_in_bed
+    device_class: occupancy
+    on_state:
+      then:
+        - sensor.template.publish:
+            id: master_bed_count
+            state: !lambda 'return id(melissa_in_bed).state + id(chris_in_bed).state + id(someone_in_bed).state;'
+
+sensor:
+  - platform: custom
+    lambda: |-
+      auto bedSensor = new BedSensor();
+      App.register_component(bedSensor);
+      return {bedSensor->melissaBedSensor, bedSensor->chrisBedSensor};
+    sensors:
+      - name: "Melissa Bed Sensor"
+        id: melissa_bed_sensor
+        on_value:
+          then:
+            - sensor.template.publish:
+                id: melissa_bed_percent
+                state: !lambda 'return (1024 - x) / 1024 * 100;'
+      - name: "Chris Bed Sensor"
+        id: chris_bed_sensor
+        on_value:
+          then:
+            - sensor.template.publish:
+                id: chris_bed_percent
+                state: !lambda 'return (1024 - x) / 1024 * 100;'
+
+  - platform: template
+    name: "Melissa Bed Percent"
+    id: melissa_bed_percent
+    icon: "mdi:bed"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    on_value:
+      then:
+        - binary_sensor.template.publish:
+            id: melissa_in_bed
+            state: !lambda 'return x > 75;'
+        - binary_sensor.template.publish:
+            id: someone_in_bed
+            state: !lambda 'return x <= 75 && !id(chris_in_bed).state && x > 40 && id(chris_bed_percent).state > 40;'
+  - platform: template
+    name: "Chris Bed Percent"
+    id: chris_bed_percent
+    icon: "mdi:bed"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    on_value:
+      then:
+        - binary_sensor.template.publish:
+            id: chris_in_bed
+            state: !lambda 'return x > 75;'
+        - binary_sensor.template.publish:
+            id: someone_in_bed
+            state: !lambda 'return !id(melissa_in_bed).state && x <= 75 && id(melissa_bed_percent).state > 40 && x > 40;'
+
+  - platform: template
+    name: "Master Bed Count"
+    id: master_bed_count
+    accuracy_decimals: 0
+    icon: "mdi:bed"
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: master_bed_status
+            state: !lambda |-
+              if (x == 0) {
+                return "Empty";
+              } else if (x == 2) {
+                return "Melissa and Chris";
+              } else if (id(melissa_in_bed).state) {
+                return "Melissa";
+              } else if (id(chris_in_bed).state) {
+                return "Chris";
+              } else if (id(someone_in_bed).state) {
+                return "Someone";
+              } else {
+                return "Unknown";
+              }
+
+text_sensor:
+  - platform: template
+    name: "Master Bed Status"
+    id: master_bed_status
+    icon: "mdi:bed"

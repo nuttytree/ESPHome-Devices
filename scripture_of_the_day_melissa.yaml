@@ -1,0 +1,6 @@
+substitutions:
+  device_id: scripture_of_the_day_melissa
+  device_name: Scripture of the Day Melissa
+
+packages:
+  device_base: !include ./packages/scripture_of_the_day.yaml

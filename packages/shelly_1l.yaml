@@ -5,7 +5,7 @@ substitutions:
 external_components:
   - source:
       type: local
-      path: ../components 
+      path: ./components 
     components: [ binary_light_with_power ]
 
 packages:
