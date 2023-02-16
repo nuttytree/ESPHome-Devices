@@ -3,7 +3,7 @@ substitutions:
   device_name: Kitchen Fridge
   ip_address: !secret kitchen-fridge-ip
   ota_pwd: !secret kitchen-fridge-ota-pwd
-  api_pwd: !secret kitchen-fridge-api-pwd
+  api_key: !secret kitchen-fridge-key
   ap_wifi_pwd: !secret kitchen-fridge-ap-pwd
 
 packages:

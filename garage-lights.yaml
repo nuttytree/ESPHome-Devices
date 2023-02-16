@@ -3,7 +3,7 @@ substitutions:
   device_name: Garage Lights
   ip_address: !secret garage-lights-ip
   ota_pwd: !secret garage-lights-ota-pwd
-  api_pwd: !secret garage-lights-api-pwd
+  api_key: !secret garage-lights-key
   ap_wifi_pwd: !secret garage-lights-ap-pwd
   light_wattage: '378'
 

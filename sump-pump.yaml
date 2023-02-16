@@ -3,7 +3,7 @@ substitutions:
   device_name: Sump Pump
   ip_address: !secret sump-pump-ip
   ota_pwd: !secret sump-pump-ota-pwd
-  api_pwd: !secret sump-pump-api-pwd
+  api_key: !secret sump-pump-key
   ap_wifi_pwd: !secret sump-pump-ap-pwd
 
 packages:

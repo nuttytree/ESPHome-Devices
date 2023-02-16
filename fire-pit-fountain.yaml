@@ -4,7 +4,7 @@ substitutions:
   board: d1_mini
   ip_address: !secret fire-pit-fountain-ip
   ota_pwd: !secret fire-pit-fountain-ota-pwd
-  api_pwd: !secret fire-pit-fountain-api-pwd
+  api_key: !secret fire-pit-fountain-key
   ap_wifi_pwd: !secret fire-pit-fountain-ap-pwd
 
 packages:

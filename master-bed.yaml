@@ -4,7 +4,7 @@ substitutions:
   board: nodemcuv2
   ip_address: !secret master-bed-ip
   ota_pwd: !secret master-bed-ota-pwd
-  api_pwd: !secret master-bed-api-pwd
+  api_key: !secret master-bed-key
   ap_wifi_pwd: !secret master-bed-ap-pwd
 
 packages:
@@ -12,7 +12,7 @@ packages:
 
 esphome:
   includes:
-  - ../custom/bed_sensor.h
+  - ./custom/bed_sensor.h
 
 binary_sensor:
   - platform: template

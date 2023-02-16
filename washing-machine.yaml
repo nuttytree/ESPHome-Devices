@@ -3,7 +3,7 @@ substitutions:
   device_name: Washing Machine
   ip_address: !secret washing-machine-ip
   ota_pwd: !secret washing-machine-ota-pwd
-  api_pwd: !secret washing-machine-api-pwd
+  api_key: !secret washing-machine-key
   ap_wifi_pwd: !secret washing-machine-ap-pwd
 
 packages:

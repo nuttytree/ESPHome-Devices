@@ -4,7 +4,7 @@ substitutions:
   board: esp32dev
   ip_address: !secret emporia-vue2-ip
   ota_pwd: !secret emporia-vue2-ota-pwd
-  api_pwd: !secret emporia-vue2-api-pwd
+  api_key: !secret emporia-vue2-key
   ap_wifi_pwd: !secret emporia-vue2-ap-pwd
 
 packages:

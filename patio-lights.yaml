@@ -4,7 +4,7 @@ substitutions:
   board: d1_mini
   ip_address: !secret patio-lights-ip
   ota_pwd: !secret patio-lights-ota-pwd
-  api_pwd: !secret patio-lights-api-pwd
+  api_key: !secret patio-lights-key
   ap_wifi_pwd: !secret patio-lights-ap-pwd
 
 packages:
