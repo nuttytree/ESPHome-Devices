@@ -9,7 +9,7 @@ substitutions:
 
 esphome:
   name: ${device_id}
-  build_path: ../build/${device_id}
+  build_path: ./build/${device_id}
 
 ${platform}:
   board: ${board}

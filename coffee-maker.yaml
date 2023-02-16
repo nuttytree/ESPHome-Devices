@@ -4,7 +4,7 @@ substitutions:
   board: nodemcuv2
   ip_address: !secret coffee-maker-ip
   ota_pwd: !secret coffee-maker-ota-pwd
-  api_pwd: !secret coffee-maker-api-pwd
+  api_key: !secret coffee-maker-key
   ap_wifi_pwd: !secret coffee-maker-ap-pwd
 
 packages:

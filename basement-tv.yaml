@@ -3,7 +3,7 @@ substitutions:
   device_name: Basement TV
   ip_address: !secret basement-tv-ip
   ota_pwd: !secret basement-tv-ota-pwd
-  api_pwd: !secret basement-tv-api-pwd
+  api_key: !secret basement-tv-key
   ap_wifi_pwd: !secret basement-tv-ap-pwd
 
 packages:

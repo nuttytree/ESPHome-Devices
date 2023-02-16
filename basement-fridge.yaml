@@ -3,7 +3,7 @@ substitutions:
   device_name: Basement Fridge
   ip_address: !secret basement-fridge-ip
   ota_pwd: !secret basement-fridge-ota-pwd
-  api_pwd: !secret basement-fridge-api-pwd
+  api_key: !secret basement-fridge-key
   ap_wifi_pwd: !secret basement-fridge-ap-pwd
 
 packages:

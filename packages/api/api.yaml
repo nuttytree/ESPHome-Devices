@@ -1,3 +1,5 @@
 api:
-  password: ${api_pwd}
+  encryption:
+    key: ${api_key}
+
   

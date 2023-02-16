@@ -4,7 +4,7 @@ substitutions:
   board: d1_mini
   ip_address: !secret basement-bathroom-sensor-ip
   ota_pwd: !secret basement-bathroom-sensor-ota-pwd
-  api_pwd: !secret basement-bathroom-sensor-api-pwd
+  api_key: !secret basement-bathroom-sensor-key
   ap_wifi_pwd: !secret basement-bathroom-sensor-ap-pwd
 
 packages:

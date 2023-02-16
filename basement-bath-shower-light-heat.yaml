@@ -2,10 +2,10 @@ substitutions:
   device_id: basement-bath-shower-light-heat
   device_name: Basement Bathroom Shower Light and Heater
   board: esp01_1m
-  ip_address: !secret basement-bathroom-shower-light-heater-ip
-  ota_pwd: !secret basement-bathroom-shower-light-heater-ota-pwd
-  api_pwd: !secret basement-bathroom-shower-light-heater-api-pwd
-  ap_wifi_pwd: !secret basement-bathroom-shower-light-heater-ap-pwd
+  ip_address: !secret basement-bathroom-shower-light-heat-ip
+  ota_pwd: !secret basement-bathroom-shower-light-heat-ota-pwd
+  api_key: !secret basement-bathroom-shower-light-heat-key
+  ap_wifi_pwd: !secret basement-bathroom-shower-light-heat-ap-pwd
 
 packages:
   device_base: !include ./packages/device_base_esp8266.yaml

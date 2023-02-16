@@ -4,7 +4,7 @@ substitutions:
   board: esp01_1m
   ip_address: !secret pool-and-patio-lights-ip
   ota_pwd: !secret pool-and-patio-lights-ota-pwd
-  api_pwd: !secret pool-and-patio-lights-api-pwd
+  api_key: !secret pool-and-patio-lights-key
   ap_wifi_pwd: !secret pool-and-patio-lights-ap-pwd
 
 packages:
