@@ -1,10 +1,9 @@
 substitutions:
   device_id: basement-fridge
   device_name: Basement Fridge
-  ip_address: !secret basement-fridge-ip
-  ota_pwd: !secret basement-fridge-ota-pwd
-  api_key: !secret basement-fridge-key
-  ap_wifi_pwd: !secret basement-fridge-ap-pwd
+  ip_address: !secret basement_fridge_ip
+  api_key: !secret basement_fridge_key
+  pwd: !secret basement_fridge_pwd
 
 packages:
   feit_dimmer: !include ./packages/topgreener_smart_plug.yaml

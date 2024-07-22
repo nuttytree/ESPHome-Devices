@@ -1,10 +1,9 @@
 substitutions:
   device_id: basement-tv
   device_name: Basement TV
-  ip_address: !secret basement-tv-ip
-  ota_pwd: !secret basement-tv-ota-pwd
-  api_key: !secret basement-tv-key
-  ap_wifi_pwd: !secret basement-tv-ap-pwd
+  ip_address: !secret basement_tv_ip
+  api_key: !secret basement_tv_key
+  pwd: !secret basement_tv_pwd
 
 packages:
   feit_dimmer: !include ./packages/topgreener_smart_plug.yaml

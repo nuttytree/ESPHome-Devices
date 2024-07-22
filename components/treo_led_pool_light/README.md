@@ -7,7 +7,7 @@ This is a custom light component that works with [TREO LED Pool Lights](https://
 Using the [External Components](https://esphome.io/components/external_components.html) feature in ESPHome you can add this component to your devices directly from my GitHub repo.
 ```yaml
 external_components:
-  - source: github://nuttytree/esphome
+  - source: github://nuttytree/ESPHome-Devices
     components: [ treo_led_pool_light ]
 ```
 

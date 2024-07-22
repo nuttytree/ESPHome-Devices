@@ -82,7 +82,7 @@ class GarageDoorLock : public lock::Lock, public Component
 class GarageDoor : public cover::Cover, public Component, public api::CustomAPIDevice {
  public:
   GarageDoor();
-  void set_name(const std::string &name) { Cover::set_name(name); this->lock_comp_->set_name(name); }
+  void set_name(const char *name) { Cover::set_name(name); this->lock_comp_->set_name(name); }
   void set_open_duration(uint32_t open_duration) { this->open_duration_ = open_duration; }
   void set_close_duration(uint32_t close_duration) { this->close_duration_ = close_duration; }
   void set_control_output(output::BinaryOutput *control_output) { this->control_output_ = control_output; }

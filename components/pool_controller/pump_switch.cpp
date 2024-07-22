@@ -3,6 +3,8 @@
 namespace esphome {
 namespace pool_controller {
 
+static const char *const PUMP_SWITCH_TAG = "pool.pump.switch";
+
 // Minimum time the pump needs to be on, turning off before this will result in a delayed turn off (10000 = 10 seconds)
 static const uint32_t MINIMUM_PUMP_ON_TIME = 10000;
 
@@ -12,48 +14,19 @@ static const uint32_t MINIMUM_PUMP_OFF_TIME = 10000;
 static const uint32_t FORTY_EIGHT_HOURS = 172800000;
 
 PumpSwitch::PumpSwitch(switch_::Switch *physical_switch) {
-  this->set_name(physical_switch->get_name());
-  this->set_icon(physical_switch->get_icon());
-  this->set_update_interval(10000);
+  this->set_update_interval(1000);
+  this->set_restore_mode(switch_::SWITCH_ALWAYS_OFF);
 
-  physical_switch->set_internal(true);
   physical_switch->add_on_state_callback([this](bool state) -> void {
-    if (state) {
-      uint32_t now = millis();
-      this->turned_on_at_ = now;
-      this->last_runtime_update_ = now;
-      if (!this->state) {
-        this->physical_switch_->turn_off();
-      }
-    } else {
-      uint32_t now = millis();
-      this->turned_off_at_ = now;
-      this->runtime_ += now - this->last_runtime_update_;
-      this->last_runtime_update_ = now;
-      if (this->state) {
-        this->turn_off();
-      }
-    }
+    this->on_physical_switch_state_change_(state);
   });
   this->physical_switch_ = physical_switch;
 }
 
-void PumpSwitch::setup() {
-  this->turn_off();
-  this->physical_switch_->turn_off();
-}
-
-void PumpSwitch::loop() {
+void PumpSwitch::update() {
+  this->update_runtime_();
   this->update_physical_switch_();
   //this->check_current_();
-}
-
-void PumpSwitch::update() {
-  if (this->physical_switch_->state) {
-    uint32_t now = millis();
-    this->runtime_ += now - this->last_runtime_update_;
-    this->last_runtime_update_ = now;
-  }
 }
 
 uint32_t PumpSwitch::get_current_on_time() {
@@ -85,13 +58,31 @@ void PumpSwitch::emergency_stop() {
 }
 
 void PumpSwitch::write_state(bool state) {
-  if (state && this->is_disabled_) {
-    state = false;
-  }
-  
+  state = state && !this->is_disabled_;
   this->state = state;
   this->publish_state(state);
-  this->update_physical_switch_();
+}
+
+void PumpSwitch::on_physical_switch_state_change_(bool state) {
+  if (state) {
+    uint32_t now = millis();
+    this->turned_on_at_ = now;
+    this->last_runtime_update_ = now;
+    ESP_LOGW(PUMP_SWITCH_TAG, "'%s': Physical switch turned on", this->get_name().c_str());
+  } else {
+    uint32_t now = millis();
+    this->turned_off_at_ = now;
+    this->runtime_ += now - this->last_runtime_update_;
+    ESP_LOGW(PUMP_SWITCH_TAG, "'%s': Physical switch turned off", this->get_name().c_str());
+  }
+}
+
+void PumpSwitch::update_runtime_() {
+  if (this->physical_switch_->state) {
+    uint32_t now = millis();
+    this->runtime_ += now - this->last_runtime_update_;
+    this->last_runtime_update_ = now;
+  }
 }
 
 void PumpSwitch::update_physical_switch_() {

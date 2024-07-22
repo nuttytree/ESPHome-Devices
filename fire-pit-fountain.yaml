@@ -2,10 +2,9 @@ substitutions:
   device_id: fire-pit-fountain
   device_name: Fire Pit and Fountain
   board: d1_mini
-  ip_address: !secret fire-pit-fountain-ip
-  ota_pwd: !secret fire-pit-fountain-ota-pwd
-  api_key: !secret fire-pit-fountain-key
-  ap_wifi_pwd: !secret fire-pit-fountain-ap-pwd
+  ip_address: !secret fire_pit_fountain_ip
+  api_key: !secret fire_pit_fountain_key
+  pwd: !secret fire_pit_fountain_pwd
 
 packages:
   device_base: !include ./packages/device_base_esp8266.yaml
@@ -17,6 +16,8 @@ binary_sensor:
       number: D6
       mode: INPUT_PULLUP
       inverted: True
+    filters:
+      - delayed_on: 100ms
     on_press:
       then:
         - switch.toggle: fountain
@@ -26,6 +27,8 @@ binary_sensor:
       number: D7
       mode: INPUT_PULLUP
       inverted: True
+    filters:
+      - delayed_on: 100ms
     on_multi_click:
       - timing:
           - ON for at least 3s

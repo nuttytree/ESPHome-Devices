@@ -1,13 +1,9 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import time, select, sensor, switch
+from esphome.components import time, sensor, switch
 from esphome.const import (
     CONF_ID,
     CONF_TIME_ID,
-    CONF_NAME,
-    CONF_ICON,
-    ICON_THERMOMETER,
-    CONF_DISABLED_BY_DEFAULT,
     CONF_MAX_CURRENT,
 )
 
@@ -19,6 +15,7 @@ PoolController = pool_controller_ns.class_("PoolController", cg.PollingComponent
 
 CONF_PUMP = "pump"
 CONF_CLEANER = "cleaner"
+CONF_PUMP_SELECT = "pump_select"
 CONF_SWITCH_ID = "switch_id"
 CONF_CURRENT_ID = "current_id"
 CONF_MIN_CURRENT = "min_current"

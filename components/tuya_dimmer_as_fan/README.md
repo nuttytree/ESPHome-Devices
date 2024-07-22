@@ -10,7 +10,7 @@ This a modified version of the [Tuya fan](https://esphome.io/components/fan/tuya
 Using the [External Components](https://esphome.io/components/external_components.html) feature in ESPHome you can add this component to your devices directly from my GitHub repo.
 ```yaml
 external_components:
-  - source: github://nuttytree/esphome
+  - source: github://nuttytree/ESPHome-Devices
     components: [ tuya_dimmer_as_fan ]
 ```
 

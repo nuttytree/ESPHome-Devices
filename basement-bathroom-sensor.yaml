@@ -2,10 +2,9 @@ substitutions:
   device_id: basement-bathroom-sensor
   device_name: Basement Bathroom Sensor
   board: d1_mini
-  ip_address: !secret basement-bathroom-sensor-ip
-  ota_pwd: !secret basement-bathroom-sensor-ota-pwd
-  api_key: !secret basement-bathroom-sensor-key
-  ap_wifi_pwd: !secret basement-bathroom-sensor-ap-pwd
+  ip_address: !secret basement_bathroom_sensor_ip
+  api_key: !secret basement_bathroom_sensor_key
+  pwd: !secret basement_bathroom_sensor_pwd
 
 packages:
   device_base: !include ./packages/device_base_esp8266.yaml
@@ -166,7 +165,7 @@ output:
     id: door_gnd
 
 sensor:
-  - platform: bme280
+  - platform: bme280_i2c
     temperature:
       id: temperature
       name: "Basement Bathroom Temperature"

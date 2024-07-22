@@ -1,10 +1,10 @@
 substitutions:
-  device_id: office-light
-  device_name: Office Light
-  ip_address: !secret office-light-ip
-  ota_pwd: !secret office-light-ota-pwd
-  api_pwd: !secret office-light-api-pwd
-  ap_wifi_pwd: !secret office-light-ap-pwd
+  device_id: dining-room-light
+  device_name: Dining Room Light
+  ip_address: !secret dining-room-light-ip
+  ota_pwd: !secret dining-room-light-ota-pwd
+  api_key: !secret dining-room-light-key
+  ap_wifi_pwd: !secret dining-room-light-ap-pwd
 
 packages:
   feit_dimmer: !include ./packages/feit_dimmer.yaml
@@ -29,4 +29,4 @@ light:
     power:
       id: power
       name: ${device_name} Power
-      light_wattage: 36.7
+      light_wattage: 22.6

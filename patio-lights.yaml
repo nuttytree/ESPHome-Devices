@@ -2,10 +2,9 @@ substitutions:
   device_id: patio-lights
   device_name: Patio Lights
   board: d1_mini
-  ip_address: !secret patio-lights-ip
-  ota_pwd: !secret patio-lights-ota-pwd
-  api_key: !secret patio-lights-key
-  ap_wifi_pwd: !secret patio-lights-ap-pwd
+  ip_address: !secret patio_lights_ip
+  api_key: !secret patio_lights_key
+  pwd: !secret patio_lights_pwd
 
 packages:
   device_base: !include ./packages/device_base_esp8266.yaml
