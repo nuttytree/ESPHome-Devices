@@ -2,10 +2,9 @@ substitutions:
   device_id: coffee-maker
   device_name: Coffee Maker
   board: nodemcuv2
-  ip_address: !secret coffee-maker-ip
-  ota_pwd: !secret coffee-maker-ota-pwd
-  api_key: !secret coffee-maker-key
-  ap_wifi_pwd: !secret coffee-maker-ap-pwd
+  ip_address: !secret coffee_maker_ip
+  api_key: !secret coffee_maker_key
+  pwd: !secret coffee_maker_pwd
 
 packages:
   device_base: !include ./packages/device_base_esp8266.yaml

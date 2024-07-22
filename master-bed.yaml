@@ -2,10 +2,9 @@ substitutions:
   device_id: master-bed
   device_name: Master Bed
   board: nodemcuv2
-  ip_address: !secret master-bed-ip
-  ota_pwd: !secret master-bed-ota-pwd
-  api_key: !secret master-bed-key
-  ap_wifi_pwd: !secret master-bed-ap-pwd
+  ip_address: !secret master_bed_ip
+  api_key: !secret master_bed_key
+  pwd: !secret master_bed_pwd
 
 packages:
   device_base: !include ./packages/device_base_esp8266.yaml

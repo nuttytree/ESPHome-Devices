@@ -1,12 +1,10 @@
 #pragma once
 
-#include "esphome/components/select/select.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/time/real_time_clock.h"
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
-#include "esphome/core/preferences.h"
 
 namespace esphome {
 namespace pool_controller {
@@ -19,9 +17,7 @@ class PumpSwitch : public switch_::Switch, public PollingComponent {
   void set_current_monitoring(sensor::Sensor *sensor, float min_current, float max_current, uint32_t max_out_of_range_time) {
     this->current_sensor_ = sensor; this->min_current_ = min_current; this->max_current_ = max_current; this->max_current_out_of_range_time_ = max_out_of_range_time;
   }
-  float get_setup_priority() const override { return setup_priority::HARDWARE; }
-  void setup() override;
-  void loop() override;
+  float get_setup_priority() const override { return setup_priority::DATA; }
   void update() override;
 
   uint32_t get_current_on_time();
@@ -34,6 +30,8 @@ class PumpSwitch : public switch_::Switch, public PollingComponent {
  protected:
   void write_state(bool state) override;
 
+  void on_physical_switch_state_change_(bool state);
+  void update_runtime_();
   void update_physical_switch_();
   void check_current_();
   

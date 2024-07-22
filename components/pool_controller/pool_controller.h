@@ -1,12 +1,11 @@
 #pragma once
 
-#include "esphome/components/select/select.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/time/real_time_clock.h"
 #include "esphome/core/component.h"
 #include "esphome/core/preferences.h"
-#include "pool_select.h"
 #include "pump_switch.h"
+#include "pool_select.h"
 
 namespace esphome {
 namespace pool_controller {
@@ -36,7 +35,7 @@ class PoolController : public Component {
   void set_cleaner_current_monitoring(sensor::Sensor *sensor, float min_current, float max_current, uint32_t max_out_of_range_time) {
     this->cleaner_switch_->set_current_monitoring(sensor, min_current, max_current, max_out_of_range_time);
   }
-  float get_setup_priority() const override { return setup_priority::HARDWARE; }
+  float get_setup_priority() const override { return setup_priority::LATE; }
   void setup() override;
   void loop() override;
 

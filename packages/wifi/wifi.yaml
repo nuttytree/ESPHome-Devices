@@ -1,14 +1,15 @@
 wifi:
   ssid: ${wifi_ssid}
   password: ${wifi_password}
-  fast_connect: false
+  fast_connect: true
   power_save_mode: none
   manual_ip:
     static_ip: ${ip_address}
     subnet: ${ip_subnet}
     gateway: ${ip_gateway}
-  # ap:
-  #   ssid: ${device_id}
-  #   password: ${ap_wifi_pwd}
+  ap:
+    ssid: ${device_id}
+    password: ${pwd}
+    ap_timeout: 5min
 
-#captive_portal:
+captive_portal:

@@ -1,10 +1,9 @@
 substitutions:
   device_id: family-room-tv
   device_name: Family Room TV
-  ip_address: !secret family-room-tv-ip
-  ota_pwd: !secret family-room-tv-ota-pwd
-  api_key: !secret family-room-tv-key
-  ap_wifi_pwd: !secret family-room-tv-ap-pwd
+  ip_address: !secret family_room_tv_ip
+  api_key: !secret family_room_tv_key
+  pwd: !secret family_room_tv_pwd
 
 packages:
   feit_dimmer: !include ./packages/topgreener_smart_plug.yaml

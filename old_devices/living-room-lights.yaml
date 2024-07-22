@@ -3,7 +3,7 @@ substitutions:
   device_name: Living Room Lights
   ip_address: !secret living-room-lights-ip
   ota_pwd: !secret living-room-lights-ota-pwd
-  api_pwd: !secret living-room-lights-api-pwd
+  api_key: !secret living-room-lights-key
   ap_wifi_pwd: !secret living-room-lights-ap-pwd
 
 packages:

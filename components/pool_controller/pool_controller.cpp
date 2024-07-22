@@ -3,11 +3,12 @@
 #include "esphome/core/application.h"
 #include "esphome/core/base_automation.h"
 #include "esphome/core/log.h"
+#include "esphome/core/time.h"
 
 namespace esphome {
 namespace pool_controller {
 
-static const char *const TAG = "pool_controller";
+static const char *const TAG = "pool.controller";
 
 static const uint32_t RUNTIME_30_MINUTES_PER_HALF_HOUR = UINT32_MAX;
 static const uint32_t RUNTIME_15_MINUTES_PER_HALF_HOUR = 900000;
@@ -20,24 +21,30 @@ static const uint32_t MINIMUM_AUTOMATION_PUMP_OFF_TIME = 300000;
 static const uint32_t MINIMUM_AUTOMATION_PUMP_ON_TIME = 300000;
 
 PoolController::PoolController() {
-  ESP_LOGD(TAG, "Creating pump mode select component");
+  ESP_LOGCONFIG(TAG, "Creating pump mode select component");
   this->pump_select_ = new PoolSelect();
   App.register_component(this->pump_select_);
   App.register_select(this->pump_select_);
   this->pump_select_->set_name("Pool Pump Mode");
+  this->pump_select_->set_object_id("pump_select");
   this->pump_select_->set_icon("mdi:pump");
+  this->pump_select_->set_disabled_by_default(false);
   this->pump_select_->traits.set_options({"Off", "Normal", "Always Except Peak", "Always"});
+  this->pump_select_->set_initial_option("Off");
   this->pump_select_->add_on_state_callback([this](const std::string &value, size_t index) {
     this->pump_mode_ = static_cast<PumpMode>(index);
   });
 
-  ESP_LOGD(TAG, "Creating cleaner mode select component");
+  ESP_LOGCONFIG(TAG, "Creating cleaner mode select component");
   this->cleaner_select_ = new PoolSelect();
   App.register_component(this->cleaner_select_);
   App.register_select(this->cleaner_select_);
   this->cleaner_select_->set_name("Pool Cleaner Mode");
+  this->cleaner_select_->set_object_id("cleaner_select");
   this->cleaner_select_->set_icon("mdi:robot-vacuum");
+  this->cleaner_select_->set_disabled_by_default(false);
   this->cleaner_select_->traits.set_options({"Off", "Normal", "When Pump Is On"});
+  this->cleaner_select_->set_initial_option("Off");
   this->cleaner_select_->add_on_state_callback([this](const std::string &value, size_t index) {
     this->cleaner_mode_ = static_cast<CleanerMode>(index);
   });
@@ -72,8 +79,10 @@ void PoolController::set_time(time::RealTimeClock *time) {
 
 void PoolController::set_pump_switch(switch_::Switch *pump_switch) {
   this->pump_switch_ = new PumpSwitch(pump_switch);
-  App.register_component(this->pump_switch_);
   App.register_switch(this->pump_switch_);
+  this->pump_switch_->set_name("Pool Pump");
+  this->pump_switch_->set_object_id("controller_managed_pump_switch");
+  this->pump_switch_->set_icon("mdi:pump");
   this->pump_switch_->add_turn_off_check([this]() -> bool {
     ESP_LOGD(TAG, "Pump switch turn off check is checking the state of the pool cleaner");
     if (this->cleaner_switch_->state) {
@@ -81,12 +90,15 @@ void PoolController::set_pump_switch(switch_::Switch *pump_switch) {
     }
     return this->cleaner_switch_->get_current_off_time() > 5000;
   });
+  App.register_component(this->pump_switch_);
 }
 
 void PoolController::set_cleaner_switch(switch_::Switch *cleaner_switch) {
   this->cleaner_switch_ = new PumpSwitch(cleaner_switch);
-  App.register_component(this->cleaner_switch_);
   App.register_switch(this->cleaner_switch_);
+  this->cleaner_switch_->set_name("Pool Cleaner");
+  this->cleaner_switch_->set_object_id("controller_managed_cleaner_switch");
+  this->cleaner_switch_->set_icon("mdi:robot-vacuum");
   this->cleaner_switch_->add_turn_on_check([this]() {
     ESP_LOGD(TAG, "Cleaner switch turn on check is checking the state of the pool pump");
     if (!this->pump_switch_->state) {
@@ -94,6 +106,7 @@ void PoolController::set_cleaner_switch(switch_::Switch *cleaner_switch) {
     }
     return this->pump_switch_->get_current_on_time() > 5000;
   });
+  App.register_component(this->cleaner_switch_);
 }
 
 void PoolController::setup() {
@@ -107,7 +120,7 @@ void PoolController::loop() {
 
 void PoolController::manage_pump_() {
   uint32_t desired_runtime = 0;
-  time::ESPTime now = this->time_->now();
+  ESPTime now = this->time_->now();
   uint8_t hour = now.hour;
   uint8_t day_of_week = now.day_of_week;
   switch (this->pump_mode_) {
@@ -122,7 +135,7 @@ void PoolController::manage_pump_() {
         desired_runtime = RUNTIME_30_MINUTES_PER_HALF_HOUR; // normal cleaner run time
       } else if (day_of_week > 1 && day_of_week < 7 && hour >= 15 && hour < 20 ) {
         desired_runtime = RUNTIME_10_MINUTES_PER_HALF_HOUR; // peak electric rate
-      } else if (hour >= 6 && hour < 20) {
+      } else if (hour >= 6 && hour < 22) {
         desired_runtime = RUNTIME_15_MINUTES_PER_HALF_HOUR;
       }
       break;

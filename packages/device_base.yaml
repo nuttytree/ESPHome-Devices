@@ -1,14 +1,16 @@
 substitutions:
   log_level: none
   log_baud_rate: '115200'
-  wifi_ssid: !secret wifi-ssid
-  wifi_password: !secret wifi-password
-  ip_subnet: !secret ip-subnet
-  ip_gateway: !secret ip-gateway
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+  ip_subnet: !secret ip_subnet
+  ip_gateway: !secret ip_gateway
   flash_write_interval: 10min
 
 esphome:
   name: ${device_id}
+  friendly_name: ${device_name}
+  name_add_mac_suffix: false
   build_path: ./build/${device_id}
 
 ${platform}:

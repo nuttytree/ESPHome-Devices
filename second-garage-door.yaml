@@ -2,19 +2,17 @@ substitutions:
   device_id: second-garage-door
   device_name: Second Garage Door
   board: d1_mini
-  ip_address: !secret second-garage-door-ip
-  ota_pwd: !secret second-garage-door-ota-pwd
-  api_pwd: !secret second-garage-door-api-pwd
-  ap_wifi_pwd: !secret second-garage-door-ap-pwd
-  log_level: debug
+  ip_address: !secret second_garage_door_ip
+  api_key: !secret second_garage_door_key
+  pwd: !secret second_garage_door_pwd
 
 packages:
-  device_base: !include ../packages/device_base_esp8266.yaml
+  device_base: !include ./packages/device_base_esp8266.yaml
 
 external_components:
   - source:
       type: local
-      path: ../components 
+      path: ./components 
     components: [ garage_door ]
 
 binary_sensor:
@@ -78,10 +76,6 @@ cover:
     last_close_time_sensor:
       name: ${device_name} Last Close Time
 
-logger:
-  logs:
-    sensor: NONE
-
 output:
   - platform: gpio
     id: control_out
@@ -99,7 +93,7 @@ sensor:
     id: button_in
     pin: A0
     raw: true
-    update_interval: 75ms
+    update_interval: 100ms
 
 status_led:
   pin:

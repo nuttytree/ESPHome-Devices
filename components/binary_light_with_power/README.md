@@ -7,7 +7,7 @@ This an enhanced version of the standard [binary light](https://esphome.io/compo
 Using the [External Components](https://esphome.io/components/external_components.html) feature in ESPHome you can add this component to your devices directly from my GitHub repo.
 ```yaml
 external_components:
-  - source: github://nuttytree/esphome
+  - source: github://nuttytree/ESPHome-Devices
     components: [ binary_light_with_power ]
 ```
 

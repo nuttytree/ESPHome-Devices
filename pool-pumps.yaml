@@ -2,10 +2,10 @@ substitutions:
   device_id: pool-pumps
   device_name: Pool Pumps
   board: modwifi
-  ip_address: !secret pool-pumps-ip
-  ota_pwd: !secret pool-pumps-ota-pwd
-  api_pwd: !secret pool-pumps-api-pwd
-  ap_wifi_pwd: !secret pool-pumps-ap-pwd
+  ip_address: !secret pool_pumps_ip
+  api_key: !secret pool_pumps_key
+  pwd: !secret pool_pumps_pwd
+  log_level: warn
 
 packages:
   device_base: !include ./packages/device_base_esp8266.yaml
@@ -15,6 +15,14 @@ external_components:
       type: local
       path: ./components 
     components: [ pool_controller ]
+
+    
+binary_sensor:
+  # Prevent short circuit with "floating" pin!
+  - platform: gpio
+    pin: GPIO16
+    name: "ade7953 IRQ pin"
+    internal: true
 
 i2c:
   sda: GPIO12
@@ -35,7 +43,7 @@ pool_controller:
     max_out_of_range_duration: 10s
 
 sensor:
-  - platform: ade7953
+  - platform: ade7953_i2c
     voltage:
       name: ${device_name} Voltage
       id: voltage
@@ -106,11 +114,11 @@ switch:
     pin: GPIO4
     name: "Pool Pump"
     id: pool_pump
-    icon: mdi:pump
     restore_mode: Always Off
+    internal: true
   - platform: gpio
     pin: GPIO15
     name: "Pool Cleaner"
     id: pool_cleaner
-    icon: mdi:robot-vacuum
     restore_mode: Always Off
+    internal: true

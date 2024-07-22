@@ -11,7 +11,6 @@ Home Assistant is open source home automation that puts local control and privac
 
 ## Folder Structure
 * `/` - Yaml files for my devices and other core files
-* `/build` - Technically not included in the repo but all of my devices are configured with this as their build path
 * `/components` - Custom components
 * `/custom` - Other custom code that are not components
 * `/images` - Pictures of some of my devices

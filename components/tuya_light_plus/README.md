@@ -18,7 +18,7 @@ This an enhanced version of the standard [Tuya light](https://esphome.io/compone
 Using the [External Components](https://esphome.io/components/external_components.html) feature in ESPHome you can add this component to your devices directly from my GitHub repo.
 ```yaml
 external_components:
-  - source: github://nuttytree/esphome
+  - source: github://nuttytree/ESPHome-Devices
     components: [ tuya_light_plus ]
 ```
 
