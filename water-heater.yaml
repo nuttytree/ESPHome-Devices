@@ -1,0 +1,43 @@
+substitutions:
+  device_id: water-heater
+  device_name: Water Heater
+  board: esp32dev
+  api_key: !secret water_heater_key
+  pwd: !secret water_heater_pwd
+  tx_pin: GPIO19
+  rx_pin: GPIO22
+  log_level: DEBUG
+
+external_components:
+  - source:
+      type: local
+      path: ./components
+    components: [ high_temp_water_heater ]
+    
+packages:
+  econet:
+    url: https://github.com/esphome-econet/esphome-econet
+    ref: main
+    file: econet_heatpump_water_heater.yaml
+  device_base: !include ./packages/device_base_esp32.yaml
+
+climate:
+  - id: !extend econet_climate
+    internal: true
+
+water_heater:
+  - id: !extend econet_water_heater
+    name: Physical Water Heater
+    entity_category: diagnostic
+    internal: false
+  - platform: high_temp_water_heater
+    name: None
+    id: high_temp_heater
+    source_water_heater: econet_water_heater
+    temperature_sensor: lower_tank_temp
+    temperature_sensor_offset: "10 °F"
+    dead_band: "5 °F"
+    over_run: "0 °F"
+    min_temperature: "110 °F"
+    max_temperature: "150 °F"
+    target_temperature_step: 1.0
