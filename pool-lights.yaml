@@ -1,0 +1,89 @@
+substitutions:
+  device_id: pool-lights
+  device_name: Pool Lights
+  board: esp01_1m
+  api_key: !secret pool_lights_key
+  pwd: !secret pool_lights_pwd
+
+packages:
+  device_base: !include ./packages/device_base_esp8266.yaml
+
+external_components:
+  - source:
+      type: local
+      path: ./components 
+    components: [ treo_led_pool_light ]
+
+# Required to allow the Treo light to register the color reset service
+api:
+ custom_services: True
+
+binary_sensor:
+  - platform: gpio
+    id: top_button
+    pin:
+      number: 12
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+        - light.turn_on: pool_lights
+  - platform: gpio
+    id: middle_button
+    pin:
+      number: 5
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+      - lambda: |-
+          static_cast<esphome::treo_light::TreoPoolLightOutput *>(id(pool_lights).get_output())->next_color();
+  - platform: gpio
+    id: bottom_button
+    pin:
+      number: 3
+      mode: INPUT_PULLUP
+    on_press:
+      then:
+        - light.turn_off: pool_lights
+
+light:
+  - platform: treo_led_pool_light
+    id: pool_lights
+    name: "Pool Lights"
+    output: relay_2
+    on_turn_on:
+      - component.update: power
+    on_turn_off:
+      - component.update: power
+
+output:
+  # - platform: gpio
+  #   id: relay_1
+  #   pin: 13
+  - platform: gpio
+    id: relay_2
+    pin: 15
+  # - platform: gpio
+  #   id: relay_3
+  #   pin: 4
+
+sensor:
+  - platform: template
+    name: "Pool Lights Power"
+    id: power
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+    lambda: |-
+      return id(pool_lights).current_values.is_on() ? 10.0 : 0.0;
+    update_interval: 10s
+  - platform: total_daily_energy
+    name: Pool Lights
+    icon: mdi:flash
+    power_id: power
+    method: left
+
+status_led:
+  pin:
+    number: 0
+    inverted: true
