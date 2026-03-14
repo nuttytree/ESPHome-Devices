@@ -1,7 +1,6 @@
 substitutions:
   device_id: network-equipment
   device_name: Network Equipment
-  ip_address: !secret network_equipment_ip
   api_key: !secret network_equipment_key
   pwd: !secret network_equipment_pwd
 

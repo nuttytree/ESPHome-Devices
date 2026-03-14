@@ -2,7 +2,6 @@ substitutions:
   device_id: coffee-maker
   device_name: Coffee Maker
   board: nodemcuv2
-  ip_address: !secret coffee_maker_ip
   api_key: !secret coffee_maker_key
   pwd: !secret coffee_maker_pwd
 

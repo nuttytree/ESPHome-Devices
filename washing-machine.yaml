@@ -1,7 +1,6 @@
 substitutions:
   device_id: washing-machine
   device_name: Washing Machine
-  ip_address: !secret washing_machine_ip
   api_key: !secret washing_machine_key
   pwd: !secret washing_machine_pwd
 

@@ -2,7 +2,6 @@ substitutions:
   device_id: pool-pumps
   device_name: Pool Pumps
   board: modwifi
-  ip_address: !secret pool_pumps_ip
   api_key: !secret pool_pumps_key
   pwd: !secret pool_pumps_pwd
   log_level: warn

@@ -2,7 +2,6 @@ substitutions:
   device_id: "main-garage-door"
   device_name: Main Garage Door
   board: d1_mini
-  ip_address: !secret main_garage_door_ip
   api_key: !secret main_garage_door_key
   pwd: !secret main_garage_door_pwd
   flash_write_interval: 5s
@@ -10,5 +9,8 @@ substitutions:
 packages:
   ratgdo.esphome: github://ratgdo/esphome-ratgdo/v25iboard.yaml@main
   base: !include ./packages/device_base_esp8266.yaml
+
+button:
+  - id: !remove ${id_prefix}_restart
 
 web_server: !remove

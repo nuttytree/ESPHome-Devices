@@ -2,7 +2,6 @@ substitutions:
   device_id: emporia-vue2
   device_name: Emporia Vue2 Power Monitor
   board: esp32dev
-  ip_address: !secret emporia_vue2_ip
   api_key: !secret emporia_vue2_key
   pwd: !secret emporia_vue2_pwd
 
@@ -29,7 +28,8 @@ i2c:
   sda: 21
   scl: 22
   scan: false
-  frequency: 200kHz
+  frequency: 400kHz
+  timeout: 1ms
   id: i2c_a
 
 output:
