@@ -2,7 +2,6 @@ substitutions:
   device_id: garage-fridge
   device_name: Garage Fridge
   board: m5stack-atom
-  ip_address: !secret garage_fridge_ip
   api_key: !secret garage_fridge_key
   pwd: !secret garage_fridge_pwd
   log_baud_rate: '0'
@@ -109,7 +108,15 @@ sensor:
     name: "Garage Fridge Heat Output"
     type: HEAT
     entity_category: diagnostic
-     
+
+time:
+  - platform: ${time_platform}
+    on_time:
+      - seconds: 0
+        minutes: 0
+        hours: 0
+        then:
+          - pzemac.reset_energy: pzem
 
 uart:
     tx_pin: GPIO21

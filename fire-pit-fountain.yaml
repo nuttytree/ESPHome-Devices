@@ -2,7 +2,6 @@ substitutions:
   device_id: fire-pit-fountain
   device_name: Fire Pit and Fountain
   board: d1_mini
-  ip_address: !secret fire_pit_fountain_ip
   api_key: !secret fire_pit_fountain_key
   pwd: !secret fire_pit_fountain_pwd
 
@@ -25,7 +24,7 @@ binary_sensor:
     id: fire_pit_toggle
     pin:
       number: D7
-      mode: INPUT_PULLUP
+      mode: INPUT
       inverted: True
     filters:
       - delayed_on: 100ms
