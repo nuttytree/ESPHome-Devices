@@ -1,7 +1,6 @@
 substitutions:
   device_id: basement-fridge
   device_name: Basement Fridge
-  ip_address: !secret basement_fridge_ip
   api_key: !secret basement_fridge_key
   pwd: !secret basement_fridge_pwd
 

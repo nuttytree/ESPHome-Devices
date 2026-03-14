@@ -1,7 +1,6 @@
 substitutions:
   device_id: garage-lights
   device_name: Garage Lights
-  ip_address: !secret garage_lights_ip
   api_key: !secret garage_lights_key
   pwd: !secret garage_lights_pwd
   light_wattage: '378'

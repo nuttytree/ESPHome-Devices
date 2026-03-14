@@ -1,7 +1,6 @@
 substitutions:
   device_id: family-room-tv
   device_name: Family Room TV
-  ip_address: !secret family_room_tv_ip
   api_key: !secret family_room_tv_key
   pwd: !secret family_room_tv_pwd
 

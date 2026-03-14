@@ -1,7 +1,6 @@
 substitutions:
   device_id: kitchen-fridge
   device_name: Kitchen Fridge
-  ip_address: !secret kitchen_fridge_ip
   api_key: !secret kitchen_fridge_key
   pwd: !secret kitchen_fridge_pwd
 

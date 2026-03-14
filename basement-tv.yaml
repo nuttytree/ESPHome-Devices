@@ -1,7 +1,6 @@
 substitutions:
   device_id: basement-tv
   device_name: Basement TV
-  ip_address: !secret basement_tv_ip
   api_key: !secret basement_tv_key
   pwd: !secret basement_tv_pwd
 
