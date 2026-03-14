@@ -3,6 +3,7 @@ wifi:
   password: ${wifi_password}
   fast_connect: true
   power_save_mode: none
+  min_auth_mode: WPA2
   manual_ip:
     static_ip: ${ip_address}
     subnet: ${ip_subnet}

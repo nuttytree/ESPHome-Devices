@@ -3,8 +3,6 @@ substitutions:
   log_baud_rate: '115200'
   wifi_ssid: !secret wifi_ssid
   wifi_password: !secret wifi_password
-  ip_subnet: !secret ip_subnet
-  ip_gateway: !secret ip_gateway
   flash_write_interval: 10min
 
 esphome:
@@ -20,7 +18,7 @@ preferences:
   flash_write_interval: ${flash_write_interval}
 
 packages:
-  wifi:             !include wifi/wifi.yaml
+  wifi:             !include wifi/wifi_dhcp.yaml
   api:              !include api/api.yaml
   ota:              !include ota/ota.yaml
   logger:           !include logger/logger.yaml
