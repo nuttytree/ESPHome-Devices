@@ -2,12 +2,6 @@ substitutions:
   board: esp01_1m
   light_wattage: '0'
 
-external_components:
-  - source:
-      type: local
-      path: ./components 
-    components: [ binary_light_with_power ]
-
 packages:
   base:   !include device_base_esp8266.yaml
   logger: !include logger/logger.yaml
@@ -33,14 +27,14 @@ binary_sensor:
         - light.turn_off: shelly_light
 
 light:
-  - platform: binary_light_with_power
+  - platform: binary
     id: shelly_light
     name: ${device_name}
     output: shelly_relay
-    power:
-      id: light_power
-      name: ${device_name} Power
-      light_wattage: ${light_wattage}
+    on_turn_on:
+      - component.update: light_power
+    on_turn_off:
+      - component.update: light_power
 
 output:
   - platform: gpio
@@ -48,6 +42,20 @@ output:
     id: shelly_relay
 
 sensor:
+  - platform: template
+    id: light_power
+    name: ${device_name} Power
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      return id(shelly_light).current_values.is_on() ? ${light_wattage} : 0.0;
+    filters:
+      - heartbeat:
+          period: 10s
+          optimistic: true    
   - platform: total_daily_energy
     name: ${device_name}
     power_id: light_power
