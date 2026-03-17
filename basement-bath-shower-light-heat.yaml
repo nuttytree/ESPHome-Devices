@@ -8,12 +8,6 @@ substitutions:
 packages:
   device_base: !include ./packages/device_base_esp8266.yaml
 
-external_components:
-  - source:
-      type: local
-      path: ./components 
-    components: [ binary_light_with_power, gpio_switch_with_power ]
-
 binary_sensor:
   - platform: gpio
     id: light_button
@@ -22,7 +16,7 @@ binary_sensor:
       mode: INPUT_PULLUP
     on_press:
       then:
-        - light.toggle: the_light
+        - light.toggle: shower_light
   - platform: gpio
     id: heater_button
     pin:
@@ -33,14 +27,14 @@ binary_sensor:
         - switch.toggle: heater
 
 light:
-  - platform: binary_light_with_power
-    id: the_light
+  - platform: binary
+    id: shower_light
     name: Basement Shower Light
     output: light_output
-    power:
-      id: light_power
-      name: Basement Shower Light Power
-      light_wattage: 11.5
+    on_turn_on:
+      - component.update: shower_light_power
+    on_turn_off:
+      - component.update: shower_light_power
 
 output:
   - platform: gpio
@@ -53,22 +47,50 @@ status_led:
     inverted: true
 
 switch:
-  - platform: gpio_switch_with_power
+  - platform: gpio
     id: heater
     name: Basement Bathroom Heater
     icon: mdi:radiator
     pin: 4
-    power:
-      id: heat_power
-      name: Basement Bathroom Heater Power
-      device_wattage: 500.0
+    on_turn_on:
+      - component.update: heater_power
+    on_turn_off:
+      - component.update: heater_power
 
 sensor:
+  - platform: template
+    id: shower_light_power
+    name: Basement Shower Light Power
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      return id(shower_light).current_values.is_on() ? 11.5 : 0.0;
+    filters:
+      - heartbeat:
+          period: 10s
+          optimistic: true    
+  - platform: template
+    id: heater_power
+    name: Basement Bathroom Heater Power
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      return id(heater).state ? 500.0 : 0.0;
+    filters:
+      - heartbeat:
+          period: 10s
+          optimistic: true    
   - platform: total_daily_energy
     name: Basement Shower Light
-    power_id: light_power
+    power_id: shower_light_power
     method: left
   - platform: total_daily_energy
     name: Basement Bathroom Heater
-    power_id: heat_power
+    power_id: heater_power
     method: left
