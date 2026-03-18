@@ -1,7 +1,6 @@
 substitutions:
   device_id: hvac
   device_name: HVAC
-  board: esp32dev
   api_key: !secret hvac_key
   pwd: !secret hvac_pwd
   zone1name: Main Floor
@@ -25,11 +24,7 @@ packages:
       hvac-zone-yaml/econet_hvac_zone2.yaml,
       hvac-zone-yaml/econet_hvac_zone3.yaml
     ]
-  device_base: !include ./packages/device_base_esp32.yaml
-
-button:
-  - id: !extend restart_esp
-    internal: true
+  device_base: !include ./packages/econet_base.yaml
 
 climate:
   - platform: econet_zones_climate
@@ -55,14 +50,4 @@ climate:
       max_humidity: 60
       temperature_step:
         current_temperature: .1°F
-        target_temperature: .5°F
-
-sensor:
-  - id: !extend wifi_signal_sensor
-    internal: true
-
-# If you have UNSUPPORTED sensors add something like the following to disable them
-# sensor:
-#   - id: !extend hot_water
-#     request_mod: none
-#     internal: true
+        target_temperature: 1°F

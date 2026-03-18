@@ -4,8 +4,7 @@
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/water_heater/water_heater.h"
 
-namespace esphome {
-namespace high_temp_water_heater {
+namespace esphome::high_temp_water_heater {
 
 class HighTempWaterHeater : public water_heater::WaterHeater, public Component {
  public:
@@ -28,37 +27,24 @@ class HighTempWaterHeater : public water_heater::WaterHeater, public Component {
   }
 
  protected:
-  void control(const water_heater::WaterHeaterCall &call) override;
   water_heater::WaterHeaterTraits traits() override;
+  void control(const water_heater::WaterHeaterCall &call) override;
 
-  /// Sync current_temperature and monitored_temp_ from source; returns true if anything changed.
-  bool sync_from_source_();
+  void update_state_();
 
-  /// Evaluate control logic and command the child water heater accordingly.
   void apply_control_();
 
-  /// The child water heater whose temperature and traits are mirrored.
   water_heater::WaterHeater *source_{nullptr};
-  /// Optional sensor for the temperature; falls back to source current temperature.
   sensor::Sensor *temperature_sensor_{nullptr};
-  /// True if the temperature sensor reports in °F and its values must be converted to °C.
   bool temperature_sensor_is_fahrenheit_{false};
-  /// Degrees (°C) added to the temperature sensor reading to derive monitored_temp_.
   float temperature_sensor_offset_{0.0f};
-  /// Hysteresis band below target temperature before heating engages (°C).
   float dead_band_{5.0f};
-  /// Hysteresis band above target temperature before heating is cut (°C).
   float over_run_{0.0f};
-  /// The temperature value used for bang-bang control decisions.
-  float monitored_temp_{NAN};
-  /// True while the bang-bang controller is actively calling for heat.
-  bool heating_active_{false};
-  /// Timestamp (ms) of the last periodic status log in apply_control_().
-  uint32_t last_status_log_ms_{0};
   float min_temperature_{40.0f};
   float max_temperature_{65.0f};
   float target_temperature_step_{1.0f};
+  float monitored_temp_{NAN};
+  bool heating_active_{false};
 };
 
-}  // namespace high_temp_water_heater
-}  // namespace esphome
+}  // namespace esphome::high_temp_water_heater

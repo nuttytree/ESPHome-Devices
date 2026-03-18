@@ -1,11 +1,8 @@
 substitutions:
   device_id: water-heater
   device_name: Water Heater
-  board: esp32dev
   api_key: !secret water_heater_key
   pwd: !secret water_heater_pwd
-  tx_pin: GPIO19
-  rx_pin: GPIO22
 
 external_components:
   - source:
@@ -18,18 +15,10 @@ packages:
     url: https://github.com/esphome-econet/esphome-econet
     ref: main
     file: econet_heatpump_water_heater.yaml
-  device_base: !include ./packages/device_base_esp32.yaml
-
-button:
-  - id: !extend restart_esp
-    internal: true
+  device_base: !include ./packages/econet_base.yaml
 
 climate:
   - id: !extend econet_climate
-    internal: true
-
-sensor:
-  - id: !extend wifi_signal_sensor
     internal: true
 
 water_heater:

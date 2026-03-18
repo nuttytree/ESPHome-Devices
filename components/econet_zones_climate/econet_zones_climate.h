@@ -36,9 +36,13 @@ class EcoNetZonesClimate : public climate::Climate, public Component {
   void update_current_action_();
   void update_zone_fan_mode_();
   void sync_zones_from_this_();
+  void push_state_to_zones_();
   void sync_this_from_zone_(climate::Climate *zone);
 
-  uint32_t ignore_zone_updates_until_{0};
+  enum class UpdateSource { NONE, ZONE, CONTROL };
+  uint32_t lockout_until_{0};
+  UpdateSource lockout_source_{UpdateSource::NONE};
+  climate::Climate *lockout_zone_{nullptr};  // set when lockout_source_ == ZONE
   const char *current_fan_mode_{nullptr};
 
   std::vector<climate::Climate *> zones_;

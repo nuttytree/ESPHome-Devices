@@ -90,8 +90,13 @@ void EcoNetZonesClimate::control(const climate::ClimateCall &call) {
 }
 
 void EcoNetZonesClimate::sync_zones_from_this_() {
-  this->ignore_zone_updates_until_ = millis() + 10000;
-  ESP_LOGD(TAG, "Syncing state to all zones");
+  this->lockout_source_ = UpdateSource::CONTROL;
+  this->lockout_until_ = millis() + 10000;
+  this->push_state_to_zones_();
+}
+
+void EcoNetZonesClimate::push_state_to_zones_() {
+  ESP_LOGD(TAG, "Pushing state to all zones");
   for (auto *zone : this->zones_) {
     auto call = zone->make_call();
     call.set_mode(this->mode);
@@ -111,8 +116,15 @@ void EcoNetZonesClimate::sync_zones_from_this_() {
 }
 
 void EcoNetZonesClimate::sync_this_from_zone_(climate::Climate *zone) {
-  if (millis() < this->ignore_zone_updates_until_)
-    return;
+  uint32_t now = millis();
+  if (now < this->lockout_until_) {
+    // Block if the lockout was set by control() (HA/automation change).
+    if (this->lockout_source_ == UpdateSource::CONTROL)
+      return;
+    // Block if the lockout was set by a *different* zone to prevent push-back feedback.
+    if (this->lockout_source_ == UpdateSource::ZONE && zone != this->lockout_zone_)
+      return;
+  }
 
   bool changed = false;
 
@@ -121,23 +133,30 @@ void EcoNetZonesClimate::sync_this_from_zone_(climate::Climate *zone) {
     this->mode = zone->mode;
     changed = true;
   }
+  // Use a minimum delta threshold to prevent protocol rounding/quantization
+  // artifacts from creating a feedback loop that slowly ratchets the setpoint.
+  static constexpr float MIN_TEMPERATURE_CHANGE = 0.4f;  // ~0.7 °F
   if (this->supports_heat_mode_ && this->supports_cool_mode_) {
-    if (!std::isnan(zone->target_temperature_low) && zone->target_temperature_low != this->target_temperature_low) {
+    if (!std::isnan(zone->target_temperature_low) &&
+        std::abs(zone->target_temperature_low - this->target_temperature_low) >= MIN_TEMPERATURE_CHANGE) {
       this->target_temperature_low = zone->target_temperature_low;
       changed = true;
     }
-    if (!std::isnan(zone->target_temperature_high) && zone->target_temperature_high != this->target_temperature_high) {
+    if (!std::isnan(zone->target_temperature_high) &&
+        std::abs(zone->target_temperature_high - this->target_temperature_high) >= MIN_TEMPERATURE_CHANGE) {
       this->target_temperature_high = zone->target_temperature_high;
       changed = true;
     }
   } else {
-    if (!std::isnan(zone->target_temperature) && zone->target_temperature != this->target_temperature) {
+    if (!std::isnan(zone->target_temperature) &&
+        std::abs(zone->target_temperature - this->target_temperature) >= MIN_TEMPERATURE_CHANGE) {
       this->target_temperature = zone->target_temperature;
       changed = true;
     }
   }
+  static constexpr float MIN_HUMIDITY_CHANGE = 1.0f;
   if (this->supports_target_humidity_ && !std::isnan(zone->target_humidity) &&
-      zone->target_humidity != this->target_humidity) {
+      std::abs(zone->target_humidity - this->target_humidity) >= MIN_HUMIDITY_CHANGE) {
     this->target_humidity = zone->target_humidity;
     changed = true;
   }
@@ -145,7 +164,12 @@ void EcoNetZonesClimate::sync_this_from_zone_(climate::Climate *zone) {
   if (!changed)
     return;
 
-  this->sync_zones_from_this_();
+  // Allow further updates from the same zone for 10s, but block control() changes
+  // and updates from other zones to prevent push-back feedback loops.
+  this->lockout_source_ = UpdateSource::ZONE;
+  this->lockout_zone_ = zone;
+  this->lockout_until_ = millis() + 10000;
+  this->push_state_to_zones_();
   this->publish_state();
 }
 
