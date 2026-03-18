@@ -11,3 +11,4 @@
 __pycache__/
 *.py[cod]
 *$py.class
+**/Thumbs.db

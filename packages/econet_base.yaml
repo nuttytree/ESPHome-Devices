@@ -1,0 +1,13 @@
+substitutions:
+  board: esp32dev
+
+packages:
+  device_base: !include ./device_base_esp32.yaml
+
+button:
+  - id: !extend restart_esp
+    internal: true
+
+sensor:
+  - id: !extend wifi_signal_sensor
+    internal: true
