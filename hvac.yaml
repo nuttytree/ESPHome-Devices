@@ -11,7 +11,7 @@ external_components:
   - source:
       type: local
       path: ./components 
-    components: [ econet_zones_climate ]
+    components: [ econet_zone_control ]
 
 packages:
   econet:
@@ -27,27 +27,52 @@ packages:
   device_base: !include ./packages/econet_base.yaml
 
 climate:
-  - platform: econet_zones_climate
+  - platform: econet_zone_control
     id: home
     name: Home
-    operating_mode_sensor: operating_mode
+    econet_id: econet_id
+    request_mod: 10
+    request_once: false
+    src_address: 0x380
+    operating_mode_datapoint: HVACMODE
+    mode_datapoint: STATMODE
+    modes:
+      0: heat
+      1: cool
+      2: heat_cool
+      3: fan_only
+      4: "off"
+    current_temperature_datapoint: SPT
+    target_temperature_low_datapoint: HEATSETP
+    target_temperature_high_datapoint: COOLSETP
+    fan_mode_datapoint: STAT_FAN
+    fan_mode_no_schedule_datapoint: STATNFAN
+    current_humidity_datapoint: RELH7005
     zones:
-      - zone1_climate
-      - zone2_climate
-      - zone3_climate
-    automatic_fan_mode: Automatic
+      - src_address: 0x380
+        request_mod: 10
+        is_primary: true
+      - src_address: 0x680
+        request_mod: 11
+      - src_address: 0x681
+        request_mod: 12
+    automatic_fan_mode: 0
     fan_modes:
-      - fan_mode: Speed 1 (Low)
+      - fan_mode: 1
         minimum_temperature_delta: 0°F
-      - fan_mode: Speed 2 (Medium Low)
-        minimum_temperature_delta: .5°F
-      - fan_mode: Speed 3 (Medium)
-        minimum_temperature_delta: 1.0°F
+      - fan_mode: 2
+        minimum_temperature_delta: 0.4°F
+      - fan_mode: 3
+        minimum_temperature_delta: .8°F
+      - fan_mode: 4
+        minimum_temperature_delta: 1.2°F
     visual:
       min_temperature: 60°F
       max_temperature: 80°F
-      min_humidity: 25
-      max_humidity: 60
       temperature_step:
-        current_temperature: .1°F
+        current_temperature: 0.1°F
         target_temperature: 1°F
+
+sensor:
+ - id: !extend thermostat_current_humidity
+   internal: true
