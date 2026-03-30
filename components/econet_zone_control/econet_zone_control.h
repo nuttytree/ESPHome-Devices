@@ -66,7 +66,6 @@ class EcoNetZoneControl : public climate::Climate, public Component, public econ
 
   // Pointer to primary zone — set in setup() after zones_ vector is finalized
   EconetZone *primary_zone_{nullptr};
-
   std::vector<EconetZone> zones_;
   std::string operating_mode_state_;
   uint8_t automatic_fan_mode_{0};
@@ -80,6 +79,9 @@ class EcoNetZoneControl : public climate::Climate, public Component, public econ
   const char *current_humidity_id_{nullptr};
   const char *operating_mode_id_{nullptr};
   const char *mode_id_{nullptr};
+  const EconetZone *locked_min_zone_{nullptr};
+  const EconetZone *locked_max_zone_{nullptr};
+  uint64_t zone_lock_until_{0};
 };
 
 }  // namespace esphome::econet_zone_control

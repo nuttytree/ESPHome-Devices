@@ -339,6 +339,18 @@ void EcoNetZoneControl::update_current_action_() {
   }
   if (new_action == this->action)
     return;
+
+  // Reset zone lock when leaving idle/fan so zones are re-evaluated fresh on re-entry
+  if ((this->action == climate::CLIMATE_ACTION_IDLE ||
+       this->action == climate::CLIMATE_ACTION_FAN) &&
+      new_action != climate::CLIMATE_ACTION_IDLE &&
+      new_action != climate::CLIMATE_ACTION_FAN) {
+    ESP_LOGD(TAG, "Exiting idle/fan state — resetting fan zone lock");
+    this->locked_min_zone_ = nullptr;
+    this->locked_max_zone_ = nullptr;
+    this->zone_lock_until_ = 0;
+  }
+
   this->action = new_action;
   this->update_zone_fan_mode_();
   this->publish_state();
@@ -347,6 +359,15 @@ void EcoNetZoneControl::update_current_action_() {
 void EcoNetZoneControl::update_zone_fan_mode_() {
   if (this->action == climate::CLIMATE_ACTION_OFF)
     return;
+
+  // Wait until every zone has reported a temperature before touching fan modes
+  for (const auto &zone : this->zones_) {
+    if (std::isnan(zone.cached_temperature)) {
+      ESP_LOGV(TAG, "Zone src_adr=0x%08X has no temperature yet — deferring fan mode update",
+               zone.src_adr);
+      return;
+    }
+  }
 
   // For IDLE and FAN: calculate a target speed from the temp spread,
   // apply it only to the hottest and coldest zones, and leave the rest on automatic.
@@ -357,18 +378,33 @@ void EcoNetZoneControl::update_zone_fan_mode_() {
 
   if (this->action == climate::CLIMATE_ACTION_IDLE ||
       this->action == climate::CLIMATE_ACTION_FAN) {
-    for (const auto &zone : this->zones_) {
-      if (std::isnan(zone.cached_temperature))
-        continue;
-      if (min_zone == nullptr || zone.cached_temperature < min_zone->cached_temperature)
-        min_zone = &zone;
-      if (max_zone == nullptr || zone.cached_temperature > max_zone->cached_temperature)
-        max_zone = &zone;
+    // Zone lock: once zones are assigned, keep them for 15 minutes to prevent flip-flopping.
+    // Speed adjustments still happen freely; only the zone selection is frozen.
+    uint64_t now = millis_64();
+    if (this->locked_min_zone_ != nullptr && this->locked_max_zone_ != nullptr &&
+        now < this->zone_lock_until_) {
+      // Lock still active — use locked zones directly, skip the scan entirely
+      ESP_LOGV(TAG, "Fan zone lock active for %llu more seconds",
+               (this->zone_lock_until_ - now) / 1000ull);
+      min_zone = this->locked_min_zone_;
+      max_zone = this->locked_max_zone_;
+    } else {
+      // Lock expired or not yet set — scan for hottest/coldest zones and lock them
+      for (const auto &zone : this->zones_) {
+        if (min_zone == nullptr || zone.cached_temperature < min_zone->cached_temperature)
+          min_zone = &zone;
+        if (max_zone == nullptr || zone.cached_temperature > max_zone->cached_temperature)
+          max_zone = &zone;
+      }
+      if (this->locked_min_zone_ != min_zone || this->locked_max_zone_ != max_zone) {
+        ESP_LOGD(TAG, "Fan zone lock set: min=0x%08X max=0x%08X for 15 minutes",
+                 min_zone->src_adr, max_zone->src_adr);
+      }
+      this->locked_min_zone_ = min_zone;
+      this->locked_max_zone_ = max_zone;
+      this->zone_lock_until_ = now + (15ull * 60ull * 1000ull);
     }
-    if (min_zone == nullptr || max_zone == nullptr) {
-      // No temperature data yet — defer to avoid writing automatic mode prematurely
-      return;
-    }
+
     float delta = max_zone->cached_temperature - min_zone->cached_temperature;
     // Find the entry with the highest minimum_temperature_delta still <= current delta
     const FanModeEntry *best = nullptr;
