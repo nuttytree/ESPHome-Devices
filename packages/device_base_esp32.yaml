@@ -1,8 +1,9 @@
 substitutions:
-  platform: esp32
+  esp32_variant: esp32
   framework_type: esp-idf
 
 esp32:
+  variant: ${esp32_variant}
   framework:
     type: ${framework_type}
 

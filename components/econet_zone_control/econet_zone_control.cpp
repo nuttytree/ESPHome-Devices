@@ -349,6 +349,8 @@ void EcoNetZoneControl::update_current_action_() {
     this->locked_min_zone_ = nullptr;
     this->locked_max_zone_ = nullptr;
     this->zone_lock_until_ = 0;
+    this->last_fan_mode_ = 0xFF;
+    this->fan_mode_lock_until_ = 0;
   }
 
   this->action = new_action;
@@ -372,7 +374,7 @@ void EcoNetZoneControl::update_zone_fan_mode_() {
   // For IDLE and FAN: calculate a target speed from the temp spread,
   // apply it only to the hottest and coldest zones, and leave the rest on automatic.
   // For any other active action: all zones use automatic.
-  uint8_t spread_mode = this->automatic_fan_mode_;
+  uint8_t fan_mode = this->automatic_fan_mode_;
   const EconetZone *min_zone = nullptr;
   const EconetZone *max_zone = nullptr;
 
@@ -414,16 +416,37 @@ void EcoNetZoneControl::update_zone_fan_mode_() {
           best = &entry;
       }
     }
-    spread_mode = (best != nullptr) ? best->id : this->automatic_fan_mode_;
-  }
+    fan_mode = (best != nullptr) ? best->id : this->automatic_fan_mode_;
 
-  // Write to each zone: hottest and coldest get spread_mode, all others get automatic.
+    // Fan mode change debounce (5 minutes).
+    // Allow the first write through unconditionally; after that, hold the current
+    // fan_mode for at least 5 minutes before switching to a new one.
+    if (this->last_fan_mode_ == 0xFF) {
+      // First application since boot or mode-change reset — write immediately.
+      this->last_fan_mode_ = fan_mode;
+      this->fan_mode_lock_until_ = now + (5ull * 60ull * 1000ull);
+    } else if (fan_mode != this->last_fan_mode_) {
+      if (now < this->fan_mode_lock_until_) {
+        ESP_LOGD(TAG, "Fan mode change %u->%u deferred: lock active for %llu more seconds",
+                 this->last_fan_mode_, fan_mode,
+                 (this->fan_mode_lock_until_ - now) / 1000ull);
+        fan_mode = this->last_fan_mode_;  // hold the current mode
+      } else {
+        ESP_LOGD(TAG, "Fan mode changing: %u->%u (lock released)",
+                 this->last_fan_mode_, fan_mode);
+        this->last_fan_mode_ = fan_mode;
+        this->fan_mode_lock_until_ = now + (5ull * 60ull * 1000ull);
+      }
+    }
+  }  // end IDLE/FAN block
+
+  // Write to each zone: hottest and coldest get fan_mode, all others get automatic.
   auto write_fan = [&](const char *dp_id, auto EconetZone::*cache_field) {
     if (!dp_id || !*dp_id)
       return;
     for (auto &zone : this->zones_) {
       uint8_t target = (&zone == min_zone || &zone == max_zone)
-                           ? spread_mode
+                           ? fan_mode
                            : this->automatic_fan_mode_;
       if (zone.*cache_field >= 0 && static_cast<uint8_t>(zone.*cache_field) == target)
         continue;

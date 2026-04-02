@@ -28,10 +28,6 @@ void HighTempWaterHeater::setup() {
     this->temperature_sensor_is_fahrenheit_ = (unit == "\xc2\xb0\x46");
     ESP_LOGD(TAG, "Temperature sensor unit: '%s' — treating as %s",
              unit.c_str(), this->temperature_sensor_is_fahrenheit_ ? "\xc2\xb0\x46" : "\xc2\xb0\x43");
-
-    this->temperature_sensor_->add_on_state_callback([this](float) {
-      this->update_state_();
-    });
   }
 
   // Initial sync before restoring state.

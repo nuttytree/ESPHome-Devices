@@ -1,7 +1,11 @@
 substitutions:
-  platform: esp8266
+  board: needs_value
+
+${platform}:
+  board: 
 
 esp8266:
+  board: ${board}
   restore_from_flash: true
 
 packages:
