@@ -11,9 +11,6 @@ esphome:
   name_add_mac_suffix: false
   build_path: ./build/${device_id}
 
-${platform}:
-  board: ${board}
-
 preferences:
   flash_write_interval: ${flash_write_interval}
 
