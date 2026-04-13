@@ -27,7 +27,6 @@ button:
 
 ota:
   - id: !remove ${id_prefix}_ratgdo_ota
-  - id: !remove ${id_prefix}_ratgdo_ota_ws
 
 text_sensor:
   - id: !remove ${id_prefix}_firmware_version

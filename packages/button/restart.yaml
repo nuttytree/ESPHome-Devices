@@ -2,3 +2,8 @@ button:
   - platform: restart
     id: reboot
     name: Restart
+    entity_category: diagnostic
+  - platform: safe_mode
+    id: safe_mode_boot
+    name: "Safe mode boot"
+    entity_category: diagnostic
