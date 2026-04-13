@@ -1,12 +1,12 @@
 substitutions:
   board: needs_value
 
-${platform}:
-  board: 
+# ${platform}:
+#   board: 
 
 esp8266:
   board: ${board}
   restore_from_flash: true
 
 packages:
-  base:   !include device_base.yaml
+  base: !include device_base.yaml

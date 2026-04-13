@@ -12,5 +12,13 @@ packages:
 
 button:
   - id: !remove ${id_prefix}_restart
+  - id: !remove ${id_prefix}_safe_mode
+
+ota:
+  - id: !remove ${id_prefix}_ratgdo_ota
+  - id: !remove ${id_prefix}_ratgdo_ota_ws
+
+text_sensor:
+  - id: !remove ${id_prefix}_firmware_version
 
 web_server: !remove
