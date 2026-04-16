@@ -5,4 +5,4 @@ substitutions:
   pwd: !secret sump_pump_pwd
 
 packages:
-  feit_dimmer: !include ./packages/topgreener_smart_plug.yaml
+  device_base: !include ./packages/topgreener_smart_plug.yaml

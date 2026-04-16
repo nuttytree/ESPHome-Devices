@@ -6,4 +6,4 @@ substitutions:
   light_wattage: '378'
 
 packages:
-  shelly_1l: !include ./packages/shelly_1l.yaml
+  device_base: !include ./packages/shelly_1l.yaml
