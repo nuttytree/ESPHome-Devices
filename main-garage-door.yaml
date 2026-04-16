@@ -7,8 +7,8 @@ substitutions:
   flash_write_interval: 5s
 
 packages:
-  ratgdo.esphome: github://ratgdo/esphome-ratgdo/v25iboard.yaml@main
-  base: !include ./packages/device_base_esp8266.yaml
+  ratgdo: github://ratgdo/esphome-ratgdo/v25iboard.yaml@main
+  device_base: !include ./packages/device_base_esp8266.yaml
 
 button:
   - id: !remove ${id_prefix}_restart

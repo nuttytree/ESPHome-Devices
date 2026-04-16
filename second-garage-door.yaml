@@ -14,12 +14,12 @@ substitutions:
   discrete_close_pin: D8
 
 packages:
-  remote_package:
+  ratgdo:
     url: https://github.com/ratgdo/esphome-ratgdo
     ref: main
     files: [base_drycontact.yaml]
     refresh: 1s
-  base: !include ./packages/device_base_esp8266.yaml
+  device_base: !include ./packages/device_base_esp8266.yaml
 
 button:
   - id: !remove ${id_prefix}_restart

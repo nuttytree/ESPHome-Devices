@@ -9,8 +9,8 @@ substitutions:
 packages:
   device_base: !include ./packages/device_base_esp32.yaml
 
-wifi:
-  power_save_mode: light
+esp32:
+  cpu_frequency: 160MHZ
 
 climate:
   - platform: pid

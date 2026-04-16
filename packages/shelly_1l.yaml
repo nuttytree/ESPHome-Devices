@@ -4,7 +4,6 @@ substitutions:
 
 packages:
   base:   !include device_base_esp8266.yaml
-  logger: !include logger/logger.yaml
 
 binary_sensor:
   - platform: gpio
