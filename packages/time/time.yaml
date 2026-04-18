@@ -3,3 +3,4 @@ substitutions:
 
 time:
   - platform: ${time_platform}
+    id: time_source

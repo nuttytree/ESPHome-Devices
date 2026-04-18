@@ -1,3 +1,4 @@
 sensor:
   - platform: wifi_signal
+    id: wifi_rssi
     name: WiFi Signal

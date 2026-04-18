@@ -353,6 +353,20 @@ void EcoNetZoneControl::update_current_action_() {
     this->fan_mode_lock_until_ = 0;
   }
 
+  // Reset fan mode debounce when entering idle/fan from an active state so the
+  // first temperature evaluation always writes immediately.  Zone selection lock
+  // is intentionally preserved — the hottest/coldest zones shouldn't have
+  // changed during the active cycle.
+  if ((new_action == climate::CLIMATE_ACTION_IDLE ||
+       new_action == climate::CLIMATE_ACTION_FAN) &&
+      this->action != climate::CLIMATE_ACTION_IDLE &&
+      this->action != climate::CLIMATE_ACTION_FAN &&
+      this->action != climate::CLIMATE_ACTION_OFF) {
+    ESP_LOGD(TAG, "Entering idle/fan from active state — resetting fan mode debounce");
+    this->last_fan_mode_ = 0xFF;
+    this->fan_mode_lock_until_ = 0;
+  }
+
   this->action = new_action;
   this->update_zone_fan_mode_();
   this->publish_state();
