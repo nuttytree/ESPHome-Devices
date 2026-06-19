@@ -203,6 +203,14 @@ output:
       mode:
         output: true
       inverted: false    
+  - platform: gpio
+    id: fill_output
+    pin:
+      pcf8574: io_expander
+      number: 3
+      mode:
+        output: true
+      inverted: false    
 
 pcf8574:
   - id: 'io_expander'
