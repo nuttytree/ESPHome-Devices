@@ -197,8 +197,7 @@ output:
     pin:
       pcf8574: io_expander
       number: 3
-      mode:
-        output: true
+      mode: OUTPUT
       inverted: false    
 
 pcf8574:
