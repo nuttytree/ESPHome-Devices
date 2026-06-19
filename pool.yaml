@@ -224,23 +224,23 @@ pool_controller:
     schedules:
       - name: Normal
         runtimes:
-          - start_time: '6:00'
-            end_time: '8:00'
+          - start_time: '5:00'
+            end_time: '6:00'
             minutes_per_hour: 60
-          - start_time: '8:00'
-            end_time: '15:00'
-            minutes_per_hour: 30
-          - start_time: '15:00'
-            end_time: '20:00'
-            minutes_per_hour: 15
+          - start_time: '6:00'
+            end_time: '18:00'
+            minutes_per_hour: 40
+          - start_time: '18:00'
+            end_time: '21:00'
+            minutes_per_hour: 20
             days_of_week: MON-FRI
-          - start_time: '15:00'
-            end_time: '20:00'
-            minutes_per_hour: 30
+          - start_time: '18:00'
+            end_time: '21:00'
+            minutes_per_hour: 40
             days_of_week: SAT,SUN
-          - start_time: '20:00'
+          - start_time: '21:00'
             end_time: '22:00'
-            minutes_per_hour: 30
+            minutes_per_hour: 40
       - name: Always Except Peak
         runtimes:
           - start_time: '0:00'
