@@ -124,7 +124,6 @@ i2c:
 light:
   - platform: monochromatic
     id: lcd_backlight
-    name: "${device_name} Backlight"
     output: backlight_pwm_output
     default_transition_length: 0ms
     restore_mode: ALWAYS_OFF
