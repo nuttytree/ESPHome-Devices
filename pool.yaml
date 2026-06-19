@@ -230,17 +230,16 @@ pool_controller:
           - start_time: '6:00'
             end_time: '18:00'
             minutes_per_hour: 40
+            days_of_week: MON-FRI
           - start_time: '18:00'
             end_time: '21:00'
             minutes_per_hour: 20
             days_of_week: MON-FRI
+
           - start_time: '18:00'
             end_time: '21:00'
             minutes_per_hour: 40
             days_of_week: SAT,SUN
-          - start_time: '21:00'
-            end_time: '22:00'
-            minutes_per_hour: 40
       - name: Always Except Peak
         runtimes:
           - start_time: '0:00'
