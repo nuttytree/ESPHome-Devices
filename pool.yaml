@@ -176,16 +176,14 @@ output:
     pin:
       pcf8574: io_expander
       number: 0
-      mode:
-        output: true
+      mode: OUTPUT
       inverted: false    
   - platform: gpio
     id: cleaner_output
     pin:
       pcf8574: io_expander
       number: 1
-      mode:
-        output: true
+      mode: OUTPUT
       inverted: false    
   - platform: gpio
     id: heater_output
