@@ -4,7 +4,6 @@ substitutions:
   api_key: !secret pool_key
   pwd: !secret pool_pwd
   esp32_variant: esp32s3
-  time_platform: sntp
 
 packages:
   device_base: !include ./packages/device_base_esp32.yaml
