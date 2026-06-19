@@ -30,6 +30,15 @@ esphome:
 
 binary_sensor:
   - platform: gpio
+    pin:
+      number: GPIO6
+      mode:
+        input: true
+        pullup: true
+    id: pcf8574_int
+    filters:
+      - delayed_on: 5ms  # debounce
+  - platform: gpio
     id: flow_main
     name: "Main Pump Flow"
     pin:
