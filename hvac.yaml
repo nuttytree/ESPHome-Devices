@@ -58,14 +58,18 @@ climate:
         request_mod: 12
     automatic_fan_mode: 0
     fan_modes:
-      - fan_mode: 1
-        minimum_temperature_delta: 0°F
-      - fan_mode: 2
-        minimum_temperature_delta: 0.4°F
+      # - fan_mode: 1
+      #   minimum_temperature_delta: 0°F
+      # - fan_mode: 2
+      #   minimum_temperature_delta: 0.4°F
+      # - fan_mode: 3
+      #   minimum_temperature_delta: .8°F
+      # - fan_mode: 4
+      #   minimum_temperature_delta: 1.2°F
       - fan_mode: 3
-        minimum_temperature_delta: .8°F
-      - fan_mode: 4
-        minimum_temperature_delta: 1.2°F
+        minimum_temperature_delta: 0°F
+      - fan_mode: 5
+        minimum_temperature_delta: 2°F
     visual:
       min_temperature: 60°F
       max_temperature: 80°F
