@@ -166,7 +166,7 @@ sensor:
   # - { platform: copy, source_id:  cir6, name: " Power", filters: *throttle_avg }
   # - { platform: copy, source_id:  cir7, name: " Power", filters: *throttle_avg }
   # - { platform: copy, source_id:  cir8, name: " Power", filters: *throttle_avg }
-  - { platform: copy, source_id:  cir9, name: "Fire Pit/Fountain Power", filters: *throttle_avg }
+  - { platform: copy, source_id:  cir9, name: "Fire Pit and Fountain Power", filters: *throttle_avg }
   - { platform: copy, source_id: cir10, name: "Pool Accessories Total Power", filters: *throttle_avg }
   - { platform: copy, source_id: cir11, name: "Garage 2 Power", filters: *throttle_avg }
   - { platform: copy, source_id: cir12, name: "Air Conditioner Power", filters: *throttle_avg }
@@ -185,7 +185,7 @@ sensor:
   # - { platform: total_daily_energy, power_id:  cir6, accuracy_decimals: 0, restore: false, name: "", filters: *throttle_time }
   # - { platform: total_daily_energy, power_id:  cir7, accuracy_decimals: 0, restore: false, name: "", filters: *throttle_time }
   # - { platform: total_daily_energy, power_id:  cir8, accuracy_decimals: 0, restore: false, name: "", filters: *throttle_time }
-  - { platform: total_daily_energy, power_id:  cir9, accuracy_decimals: 0, restore: false, name: "Fire Pit/Fountain", filters: *throttle_time }
+  - { platform: total_daily_energy, power_id:  cir9, accuracy_decimals: 0, restore: false, name: "Fire Pit and Fountain", filters: *throttle_time }
   - { platform: total_daily_energy, power_id: cir10, accuracy_decimals: 0, restore: false, name: "Pool Accessories Total", filters: *throttle_time }
   - { platform: total_daily_energy, power_id: cir11, accuracy_decimals: 0, restore: false, name: "Garage 2", filters: *throttle_time }
   - { platform: total_daily_energy, power_id: cir12, accuracy_decimals: 0, restore: false, name: "Air Conditioner", filters: *throttle_time }
