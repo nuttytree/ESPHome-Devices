@@ -1,0 +1,395 @@
+substitutions:
+  device_id: pool
+  device_name: Pool
+  api_key: !secret pool_key
+  pwd: !secret pool_pwd
+  esp32_variant: esp32s3
+  time_platform: sntp
+
+packages:
+  device_base: !include ./packages/device_base_esp32.yaml
+
+external_components:
+  - source:
+      type: local
+      path: ./components 
+    components: [ pool_controller ]
+  - source:
+      type: git
+      url: https://github.com/latonita/esphome
+      ref: waveshare_expander
+    components: [ waveshare_io_ch32v003 ]
+    refresh: 1h
+
+esphome:
+  on_boot:
+    then:
+      - light.turn_off: lcd_backlight
+      - output.set_level:
+          id: backlight_pwm_output
+          level: 0%
+
+binary_sensor:
+  # - platform: gpio
+  #   id: flow_main
+  #   name: "Main Pump Flow"
+  #   pin:
+  #     number: GPIO12
+  #     mode: INPUT_PULLUP
+  #     inverted: true
+  # - platform: gpio
+  #   id: flow_aux
+  #   name: "Auxiliary Pump Flow"
+  #   pin:
+  #     number: GPIO13
+  #     mode: INPUT_PULLUP
+  #     inverted: true
+  - platform: template
+    id: flow_main
+    name: "Main Pump Flow"
+    lambda: |-
+      return true;
+  - platform: template
+    id: flow_aux
+    name: "Auxiliary Pump Flow"
+    lambda: |-
+      return true;
+
+display:
+  - platform: mipi_rgb
+    id: pool_display
+    model: RPI
+    update_interval: never
+    auto_clear_enabled: false
+    color_order: RGB
+    pclk_frequency: 18MHz
+    pclk_inverted: true
+    dimensions:
+      width: 1024
+      height: 600
+    de_pin:
+      number: 5
+    hsync_pin:
+      number: 46
+      ignore_strapping_warning: true
+    vsync_pin:
+      number: 3
+      ignore_strapping_warning: true
+    pclk_pin: 7
+    reset_pin:
+      waveshare_io_ch32v003: wave_io
+      number: 3
+    hsync_back_porch: 152
+    hsync_front_porch: 48
+    hsync_pulse_width: 162
+    vsync_back_porch: 13
+    vsync_front_porch: 3
+    vsync_pulse_width: 45
+    data_pins:
+      red:
+        - 1         #r3
+        - 2         #r4
+        - 42        #r5
+        - 41        #r6
+        - 40        #r7
+      green:
+        - 39        #g2
+        - 0         #g3
+        - 45        #g4
+        - 48        #g5
+        - 47        #g6
+        - 21        #g7
+      blue:
+        - 14        #b3
+        - 38        #b4
+        - 18        #b5
+        - 17        #b6
+        - 10        #b7
+
+ezo_pmp:
+  - id: chlorine_pump
+    address: 103
+    update_interval: 15s
+  - id: ph_pump
+    address: 104
+    update_interval: 15s
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_roboto_24
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_roboto_16
+    size: 16
+  - file: "https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf"
+    id: font_mdi_wifi
+    size: 28
+    glyphs:
+      - "\U000F092B"  # wifi-strength-outline (no signal)
+      - "\U000F091F"  # wifi-strength-1
+      - "\U000F0922"  # wifi-strength-2
+      - "\U000F0925"  # wifi-strength-3
+      - "\U000F0928"  # wifi-strength-4 (full)
+
+i2c:
+  id: i2c_bus
+  sda: GPIO8
+  scl: GPIO9
+
+light:
+  - platform: monochromatic
+    id: lcd_backlight
+    name: "${device_name} Backlight"
+    output: backlight_pwm_output
+    default_transition_length: 0ms
+    restore_mode: ALWAYS_OFF
+
+lvgl:
+  displays:
+    - pool_display
+  touchscreens:
+    - touchscreen_id: pool_touchscreen
+  on_idle:
+    timeout: 15sec
+    then:
+      - light.turn_off: lcd_backlight
+      - lvgl.pause:
+  bg_color: 0x1a1a2e
+  default_font: font_roboto_24
+  pages:
+    - id: main_page
+      widgets:
+        - label:
+            id: lbl_title
+            text: "Pool Controller"
+            align: CENTER
+            text_color: 0xffffff
+            text_font: font_roboto_24
+        - label:
+            id: lbl_wifi
+            text: "\U000F092B"
+            align: TOP_RIGHT
+            x: -10
+            y: 10
+            text_color: 0xaaaaaa
+            text_font: font_mdi_wifi
+        - label:
+            id: lbl_datetime
+            text: "--- --- --  --:-- --"
+            align: TOP_RIGHT
+            x: -48
+            y: 14
+            text_color: 0xaaaaaa
+            text_font: font_roboto_24
+
+output:
+  - platform: waveshare_io_ch32v003
+    id: backlight_pwm_output
+    inverted: true
+    power_supply: backlight_enable
+  - platform: gpio
+    id: pump_output
+    pin:
+      pcf8574: io_expander
+      number: 0
+      mode:
+        output: true
+      inverted: false    
+  - platform: gpio
+    id: cleaner_output
+    pin:
+      pcf8574: io_expander
+      number: 1
+      mode:
+        output: true
+      inverted: false    
+  - platform: gpio
+    id: heater_output
+    pin:
+      pcf8574: io_expander
+      number: 2
+      mode:
+        output: true
+      inverted: false    
+
+pcf8574:
+  - id: 'io_expander'
+    address: 0x21
+    pcf8575: false
+
+pool_controller:
+  primary_pump:
+    name: "Pump"
+    id: pool_pump
+    output: pump_output
+    # current_sensor: pool_pump_current
+    # enable_anomaly_detection: true
+    # use_current_for_state: true
+    schedule_select:
+      id: pump_select
+      name: Pump Schedule
+    restore_mode: Always Off
+    schedules:
+      - name: Normal
+        runtimes:
+          - start_time: '6:00'
+            end_time: '8:00'
+            minutes_per_hour: 60
+          - start_time: '8:00'
+            end_time: '15:00'
+            minutes_per_hour: 30
+          - start_time: '15:00'
+            end_time: '20:00'
+            minutes_per_hour: 15
+            days_of_week: MON-FRI
+          - start_time: '15:00'
+            end_time: '20:00'
+            minutes_per_hour: 30
+            days_of_week: SAT,SUN
+          - start_time: '20:00'
+            end_time: '22:00'
+            minutes_per_hour: 30
+      - name: Always Except Peak
+        runtimes:
+          - start_time: '0:00'
+            end_time: '24:00'
+            minutes_per_hour: 60
+            days_of_week: SAT,SUN
+          - start_time: '0:00'
+            end_time: '15:00'
+            minutes_per_hour: 60
+            days_of_week: MON-FRI
+          - start_time: '20:00'
+            end_time: '24:00'
+            minutes_per_hour: 60
+            days_of_week: MON-FRI
+  auxiliary_pumps:
+    - id: pool_cleaner
+      name: "Cleaner"
+      output: cleaner_output
+      # current_sensor: pool_cleaner_current
+      # enable_anomaly_detection: true
+      # use_current_for_state: true
+      schedule_select:
+        id: cleaner_select
+        name: Cleaner Schedule
+      schedules:
+        - name: Normal
+          runtimes:
+            - start_time: '6:00'
+              end_time: '8:00'
+              minutes_per_hour: 60
+      restore_mode: Always Off
+  pool_heater:
+    name: Heater
+    id: pool_heater
+    output: heater_output
+    temperature_sensor: water_temp
+
+power_supply:
+  - id: backlight_enable
+    pin:
+      waveshare_io_ch32v003: wave_io
+      number: 2
+      mode:
+        output: true
+    enable_time: 10ms
+    keep_on_time: 10s
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+sensor:
+  - id: !extend wifi_rssi
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: lbl_wifi
+            text: !lambda |-
+              if (x >= -55) return std::string("\U000F0928");  // 4 bars
+              if (x >= -67) return std::string("\U000F0925");  // 3 bars
+              if (x >= -80) return std::string("\U000F0922");  // 2 bars
+              if (x >= -90) return std::string("\U000F091F");  // 1 bar
+              return std::string("\U000F092B");                // outline
+  # - platform: total_daily_energy
+  #   name: "Pool Pump Total Daily Energy"
+  #   icon: mdi:flash
+  #   power_id: pool_pump_power
+  #   method: left
+  #   filters:
+  #     - throttle: 1min
+  # - platform: total_daily_energy
+  #   name: "Pool Cleaner Total Daily Energy"
+  #   icon: mdi:flash
+  #   power_id: pool_cleaner_power
+  #   method: left
+  #   filters:
+  #     - throttle: 1min
+  - platform: ezo
+    id: orp
+    address: 98
+    unit_of_measurement: "mV"
+    update_interval: 10s
+  - platform: ezo
+    id: ph
+    address: 99
+    unit_of_measurement: "pH"
+    update_interval: 10s
+  - platform: ezo
+    id: water_temp
+    address: 101
+    accuracy_decimals: 2
+    unit_of_measurement: "°C"
+    update_interval: 10s
+  - platform: ezo
+    id: return_temp
+    address: 102
+    accuracy_decimals: 2
+    unit_of_measurement: "°C"
+    update_interval: 10s
+
+time:
+  - id: !extend time_source
+    on_time_sync:
+      then:
+        - lvgl.label.update:
+            id: lbl_datetime
+            text: !lambda |-
+              auto t = id(time_source).now();
+              if (!t.is_valid()) return std::string("");
+              return t.strftime("%a %b %d  %I:%M %p");
+    on_time:
+      - seconds: 0
+        then:
+          - lvgl.label.update:
+              id: lbl_datetime
+              text: !lambda |-
+                auto t = id(time_source).now();
+                if (!t.is_valid()) return std::string("");
+                return t.strftime("%a %b %d  %I:%M %p");
+
+touchscreen:
+  - platform: gt911
+    id: pool_touchscreen
+    display: pool_display
+    interrupt_pin: 
+      number: GPIO4
+      mode: INPUT_PULLUP
+    reset_pin:
+      waveshare_io_ch32v003: wave_io
+      number: 1
+      mode: OUTPUT
+    on_touch:
+      then:
+        - if:
+            condition:
+              light.is_off: lcd_backlight
+            then:
+              - lvgl.resume:
+              - light.turn_on: lcd_backlight
+
+waveshare_io_ch32v003:
+  - id: wave_io
+    address: 0x24
+    i2c_id: i2c_bus
