@@ -248,10 +248,6 @@ pool_controller:
       - name: Always Except Peak
         runtimes:
           - start_time: '0:00'
-            end_time: '24:00'
-            minutes_per_hour: 60
-            days_of_week: SAT,SUN
-          - start_time: '0:00'
             end_time: '18:00'
             minutes_per_hour: 60
             days_of_week: MON-FRI
@@ -259,6 +255,11 @@ pool_controller:
             end_time: '24:00'
             minutes_per_hour: 60
             days_of_week: MON-FRI
+
+          - start_time: '0:00'
+            end_time: '24:00'
+            minutes_per_hour: 60
+            days_of_week: SAT,SUN
   auxiliary_pumps:
     - id: pool_cleaner
       name: "Cleaner"
