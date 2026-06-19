@@ -106,14 +106,6 @@ display:
         - 17        #b6
         - 10        #b7
 
-ezo_pmp:
-  - id: chlorine_pump
-    address: 103
-    update_interval: 15s
-  - id: ph_pump
-    address: 104
-    update_interval: 15s
-
 font:
   - file: "gfonts://Roboto"
     id: font_roboto_24
