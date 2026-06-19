@@ -190,8 +190,7 @@ output:
     pin:
       pcf8574: io_expander
       number: 2
-      mode:
-        output: true
+      mode: OUTPUT
       inverted: false    
   - platform: gpio
     id: fill_output
