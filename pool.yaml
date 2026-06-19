@@ -217,6 +217,7 @@ pcf8574:
   - id: 'io_expander'
     address: 0x21
     pcf8575: false
+    interrupt_pin: GPIO6
 
 pool_controller:
   primary_pump:
