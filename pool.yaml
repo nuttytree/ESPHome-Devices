@@ -273,8 +273,8 @@ pool_controller:
       schedules:
         - name: Normal
           runtimes:
-            - start_time: '6:00'
-              end_time: '8:00'
+            - start_time: '4:00'
+              end_time: '6:00'
               minutes_per_hour: 60
       restore_mode: Always Off
   pool_heater:
