@@ -172,28 +172,28 @@ output:
     inverted: true
     power_supply: backlight_enable
   - platform: gpio
-    id: pump_output
+    id: heater_output
     pin:
       pcf8574: io_expander
       number: 0
       mode: OUTPUT
       inverted: false    
   - platform: gpio
-    id: cleaner_output
+    id: fill_output
     pin:
       pcf8574: io_expander
       number: 1
       mode: OUTPUT
       inverted: false    
   - platform: gpio
-    id: heater_output
+    id: cleaner_output
     pin:
       pcf8574: io_expander
       number: 2
       mode: OUTPUT
       inverted: false    
   - platform: gpio
-    id: fill_output
+    id: pump_output
     pin:
       pcf8574: io_expander
       number: 3
