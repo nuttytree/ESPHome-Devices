@@ -30,30 +30,24 @@ esphome:
           level: 0%
 
 binary_sensor:
-  # - platform: gpio
-  #   id: flow_main
-  #   name: "Main Pump Flow"
-  #   pin:
-  #     number: GPIO12
-  #     mode: INPUT_PULLUP
-  #     inverted: true
-  # - platform: gpio
-  #   id: flow_aux
-  #   name: "Auxiliary Pump Flow"
-  #   pin:
-  #     number: GPIO13
-  #     mode: INPUT_PULLUP
-  #     inverted: true
-  - platform: template
+  - platform: gpio
     id: flow_main
     name: "Main Pump Flow"
-    lambda: |-
-      return true;
-  - platform: template
+    pin:
+      pcf8574: io_expander
+      number: 4
+      mode:
+        input: true
+      inverted: true    
+  - platform: gpio
     id: flow_aux
     name: "Auxiliary Pump Flow"
-    lambda: |-
-      return true;
+    pin:
+      pcf8574: io_expander
+      number: 5
+      mode:
+        input: true
+      inverted: true    
 
 display:
   - platform: mipi_rgb
