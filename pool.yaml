@@ -276,11 +276,11 @@ pool_controller:
               end_time: '6:00'
               minutes_per_hour: 60
       restore_mode: Always Off
-  pool_heater:
-    name: Heater
-    id: pool_heater
-    output: heater_output
-    temperature_sensor: water_temp
+  # pool_heater:
+  #   name: Heater
+  #   id: pool_heater
+  #   output: heater_output
+  #   temperature_sensor: water_temp
 
 power_supply:
   - id: backlight_enable
@@ -322,28 +322,28 @@ sensor:
   #   method: left
   #   filters:
   #     - throttle: 1min
-  - platform: ezo
-    id: orp
-    address: 98
-    unit_of_measurement: "mV"
-    update_interval: 10s
-  - platform: ezo
-    id: ph
-    address: 99
-    unit_of_measurement: "pH"
-    update_interval: 10s
-  - platform: ezo
-    id: water_temp
-    address: 101
-    accuracy_decimals: 2
-    unit_of_measurement: "°C"
-    update_interval: 10s
-  - platform: ezo
-    id: return_temp
-    address: 102
-    accuracy_decimals: 2
-    unit_of_measurement: "°C"
-    update_interval: 10s
+  # - platform: ezo
+  #   id: orp
+  #   address: 98
+  #   unit_of_measurement: "mV"
+  #   update_interval: 10s
+  # - platform: ezo
+  #   id: ph
+  #   address: 99
+  #   unit_of_measurement: "pH"
+  #   update_interval: 10s
+  # - platform: ezo
+  #   id: water_temp
+  #   address: 101
+  #   accuracy_decimals: 2
+  #   unit_of_measurement: "°C"
+  #   update_interval: 10s
+  # - platform: ezo
+  #   id: return_temp
+  #   address: 102
+  #   accuracy_decimals: 2
+  #   unit_of_measurement: "°C"
+  #   update_interval: 10s
 
 time:
   - id: !extend time_source
