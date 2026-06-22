@@ -202,7 +202,7 @@ output:
 
 pcf8574:
   - id: 'io_expander'
-    address: 0x21
+    address: 0x20
     pcf8575: false
     interrupt_pin:
       number: GPIO6
