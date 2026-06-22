@@ -177,28 +177,28 @@ output:
       pcf8574: io_expander
       number: 0
       mode: OUTPUT
-      inverted: false    
+      inverted: true    
   - platform: gpio
     id: fill_output
     pin:
       pcf8574: io_expander
       number: 1
       mode: OUTPUT
-      inverted: false    
+      inverted: true    
   - platform: gpio
     id: cleaner_output
     pin:
       pcf8574: io_expander
       number: 2
       mode: OUTPUT
-      inverted: false    
+      inverted: true    
   - platform: gpio
     id: pump_output
     pin:
       pcf8574: io_expander
       number: 3
       mode: OUTPUT
-      inverted: false    
+      inverted: true    
 
 pcf8574:
   - id: 'io_expander'
