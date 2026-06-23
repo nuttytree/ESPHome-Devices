@@ -32,6 +32,7 @@ binary_sensor:
   - platform: gpio
     id: flow_main
     name: "Main Pump Flow"
+    icon: mdi:waves-arrow-right
     pin:
       pcf8574: io_expander
       number: 4
@@ -41,6 +42,7 @@ binary_sensor:
   - platform: gpio
     id: flow_aux
     name: "Auxiliary Pump Flow"
+    icon: mdi:waves-arrow-right
     pin:
       pcf8574: io_expander
       number: 5
@@ -177,32 +179,32 @@ output:
       pcf8574: io_expander
       number: 0
       mode: OUTPUT
-      inverted: false    
+      inverted: true    
   - platform: gpio
     id: fill_output
     pin:
       pcf8574: io_expander
       number: 1
       mode: OUTPUT
-      inverted: false    
+      inverted: true    
   - platform: gpio
     id: cleaner_output
     pin:
       pcf8574: io_expander
       number: 2
       mode: OUTPUT
-      inverted: false    
+      inverted: true    
   - platform: gpio
     id: pump_output
     pin:
       pcf8574: io_expander
       number: 3
       mode: OUTPUT
-      inverted: false    
+      inverted: true    
 
 pcf8574:
   - id: 'io_expander'
-    address: 0x21
+    address: 0x20
     pcf8575: false
     interrupt_pin:
       number: GPIO6
@@ -212,6 +214,7 @@ pool_controller:
   primary_pump:
     name: "Pump"
     id: pool_pump
+    icon: mdi:pump
     output: pump_output
     # current_sensor: pool_pump_current
     # enable_anomaly_detection: true
@@ -219,7 +222,12 @@ pool_controller:
     schedule_select:
       id: pump_select
       name: Pump Schedule
+      icon: mdi:clock-outline
     restore_mode: Always Off
+    on_turn_on:
+      - component.update: pump_power
+    on_turn_off:
+      - component.update: pump_power
     schedules:
       - name: Normal
         runtimes:
@@ -262,6 +270,7 @@ pool_controller:
   auxiliary_pumps:
     - id: pool_cleaner
       name: "Cleaner"
+      icon: mdi:robot-vacuum
       output: cleaner_output
       # current_sensor: pool_cleaner_current
       # enable_anomaly_detection: true
@@ -269,18 +278,28 @@ pool_controller:
       schedule_select:
         id: cleaner_select
         name: Cleaner Schedule
+        icon: mdi:clock-outline
+      on_turn_on:
+        - component.update: cleaner_power
+      on_turn_off:
+        - component.update: cleaner_power
       schedules:
         - name: Normal
+          runtimes:
+            - start_time: '4:00'
+              end_time: '5:00'
+              minutes_per_hour: 60
+        - name: Double Time
           runtimes:
             - start_time: '4:00'
               end_time: '6:00'
               minutes_per_hour: 60
       restore_mode: Always Off
-  pool_heater:
-    name: Heater
-    id: pool_heater
-    output: heater_output
-    temperature_sensor: water_temp
+  # pool_heater:
+  #   name: Heater
+  #   id: pool_heater
+  #   output: heater_output
+  #   temperature_sensor: water_temp
 
 power_supply:
   - id: backlight_enable
@@ -308,6 +327,42 @@ sensor:
               if (x >= -80) return std::string("\U000F0922");  // 2 bars
               if (x >= -90) return std::string("\U000F091F");  // 1 bar
               return std::string("\U000F092B");                // outline
+  - platform: template
+    id: pump_power
+    name: Pump Power
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      return id(pool_pump).state ? 1500.0 : 0.0;
+    filters:
+      - heartbeat:
+          period: 10s
+          optimistic: true    
+  - platform: total_daily_energy
+    name: Pump
+    power_id: pump_power
+    method: left
+  - platform: template
+    id: cleaner_power
+    name: Cleaner Power
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      return id(pool_cleaner).state ? 875.0 : 0.0;
+    filters:
+      - heartbeat:
+          period: 10s
+          optimistic: true    
+  - platform: total_daily_energy
+    name: Cleaner
+    power_id: cleaner_power
+    method: left
   # - platform: total_daily_energy
   #   name: "Pool Pump Total Daily Energy"
   #   icon: mdi:flash
@@ -322,29 +377,36 @@ sensor:
   #   method: left
   #   filters:
   #     - throttle: 1min
-  - platform: ezo
-    id: orp
-    address: 98
-    unit_of_measurement: "mV"
-    update_interval: 10s
-  - platform: ezo
-    id: ph
-    address: 99
-    unit_of_measurement: "pH"
-    update_interval: 10s
-  - platform: ezo
-    id: water_temp
-    address: 101
-    accuracy_decimals: 2
-    unit_of_measurement: "°C"
-    update_interval: 10s
-  - platform: ezo
-    id: return_temp
-    address: 102
-    accuracy_decimals: 2
-    unit_of_measurement: "°C"
-    update_interval: 10s
+  # - platform: ezo
+  #   id: orp
+  #   address: 98
+  #   unit_of_measurement: "mV"
+  #   update_interval: 10s
+  # - platform: ezo
+  #   id: ph
+  #   address: 99
+  #   unit_of_measurement: "pH"
+  #   update_interval: 10s
+  # - platform: ezo
+  #   id: water_temp
+  #   address: 101
+  #   accuracy_decimals: 2
+  #   unit_of_measurement: "°C"
+  #   update_interval: 10s
+  # - platform: ezo
+  #   id: return_temp
+  #   address: 102
+  #   accuracy_decimals: 2
+  #   unit_of_measurement: "°C"
+  #   update_interval: 10s
 
+switch:
+  - platform: output
+    output: heater_output
+    name: Heater Test
+    device_class: switch
+    restore_mode: RESTORE_DEFAULT_OFF
+  
 time:
   - id: !extend time_source
     on_time_sync:
