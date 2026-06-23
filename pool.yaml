@@ -208,79 +208,79 @@ pcf8574:
       number: GPIO6
       mode: INPUT_PULLUP
 
-# pool_controller:
-#   primary_pump:
-#     name: "Pump"
-#     id: pool_pump
-#     output: pump_output
-#     # current_sensor: pool_pump_current
-#     # enable_anomaly_detection: true
-#     # use_current_for_state: true
-#     schedule_select:
-#       id: pump_select
-#       name: Pump Schedule
-#     restore_mode: Always Off
-#     schedules:
-#       - name: Normal
-#         runtimes:
-#           - start_time: '4:00'
-#             end_time: '6:00'
-#             minutes_per_hour: 60
+pool_controller:
+  primary_pump:
+    name: "Pump"
+    id: pool_pump
+    output: pump_output
+    # current_sensor: pool_pump_current
+    # enable_anomaly_detection: true
+    # use_current_for_state: true
+    schedule_select:
+      id: pump_select
+      name: Pump Schedule
+    restore_mode: Always Off
+    schedules:
+      - name: Normal
+        runtimes:
+          - start_time: '4:00'
+            end_time: '6:00'
+            minutes_per_hour: 60
 
-#           - start_time: '6:00'
-#             end_time: '18:00'
-#             minutes_per_hour: 40
-#             days_of_week: MON-FRI
-#           - start_time: '18:00'
-#             end_time: '21:00'
-#             minutes_per_hour: 20
-#             days_of_week: MON-FRI
-#           - start_time: '21:00'
-#             end_time: '22:00'
-#             minutes_per_hour: 40
-#             days_of_week: MON-FRI
+          - start_time: '6:00'
+            end_time: '18:00'
+            minutes_per_hour: 40
+            days_of_week: MON-FRI
+          - start_time: '18:00'
+            end_time: '21:00'
+            minutes_per_hour: 20
+            days_of_week: MON-FRI
+          - start_time: '21:00'
+            end_time: '22:00'
+            minutes_per_hour: 40
+            days_of_week: MON-FRI
 
-#           - start_time: '6:00'
-#             end_time: '22:00'
-#             minutes_per_hour: 40
-#             days_of_week: SAT,SUN
-#       - name: Always Except Peak
-#         runtimes:
-#           - start_time: '0:00'
-#             end_time: '18:00'
-#             minutes_per_hour: 60
-#             days_of_week: MON-FRI
-#           - start_time: '21:00'
-#             end_time: '24:00'
-#             minutes_per_hour: 60
-#             days_of_week: MON-FRI
+          - start_time: '6:00'
+            end_time: '22:00'
+            minutes_per_hour: 40
+            days_of_week: SAT,SUN
+      - name: Always Except Peak
+        runtimes:
+          - start_time: '0:00'
+            end_time: '18:00'
+            minutes_per_hour: 60
+            days_of_week: MON-FRI
+          - start_time: '21:00'
+            end_time: '24:00'
+            minutes_per_hour: 60
+            days_of_week: MON-FRI
 
-#           - start_time: '0:00'
-#             end_time: '24:00'
-#             minutes_per_hour: 60
-#             days_of_week: SAT,SUN
-#   auxiliary_pumps:
-#     - id: pool_cleaner
-#       name: "Cleaner"
-#       output: cleaner_output
-#       # current_sensor: pool_cleaner_current
-#       # enable_anomaly_detection: true
-#       # use_current_for_state: true
-#       schedule_select:
-#         id: cleaner_select
-#         name: Cleaner Schedule
-#       schedules:
-#         - name: Normal
-#           runtimes:
-#             - start_time: '4:00'
-#               end_time: '6:00'
-#               minutes_per_hour: 60
-#       restore_mode: Always Off
-#   # pool_heater:
-#   #   name: Heater
-#   #   id: pool_heater
-#   #   output: heater_output
-#   #   temperature_sensor: water_temp
+          - start_time: '0:00'
+            end_time: '24:00'
+            minutes_per_hour: 60
+            days_of_week: SAT,SUN
+  auxiliary_pumps:
+    - id: pool_cleaner
+      name: "Cleaner"
+      output: cleaner_output
+      # current_sensor: pool_cleaner_current
+      # enable_anomaly_detection: true
+      # use_current_for_state: true
+      schedule_select:
+        id: cleaner_select
+        name: Cleaner Schedule
+      schedules:
+        - name: Normal
+          runtimes:
+            - start_time: '4:00'
+              end_time: '6:00'
+              minutes_per_hour: 60
+      restore_mode: Always Off
+  # pool_heater:
+  #   name: Heater
+  #   id: pool_heater
+  #   output: heater_output
+  #   temperature_sensor: water_temp
 
 power_supply:
   - id: backlight_enable
