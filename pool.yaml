@@ -32,6 +32,7 @@ binary_sensor:
   - platform: gpio
     id: flow_main
     name: "Main Pump Flow"
+    icon: mdi:waves-arrow-right
     pin:
       pcf8574: io_expander
       number: 4
@@ -41,6 +42,7 @@ binary_sensor:
   - platform: gpio
     id: flow_aux
     name: "Auxiliary Pump Flow"
+    icon: mdi:waves-arrow-right
     pin:
       pcf8574: io_expander
       number: 5
