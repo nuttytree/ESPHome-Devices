@@ -347,16 +347,6 @@ sensor:
 
 switch:
   - platform: output
-    output: pump_output
-    name: Pump Test
-    device_class: switch
-    restore_mode: RESTORE_DEFAULT_OFF
-  - platform: output
-    output: cleaner_output
-    name: Cleaner Test
-    device_class: switch
-    restore_mode: RESTORE_DEFAULT_OFF
-  - platform: output
     output: heater_output
     name: Heater Test
     device_class: switch
