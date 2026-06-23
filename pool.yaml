@@ -259,23 +259,23 @@ pool_controller:
             end_time: '24:00'
             minutes_per_hour: 60
             days_of_week: SAT,SUN
-  auxiliary_pumps:
-    - id: pool_cleaner
-      name: "Cleaner"
-      output: cleaner_output
-      # current_sensor: pool_cleaner_current
-      # enable_anomaly_detection: true
-      # use_current_for_state: true
-      schedule_select:
-        id: cleaner_select
-        name: Cleaner Schedule
-      schedules:
-        - name: Normal
-          runtimes:
-            - start_time: '4:00'
-              end_time: '6:00'
-              minutes_per_hour: 60
-      restore_mode: Always Off
+  # auxiliary_pumps:
+  #   - id: pool_cleaner
+  #     name: "Cleaner"
+  #     output: cleaner_output
+  #     # current_sensor: pool_cleaner_current
+  #     # enable_anomaly_detection: true
+  #     # use_current_for_state: true
+  #     schedule_select:
+  #       id: cleaner_select
+  #       name: Cleaner Schedule
+  #     schedules:
+  #       - name: Normal
+  #         runtimes:
+  #           - start_time: '4:00'
+  #             end_time: '6:00'
+  #             minutes_per_hour: 60
+  #     restore_mode: Always Off
   # pool_heater:
   #   name: Heater
   #   id: pool_heater
