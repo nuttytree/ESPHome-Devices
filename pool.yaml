@@ -214,6 +214,7 @@ pool_controller:
   primary_pump:
     name: "Pump"
     id: pool_pump
+    icon: mdi:pump
     output: pump_output
     # current_sensor: pool_pump_current
     # enable_anomaly_detection: true
