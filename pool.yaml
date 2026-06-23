@@ -319,6 +319,24 @@ sensor:
               if (x >= -80) return std::string("\U000F0922");  // 2 bars
               if (x >= -90) return std::string("\U000F091F");  // 1 bar
               return std::string("\U000F092B");                // outline
+  - platform: template
+    id: pump_power
+    name: Pump Power
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      return id(pool_pump).state ? 1500.0 : 0.0;
+    filters:
+      - heartbeat:
+          period: 10s
+          optimistic: true    
+  - platform: total_daily_energy
+    name: ${device_name}
+    power_id: light_power
+    method: left
   # - platform: total_daily_energy
   #   name: "Pool Pump Total Daily Energy"
   #   icon: mdi:flash
