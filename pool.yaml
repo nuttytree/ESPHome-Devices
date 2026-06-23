@@ -279,6 +279,10 @@ pool_controller:
         id: cleaner_select
         name: Cleaner Schedule
         icon: mdi:clock-outline
+      on_turn_on:
+        - component.update: cleaner_power
+      on_turn_off:
+        - component.update: cleaner_power
       schedules:
         - name: Normal
           runtimes:
