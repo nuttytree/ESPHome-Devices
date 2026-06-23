@@ -334,8 +334,8 @@ sensor:
           period: 10s
           optimistic: true    
   - platform: total_daily_energy
-    name: ${device_name}
-    power_id: light_power
+    name: Pump
+    power_id: pump_power
     method: left
   # - platform: total_daily_energy
   #   name: "Pool Pump Total Daily Energy"
