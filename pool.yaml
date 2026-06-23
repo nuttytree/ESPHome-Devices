@@ -222,6 +222,7 @@ pool_controller:
     schedule_select:
       id: pump_select
       name: Pump Schedule
+      icon: mdi:clock-outline
     restore_mode: Always Off
     schedules:
       - name: Normal
@@ -272,6 +273,7 @@ pool_controller:
       schedule_select:
         id: cleaner_select
         name: Cleaner Schedule
+        icon: mdi:clock-outline
       schedules:
         - name: Normal
           runtimes:
