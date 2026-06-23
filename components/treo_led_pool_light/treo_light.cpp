@@ -18,16 +18,6 @@ void TreoPoolLightOutput::setup() {
 }
 
 void TreoPoolLightOutput::setup_state(light::LightState *state) {
-  auto *effect_slow = new TreoPoolLightEffect("Slow Change");    // NOLINT
-  auto *effect_white = new TreoPoolLightEffect("White");         // NOLINT
-  auto *effect_blue = new TreoPoolLightEffect("Blue");           // NOLINT
-  auto *effect_green = new TreoPoolLightEffect("Green");         // NOLINT
-  auto *effect_red = new TreoPoolLightEffect("Red");             // NOLINT
-  auto *effect_amber = new TreoPoolLightEffect("Amber");         // NOLINT
-  auto *effect_magenta = new TreoPoolLightEffect("Magenta");     // NOLINT
-  auto *effect_fast = new TreoPoolLightEffect("Fast Change");    // NOLINT
-  state->add_effects({effect_slow, effect_white, effect_blue, effect_green, effect_red,
-                      effect_amber, effect_magenta, effect_fast});
   this->state_ = state;
 
   this->color_pref_ = this->state_->make_entity_preference<uint32_t>();
@@ -97,15 +87,6 @@ void TreoPoolLightOutput::color_change_on_() {
         this->write_state(this->state_);
       });
     }
-  }
-}
-
-void TreoPoolLightOutput::next_color() {
-  if (this->state_ != nullptr) {
-    auto call = this->state_->turn_on();
-    int current_color = this->get_current_color_();
-    call.set_effect(current_color < 8 ? current_color + 1 : 1);
-    call.perform();
   }
 }
 

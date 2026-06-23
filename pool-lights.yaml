@@ -34,8 +34,7 @@ binary_sensor:
       mode: INPUT_PULLUP
     on_press:
       then:
-      - lambda: |-
-          static_cast<esphome::treo_light::TreoPoolLightOutput *>(id(pool_lights).get_output())->next_color();
+        - light.effect.next: pool_lights
   - platform: gpio
     id: bottom_button
     pin:

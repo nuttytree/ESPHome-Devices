@@ -17,7 +17,6 @@ class TreoPoolLightOutput : public light::LightOutput, public Component, public 
   void setup_state(light::LightState *state) override;
   void write_state(light::LightState *state) override;
 
-  void next_color();
   void color_reset();
 
  protected:
@@ -34,7 +33,7 @@ class TreoPoolLightOutput : public light::LightOutput, public Component, public 
   bool is_changing_colors_ = false;
 };
 
-class TreoPoolLightEffect : public light::LightEffect { // Commented out for clarity
+class TreoPoolLightEffect : public light::LightEffect {
  public:
   TreoPoolLightEffect(const char *name) : LightEffect(name) {}
   void apply() override { }
