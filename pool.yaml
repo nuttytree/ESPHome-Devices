@@ -224,6 +224,10 @@ pool_controller:
       name: Pump Schedule
       icon: mdi:clock-outline
     restore_mode: Always Off
+    on_turn_on:
+      - component.update: heater_power
+    on_turn_off:
+      - component.update: heater_power
     schedules:
       - name: Normal
         runtimes:
