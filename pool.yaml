@@ -275,6 +275,11 @@ pool_controller:
         - name: Normal
           runtimes:
             - start_time: '4:00'
+              end_time: '5:00'
+              minutes_per_hour: 60
+        - name: Double Time
+          runtimes:
+            - start_time: '4:00'
               end_time: '6:00'
               minutes_per_hour: 60
       restore_mode: Always Off
