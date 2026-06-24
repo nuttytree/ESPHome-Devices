@@ -7,6 +7,7 @@ from esphome.components import text_sensor
 from esphome.const import CONF_ID, CONF_OUTPUT, DEVICE_CLASS_OCCUPANCY, ENTITY_CATEGORY_DIAGNOSTIC
 
 CODEOWNERS = ["@nuttytree"]
+AUTO_LOAD = ["binary_sensor", "sensor", "text_sensor"]
 
 adc_ns = cg.esphome_ns.namespace("adc")
 ADCSensor = adc_ns.class_("ADCSensor")
@@ -75,38 +76,23 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
-    adc_sensor = await cg.get_variable(config[CONF_ADC_SENSOR])
-    cg.add(var.set_adc_sensor(adc_sensor))
-    
+    cg.add(var.set_adc_sensor(await cg.get_variable(config[CONF_ADC_SENSOR])))
+
     side_one_config = config[CONF_SIDE_ONE]
     cg.add(var.set_side_one_name(side_one_config[CONF_STATUS_NAME]))
-    side_one_output = await cg.get_variable(side_one_config[CONF_OUTPUT])
-    cg.add(var.set_side_one_output(side_one_output))
-    side_one_value_sensor_config = side_one_config[CONF_VALUE_SENSOR]
-    side_one_value_sensor = await sensor.new_sensor(side_one_value_sensor_config)
-    cg.add(var.set_side_one_value_sensor(side_one_value_sensor))
-    side_one_sensor = await binary_sensor.new_binary_sensor(side_one_config)
-    cg.add(var.set_side_one_sensor(side_one_sensor))
+    cg.add(var.set_side_one_output(await cg.get_variable(side_one_config[CONF_OUTPUT])))
+    cg.add(var.set_side_one_value_sensor(await sensor.new_sensor(side_one_config[CONF_VALUE_SENSOR])))
+    cg.add(var.set_side_one_sensor(await binary_sensor.new_binary_sensor(side_one_config)))
 
     side_two_config = config[CONF_SIDE_TWO]
     cg.add(var.set_side_two_name(side_two_config[CONF_STATUS_NAME]))
-    side_two_output = await cg.get_variable(side_two_config[CONF_OUTPUT])
-    cg.add(var.set_side_two_output(side_two_output))
-    side_two_value_sensor_config = side_two_config[CONF_VALUE_SENSOR]
-    side_two_value_sensor = await sensor.new_sensor(side_two_value_sensor_config)
-    cg.add(var.set_side_two_value_sensor(side_two_value_sensor))
-    side_two_sensor = await binary_sensor.new_binary_sensor(side_two_config)
-    cg.add(var.set_side_two_sensor(side_two_sensor))
+    cg.add(var.set_side_two_output(await cg.get_variable(side_two_config[CONF_OUTPUT])))
+    cg.add(var.set_side_two_value_sensor(await sensor.new_sensor(side_two_config[CONF_VALUE_SENSOR])))
+    cg.add(var.set_side_two_sensor(await binary_sensor.new_binary_sensor(side_two_config)))
 
     someone_config = config[CONF_SOMEONE]
     cg.add(var.set_someone_name(someone_config[CONF_STATUS_NAME]))
-    someone_sensor = await binary_sensor.new_binary_sensor(someone_config)
-    cg.add(var.set_someone_sensor(someone_sensor))
+    cg.add(var.set_someone_sensor(await binary_sensor.new_binary_sensor(someone_config)))
 
-    count_config = config[CONF_COUNT]
-    count_sensor = await sensor.new_sensor(count_config)
-    cg.add(var.set_count_sensor(count_sensor))
-
-    status_config = config[CONF_STATUS]
-    status_sensor = await text_sensor.new_text_sensor(status_config)
-    cg.add(var.set_status_sensor(status_sensor))
+    cg.add(var.set_count_sensor(await sensor.new_sensor(config[CONF_COUNT])))
+    cg.add(var.set_status_sensor(await text_sensor.new_text_sensor(config[CONF_STATUS])))

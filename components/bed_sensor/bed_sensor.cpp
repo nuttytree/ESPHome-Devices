@@ -12,6 +12,8 @@ void BedSensor::setup() {
     this->side_one_output_->set_state(false);
   if (this->side_two_output_ != nullptr)
     this->side_two_output_->set_state(false);
+  this->combined_name_ =
+      std::string(this->side_one_name_) + " and " + std::string(this->side_two_name_);
 }
 
 void BedSensor::dump_config() {
@@ -23,14 +25,14 @@ void BedSensor::dump_config() {
 void BedSensor::update() {
   if (this->adc_sensor_ == nullptr || this->side_one_output_ == nullptr || this->side_two_output_ == nullptr)
     return;
-  if (this->last_side_updated_ == 2) {
+  if (!this->last_updated_side_one_) {
     this->side_two_output_->set_state(false);
     this->side_one_output_->set_state(true);
     this->adc_sensor_->update();
     this->side_one_value_ = this->adc_sensor_->state;
     ESP_LOGD(TAG, "Side one value: %f", this->side_one_value_);
     this->side_one_value_sensor_->publish_state(this->side_one_value_);
-    this->last_side_updated_ = 1;
+    this->last_updated_side_one_ = true;
   } else {
     this->side_one_output_->set_state(false);
     this->side_two_output_->set_state(true);
@@ -38,7 +40,7 @@ void BedSensor::update() {
     this->side_two_value_ = this->adc_sensor_->state;
     ESP_LOGD(TAG, "Side two value: %f", this->side_two_value_);
     this->side_two_value_sensor_->publish_state(this->side_two_value_);
-    this->last_side_updated_ = 2;
+    this->last_updated_side_one_ = false;
   }
 
   float side_one_percent = (1024 - this->side_one_value_) * 100 / 1024;
@@ -59,21 +61,17 @@ void BedSensor::update() {
   int count = (side_one_in_bed ? 1 : 0) + (side_two_in_bed ? 1 : 0) + (someone_in_bed ? 1 : 0);
   this->count_->publish_state(count);
 
-  std::string status;
   if (count == 0) {
-    status = "Empty";
+    this->status_->publish_state("Empty");
   } else if (count == 2) {
-    status = this->side_one_name_;
-    status += " and ";
-    status += this->side_two_name_;
+    this->status_->publish_state(this->combined_name_);
   } else if (side_one_in_bed) {
-    status = this->side_one_name_;
+    this->status_->publish_state(this->side_one_name_);
   } else if (side_two_in_bed) {
-    status = this->side_two_name_;
+    this->status_->publish_state(this->side_two_name_);
   } else if (someone_in_bed) {
-    status = this->someone_name_;
+    this->status_->publish_state(this->someone_name_);
   }
-  this->status_->publish_state(status);
 }
 
 }  // namespace esphome::bed_sensor

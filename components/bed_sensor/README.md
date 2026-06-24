@@ -61,5 +61,5 @@ bed_sensor:
 * **someone_sensor** (Required): Binary sensor that is `true` when someone is in the bed but in the middle not one side or the other.
   * **status_name** (Required, string): The name used in the status text sensor for this state.
   * Other standard binary sensor options.
-* **count_sensor** (Required): Numeric sensor reporting the total number of occupants detected (0–3).
+* **count_sensor** (Required): Numeric sensor reporting the total number of occupants detected (0–2).
 * **status_sensor** (Required): Text sensor reporting a human-readable occupancy status (e.g. "Empty", "Alice", "Alice and Bob").
