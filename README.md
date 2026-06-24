@@ -44,12 +44,8 @@ This is a [M5Stack ATOM HUB SwitchD](https://shop.m5stack.com/products/atom-hub-
 ### [Master Bed](./devices/master_bed.yaml)
 This is a [NodeMCU](https://www.amazon.com/gp/product/B010N1SPRK) that I have installed under my bed and is connected to a pair of [Force Sensitive Resistors](https://www.adafruit.com/product/1071) that are placed between the mattress and box spring of my bed, one for my side and one for my wife's side.  Because the ESP8266 has only one analog input I had to add some transistors connected to pins D0 and D1 that are used to select which FSR is connected to the A0 analog input.  The custom sensors in [bed_sensor.h](./custom/bed_sensor.h) handles switching between the FSR's and reading the values from the FSR's.  Generally when the bed is empty the reading is the full 1024 (or at least close to this).  If someone is on one side of the bed or the other the reading is typically around 100.  However if you lay in the middle of the bed I tend to get readings of around 600-700 on both sides.  Thus the 3 different binary sensors (Chris is in Bed, Melissa is in Bed, Someone is in Bed).  There is also a Master Bed Count that reports the total number of people in bed, I compare this to a sensor in Home Assistant that tracks the number of "masters" (my wife and me) that are home so that I can activate night mode when everyone is in bed.
 
-### [Pool Pumps](./devices/pool_pumps.yaml)
-This is a [Shelly 2.5 Double Relay Switch](https://shelly.cloud/products/shelly-25-smart-home-automation-relay/) that is controlling the main pump on my pool and the auxillary pump that runs the pool cleaner via my custom [Pool Controller Component](./components/pool_controller/README.md).
-
-### [Scripture of the Day Melissa](./devices/scripture_of_the_day_melissa.yaml)/[Scripture of the Day Mayson](./devices/scripture_of_the_day_mayson.yaml)
-This project was one of the first projects I have done that I would call woodworking.  I made 2 of these as Christmas presents for my wife and son.  They consist of an [ESP32 e-Paper Panel Driver Board](https://www.waveshare.com/product/displays/e-paper-esp32-driver-board.htm) powered by a [lithium battery](https://www.amazon.com/dp/B0867KDMY7) and [TP4056 lithium battery charger module](https://www.amazon.com/dp/B06XQRQR3Q) and driving a [Waveshare 7.5inch 800×480 E-Ink display](https://www.waveshare.com/7.5inch-e-paper.htm).  The ESP32 sits in deep-sleep most of the time but wakes up every night, grabs a random scripture from the [Our Manna Daily Verses API](http://www.ourmanna.com/verses/api/), updates the display with the verse, and goes back to sleep.
-<br/><br/><img src="./images/scripture_of_the_day/front.jpg" alt="Front" width="600" /><img src="./images/scripture_of_the_day/back.jpg" alt="Back" width="600" />
+### [Pool](./devices/pool.yaml)
+This is a [Waveshare ESP32-S3 7inch Touch LCD B](https://www.waveshare.com/product/esp32-s3-lcd-7b.htm) that is controlling various functions for my pool via custom [Pool Controller Component](./components/pool_controller/README.md).
 
 
 ## Energy Monitor
@@ -70,14 +66,12 @@ I have a bunch of these smart plugs that I use for various things where I want t
 
 
 ## Switches
-I plan to use dimmer switches for anything that is dimmable just for consistency and you never know when you might want to have the ability to dim a light.  However there are times when a dimmer isn't an option.
-
 ### [SANA Dual Switch](https://www.amazon.com/gp/product/B07QC5ZCHP)
 My basement bathroom has a single gang box (and not enough room to swith to dual gang) for the switches to control the shower light and heat lamps so this is a perfect fit.  The price is right, the buttons feel solid, and I was able to flash it using [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert).  It does seem to have corners that are squarer then typical so I had a little bit of trouble getting a standard cover to fit but nothing I couldn't fix with a file.
 * [Basement Bathroom Shower Light and Heater](./devices/basement_bathroom_shower_light_heater.yaml)
 
 ### [SANA Triple Switch](https://www.amazon.com/gp/product/B07Q5XPRKD)
-This is installed in place of the switch that controled my [TREO LED Pool Lights](https://www.amazon.com/gp/product/B06XTRLM5M).  These lights have the option to select different colors by briefly turning them off and back on again and they do remember the last color when turned on again.  The custom [Treo Led Pool Lights](./components/treo_led_pool_light/README.md) component handles tracking the current color and exposes custom "effects" for each of the colors to [Home Assistant](https://www.home-assistant.io/).  I originally went with the triple switch so that I could use the third button to control my patio which were controlled by another ESPHome device but I have since updated the patio lights to use a Lutron switch installed by the pool pumps with a Pico remote next to the rear door.  I now have this configured to turn the lights on/off with the top/bottum buttons and use the middle button to change colors.
+This is installed in place of the switch that controled my [TREO LED Pool Lights](https://www.srsmith.com/en-us/products/pool-lighting/treo-led-pool-light/).  These lights have the option to select different colors by briefly turning them off and back on again and they do remember the last color when turned on again.  The custom [Treo Led Pool Lights](./components/treo_led_pool_light/README.md) component handles tracking the current color and exposes custom "effects" for each of the colors to [Home Assistant](https://www.home-assistant.io/).  I have this configured to turn the lights on/off with the top/bottum buttons and use the middle button to change colors.
 * [Pool Lights](./devices/pool_lights.yaml)
 
 ### [Shelly 1L](https://shelly.cloud/products/shelly-1l-single-wire-smart-home-automation-relay/)
