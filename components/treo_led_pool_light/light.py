@@ -1,13 +1,19 @@
 import esphome.codegen as cg
 from esphome.components import light, output
-from esphome.components.light.effects import BINARY_EFFECTS, register_binary_effect, validate_effects
+from esphome.components.light.effects import (
+    BINARY_EFFECTS,
+    register_binary_effect,
+    validate_effects,
+)
 from esphome.components.light.types import LightEffect
 import esphome.config_validation as cv
 from esphome.const import CONF_EFFECTS, CONF_NAME, CONF_OUTPUT, CONF_OUTPUT_ID
 
 
 treo_light_ns = cg.esphome_ns.namespace("treo_light")
-TreoPoolLightOutput = treo_light_ns.class_("TreoPoolLightOutput", light.LightOutput, cg.Component)
+TreoPoolLightOutput = treo_light_ns.class_(
+    "TreoPoolLightOutput", light.LightOutput, cg.Component
+)
 TreoPoolLightEffect = treo_light_ns.class_("TreoPoolLightEffect", LightEffect)
 
 _TREO_EFFECT_NAMES = [

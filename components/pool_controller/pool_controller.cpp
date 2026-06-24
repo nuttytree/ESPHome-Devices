@@ -31,9 +31,8 @@ PoolController::PoolController() {
   this->pump_select_->set_disabled_by_default(false);
   this->pump_select_->traits.set_options({"Off", "Normal", "Always Except Peak", "Always"});
   this->pump_select_->set_initial_option("Off");
-  this->pump_select_->add_on_state_callback([this](const std::string &value, size_t index) {
-    this->pump_mode_ = static_cast<PumpMode>(index);
-  });
+  this->pump_select_->add_on_state_callback(
+      [this](const std::string &value, size_t index) { this->pump_mode_ = static_cast<PumpMode>(index); });
 
   ESP_LOGCONFIG(TAG, "Creating cleaner mode select component");
   this->cleaner_select_ = new PoolSelect();
@@ -45,9 +44,8 @@ PoolController::PoolController() {
   this->cleaner_select_->set_disabled_by_default(false);
   this->cleaner_select_->traits.set_options({"Off", "Normal", "When Pump Is On"});
   this->cleaner_select_->set_initial_option("Off");
-  this->cleaner_select_->add_on_state_callback([this](const std::string &value, size_t index) {
-    this->cleaner_mode_ = static_cast<CleanerMode>(index);
-  });
+  this->cleaner_select_->add_on_state_callback(
+      [this](const std::string &value, size_t index) { this->cleaner_mode_ = static_cast<CleanerMode>(index); });
 
   // this->heat_select_ = new PoolSelect();
   // App.register_component(this->heat_select_);
@@ -57,15 +55,16 @@ PoolController::PoolController() {
   // this->heat_select_->traits.set_options({"Off", "Normal", "Always"});
 }
 
-void PoolController::set_time(time::RealTimeClock *time) { 
+void PoolController::set_time(time::RealTimeClock *time) {
   this->time_ = time;
-  
+
   ESP_LOGD(TAG, "Adding cron trigger");
   auto cron_trigger = new time::CronTrigger(time);
   cron_trigger->add_second(0);
   cron_trigger->add_minutes({0, 30});
   cron_trigger->add_hours({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23});
-  cron_trigger->add_days_of_month({1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31});
+  cron_trigger->add_days_of_month({1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
+                                   17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31});
   cron_trigger->add_months({1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
   cron_trigger->add_days_of_week({1, 2, 3, 4, 5, 6, 7});
   App.register_component(cron_trigger);
@@ -109,8 +108,7 @@ void PoolController::set_cleaner_switch(switch_::Switch *cleaner_switch) {
   App.register_component(this->cleaner_switch_);
 }
 
-void PoolController::setup() {
-}
+void PoolController::setup() {}
 
 void PoolController::loop() {
   manage_pump_();
@@ -129,31 +127,33 @@ void PoolController::manage_pump_() {
         this->pump_switch_->turn_off();
       }
       break;
-    
+
     case PumpMode::PUMP_MODE_NORMAL:
       if (hour >= 4 && hour < 6) {
-        desired_runtime = RUNTIME_30_MINUTES_PER_HALF_HOUR; // normal cleaner run time
-      } else if (day_of_week > 1 && day_of_week < 7 && hour >= 15 && hour < 20 ) {
-        desired_runtime = RUNTIME_10_MINUTES_PER_HALF_HOUR; // peak electric rate
+        desired_runtime = RUNTIME_30_MINUTES_PER_HALF_HOUR;  // normal cleaner run time
+      } else if (day_of_week > 1 && day_of_week < 7 && hour >= 15 && hour < 20) {
+        desired_runtime = RUNTIME_10_MINUTES_PER_HALF_HOUR;  // peak electric rate
       } else if (hour >= 6 && hour < 22) {
         desired_runtime = RUNTIME_15_MINUTES_PER_HALF_HOUR;
       }
       break;
-    
+
     case PumpMode::PUMP_MODE_ALWAYS_EXCEPT_PEAK:
       if (day_of_week == 1 || day_of_week == 7 || hour < 15 || hour >= 20) {
         desired_runtime = RUNTIME_30_MINUTES_PER_HALF_HOUR;
       }
       break;
-    
+
     case PumpMode::PUMP_MODE_ALWAYS:
       desired_runtime = RUNTIME_30_MINUTES_PER_HALF_HOUR;
       break;
   }
 
-  if (!this->pump_switch_->state && desired_runtime > this->pump_switch_->get_runtime() && this->pump_switch_->get_current_off_time() > MINIMUM_AUTOMATION_PUMP_OFF_TIME) {
+  if (!this->pump_switch_->state && desired_runtime > this->pump_switch_->get_runtime() &&
+      this->pump_switch_->get_current_off_time() > MINIMUM_AUTOMATION_PUMP_OFF_TIME) {
     this->pump_switch_->turn_on();
-  } else if (this->pump_switch_->state && desired_runtime < this->pump_switch_->get_runtime() && this->pump_switch_->get_current_on_time() > MINIMUM_AUTOMATION_PUMP_ON_TIME) {
+  } else if (this->pump_switch_->state && desired_runtime < this->pump_switch_->get_runtime() &&
+             this->pump_switch_->get_current_on_time() > MINIMUM_AUTOMATION_PUMP_ON_TIME) {
     this->pump_switch_->turn_off();
   }
 }
@@ -167,13 +167,13 @@ void PoolController::manage_cleaner_() {
         this->cleaner_switch_->turn_off();
       }
       break;
-    
+
     case CleanerMode::CLEANER_MODE_NORMAL:
       if (hour >= 4 && hour < 6) {
         desired_state = true;
       }
       break;
-    
+
     case CleanerMode::CLEANER_MODE_WHEN_PUMP_IS_ON:
       if (this->pump_switch_->state) {
         desired_state = true;
@@ -181,9 +181,11 @@ void PoolController::manage_cleaner_() {
       break;
   }
 
-  if (!this->cleaner_switch_->state && desired_state && this->cleaner_switch_->get_current_off_time() > MINIMUM_AUTOMATION_PUMP_OFF_TIME) {
+  if (!this->cleaner_switch_->state && desired_state &&
+      this->cleaner_switch_->get_current_off_time() > MINIMUM_AUTOMATION_PUMP_OFF_TIME) {
     this->cleaner_switch_->turn_on();
-  } else if (this->cleaner_switch_->state && !desired_state && this->cleaner_switch_->get_current_on_time() > MINIMUM_AUTOMATION_PUMP_ON_TIME) {
+  } else if (this->cleaner_switch_->state && !desired_state &&
+             this->cleaner_switch_->get_current_on_time() > MINIMUM_AUTOMATION_PUMP_ON_TIME) {
     this->cleaner_switch_->turn_off();
   }
 }

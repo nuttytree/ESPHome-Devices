@@ -9,7 +9,7 @@ external_components:
       type: local
       path: ./components
     components: [ high_temp_water_heater ]
-    
+
 packages:
   econet:
     url: https://github.com/esphome-econet/esphome-econet

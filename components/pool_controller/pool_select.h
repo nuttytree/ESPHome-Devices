@@ -14,7 +14,7 @@ class PoolSelect : public select::Select, public Component {
   void setup() override;
 
   void set_initial_option(const std::string &initial_option) { this->initial_option_ = initial_option; }
-  
+
  protected:
   void control(const std::string &value) override;
   std::string initial_option_;

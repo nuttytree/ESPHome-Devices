@@ -17,16 +17,14 @@ PumpSwitch::PumpSwitch(switch_::Switch *physical_switch) {
   this->set_update_interval(1000);
   this->set_restore_mode(switch_::SWITCH_ALWAYS_OFF);
 
-  physical_switch->add_on_state_callback([this](bool state) -> void {
-    this->on_physical_switch_state_change_(state);
-  });
+  physical_switch->add_on_state_callback([this](bool state) -> void { this->on_physical_switch_state_change_(state); });
   this->physical_switch_ = physical_switch;
 }
 
 void PumpSwitch::update() {
   this->update_runtime_();
   this->update_physical_switch_();
-  //this->check_current_();
+  // this->check_current_();
 }
 
 uint32_t PumpSwitch::get_current_on_time() {
@@ -97,7 +95,7 @@ void PumpSwitch::update_physical_switch_() {
 
     // Check any other registered conditions
     for (auto &check : this->turn_on_checks_) {
-      if (!check()){
+      if (!check()) {
         return;
       }
     }
@@ -110,7 +108,7 @@ void PumpSwitch::update_physical_switch_() {
 
     // Check any other registered conditions
     for (auto &check : this->turn_off_checks_) {
-      if (!check()){
+      if (!check()) {
         return;
       }
     }

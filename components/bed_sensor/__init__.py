@@ -4,7 +4,12 @@ from esphome.components import binary_sensor
 from esphome.components import output
 from esphome.components import sensor
 from esphome.components import text_sensor
-from esphome.const import CONF_ID, CONF_OUTPUT, DEVICE_CLASS_OCCUPANCY, ENTITY_CATEGORY_DIAGNOSTIC
+from esphome.const import (
+    CONF_ID,
+    CONF_OUTPUT,
+    DEVICE_CLASS_OCCUPANCY,
+    ENTITY_CATEGORY_DIAGNOSTIC,
+)
 
 CODEOWNERS = ["@nuttytree"]
 AUTO_LOAD = ["binary_sensor", "sensor", "text_sensor"]
@@ -52,25 +57,23 @@ SOMEONE_CONFIG_SCHEMA = binary_sensor.binary_sensor_schema(
     }
 )
 
-CONFIG_SCHEMA = (
-    cv.Schema(
-        {
-            cv.GenerateID(): cv.declare_id(BedSensor),
-            cv.Required(CONF_ADC_SENSOR): cv.use_id(ADCSensor),
-            cv.Required(CONF_SIDE_ONE): BED_SIDE_CONFIG_SCHEMA,
-            cv.Required(CONF_SIDE_TWO): BED_SIDE_CONFIG_SCHEMA,
-            cv.Required(CONF_SOMEONE): SOMEONE_CONFIG_SCHEMA,
-            cv.Required(CONF_COUNT): sensor.sensor_schema(
-                icon=ICON_COUNTER,
-                accuracy_decimals=0,
-            ),
-            cv.Required(CONF_STATUS): text_sensor.text_sensor_schema(
-                icon=ICON_BED,
-            ),
-        }
-    )
-    .extend(cv.polling_component_schema("2s"))
-)
+CONFIG_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(): cv.declare_id(BedSensor),
+        cv.Required(CONF_ADC_SENSOR): cv.use_id(ADCSensor),
+        cv.Required(CONF_SIDE_ONE): BED_SIDE_CONFIG_SCHEMA,
+        cv.Required(CONF_SIDE_TWO): BED_SIDE_CONFIG_SCHEMA,
+        cv.Required(CONF_SOMEONE): SOMEONE_CONFIG_SCHEMA,
+        cv.Required(CONF_COUNT): sensor.sensor_schema(
+            icon=ICON_COUNTER,
+            accuracy_decimals=0,
+        ),
+        cv.Required(CONF_STATUS): text_sensor.text_sensor_schema(
+            icon=ICON_BED,
+        ),
+    }
+).extend(cv.polling_component_schema("2s"))
+
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
@@ -81,18 +84,34 @@ async def to_code(config):
     side_one_config = config[CONF_SIDE_ONE]
     cg.add(var.set_side_one_name(side_one_config[CONF_STATUS_NAME]))
     cg.add(var.set_side_one_output(await cg.get_variable(side_one_config[CONF_OUTPUT])))
-    cg.add(var.set_side_one_value_sensor(await sensor.new_sensor(side_one_config[CONF_VALUE_SENSOR])))
-    cg.add(var.set_side_one_sensor(await binary_sensor.new_binary_sensor(side_one_config)))
+    cg.add(
+        var.set_side_one_value_sensor(
+            await sensor.new_sensor(side_one_config[CONF_VALUE_SENSOR])
+        )
+    )
+    cg.add(
+        var.set_side_one_sensor(await binary_sensor.new_binary_sensor(side_one_config))
+    )
 
     side_two_config = config[CONF_SIDE_TWO]
     cg.add(var.set_side_two_name(side_two_config[CONF_STATUS_NAME]))
     cg.add(var.set_side_two_output(await cg.get_variable(side_two_config[CONF_OUTPUT])))
-    cg.add(var.set_side_two_value_sensor(await sensor.new_sensor(side_two_config[CONF_VALUE_SENSOR])))
-    cg.add(var.set_side_two_sensor(await binary_sensor.new_binary_sensor(side_two_config)))
+    cg.add(
+        var.set_side_two_value_sensor(
+            await sensor.new_sensor(side_two_config[CONF_VALUE_SENSOR])
+        )
+    )
+    cg.add(
+        var.set_side_two_sensor(await binary_sensor.new_binary_sensor(side_two_config))
+    )
 
     someone_config = config[CONF_SOMEONE]
     cg.add(var.set_someone_name(someone_config[CONF_STATUS_NAME]))
-    cg.add(var.set_someone_sensor(await binary_sensor.new_binary_sensor(someone_config)))
+    cg.add(
+        var.set_someone_sensor(await binary_sensor.new_binary_sensor(someone_config))
+    )
 
     cg.add(var.set_count_sensor(await sensor.new_sensor(config[CONF_COUNT])))
-    cg.add(var.set_status_sensor(await text_sensor.new_text_sensor(config[CONF_STATUS])))
+    cg.add(
+        var.set_status_sensor(await text_sensor.new_text_sensor(config[CONF_STATUS]))
+    )

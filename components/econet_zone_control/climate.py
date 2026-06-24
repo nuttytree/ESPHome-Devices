@@ -7,7 +7,6 @@ from esphome.components.econet import (
     CONF_SRC_ADDRESS,
     ECONET_CLIENT_SCHEMA,
     EconetClient,
-    econet_ns,
     request_mod as econet_request_mod,
 )
 import esphome.config_validation as cv
@@ -129,8 +128,14 @@ async def to_code(config):
         )
 
     cg.add(var.set_current_temperature_id(config[CONF_CURRENT_TEMPERATURE_DATAPOINT]))
-    cg.add(var.set_target_temperature_low_id(config[CONF_TARGET_TEMPERATURE_LOW_DATAPOINT]))
-    cg.add(var.set_target_temperature_high_id(config[CONF_TARGET_TEMPERATURE_HIGH_DATAPOINT]))
+    cg.add(
+        var.set_target_temperature_low_id(config[CONF_TARGET_TEMPERATURE_LOW_DATAPOINT])
+    )
+    cg.add(
+        var.set_target_temperature_high_id(
+            config[CONF_TARGET_TEMPERATURE_HIGH_DATAPOINT]
+        )
+    )
     cg.add(var.set_fan_mode_id(config[CONF_FAN_MODE_DATAPOINT]))
     cg.add(var.set_fan_mode_no_schedule_id(config[CONF_FAN_MODE_NO_SCHEDULE_DATAPOINT]))
     cg.add(var.set_current_humidity_id(config[CONF_CURRENT_HUMIDITY_DATAPOINT]))

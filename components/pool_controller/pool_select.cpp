@@ -29,8 +29,8 @@ void PoolSelect::control(const std::string &value) {
   ESP_LOGD(SELECT_TAG, "%s changed to option %s", this->get_name().c_str(), value.c_str());
   this->publish_state(value);
 
-    auto index = this->index_of(value);
-    this->pref_.save(&index.value());
+  auto index = this->index_of(value);
+  this->pref_.save(&index.value());
 }
 
 }  // namespace pool_controller

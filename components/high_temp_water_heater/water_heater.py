@@ -36,7 +36,10 @@ HighTempWaterHeater = high_temp_water_heater_ns.class_(
 
 
 def _validate_config(config):
-    if CONF_TEMPERATURE_SENSOR in config and CONF_TEMPERATURE_SENSOR_OFFSET not in config:
+    if (
+        CONF_TEMPERATURE_SENSOR in config
+        and CONF_TEMPERATURE_SENSOR_OFFSET not in config
+    ):
         raise cv.Invalid(
             f"{CONF_TEMPERATURE_SENSOR_OFFSET} is required when {CONF_TEMPERATURE_SENSOR} is set"
         )
@@ -62,7 +65,8 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_SOURCE_WATER_HEATER): cv.use_id(water_heater.WaterHeater),
             cv.Optional(CONF_TEMPERATURE_SENSOR): cv.use_id(sensor.Sensor),
             cv.Optional(CONF_TEMPERATURE_SENSOR_OFFSET): cv.All(
-                cv.temperature_delta, cv.float_range(min=_TEMP_OFFSET_MIN_C, max=_TEMP_OFFSET_MAX_C)
+                cv.temperature_delta,
+                cv.float_range(min=_TEMP_OFFSET_MIN_C, max=_TEMP_OFFSET_MAX_C),
             ),
             cv.Optional(CONF_MIN_TEMPERATURE, default=_MIN_TEMP_DEFAULT_C): cv.All(
                 cv.temperature, cv.float_range(min=_MIN_TEMP_MIN_C, max=_MIN_TEMP_MAX_C)
@@ -70,14 +74,18 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_MAX_TEMPERATURE, default=_MAX_TEMP_DEFAULT_C): cv.All(
                 cv.temperature, cv.float_range(min=_MAX_TEMP_MIN_C, max=_MAX_TEMP_MAX_C)
             ),
-            cv.Optional(CONF_TARGET_TEMPERATURE_STEP, default=_TEMP_STEP_DEFAULT): cv.All(
+            cv.Optional(
+                CONF_TARGET_TEMPERATURE_STEP, default=_TEMP_STEP_DEFAULT
+            ): cv.All(
                 cv.float_, cv.float_range(min=_TEMP_STEP_MIN, max=_TEMP_STEP_MAX)
             ),
             cv.Required(CONF_DEAD_BAND): cv.All(
-                cv.temperature_delta, cv.float_range(min=_HEATING_DELTA_MIN_C, max=_HEATING_DELTA_MAX_C)
+                cv.temperature_delta,
+                cv.float_range(min=_HEATING_DELTA_MIN_C, max=_HEATING_DELTA_MAX_C),
             ),
             cv.Required(CONF_OVER_RUN): cv.All(
-                cv.temperature_delta, cv.float_range(min=_HEATING_DELTA_MIN_C, max=_HEATING_DELTA_MAX_C)
+                cv.temperature_delta,
+                cv.float_range(min=_HEATING_DELTA_MIN_C, max=_HEATING_DELTA_MAX_C),
             ),
         }
     )
@@ -98,7 +106,9 @@ async def to_code(config):
         cg.add(var.set_temperature_sensor(sens))
 
     if CONF_TEMPERATURE_SENSOR_OFFSET in config:
-        cg.add(var.set_temperature_sensor_offset(config[CONF_TEMPERATURE_SENSOR_OFFSET]))
+        cg.add(
+            var.set_temperature_sensor_offset(config[CONF_TEMPERATURE_SENSOR_OFFSET])
+        )
     cg.add(var.set_min_temperature(config[CONF_MIN_TEMPERATURE]))
     cg.add(var.set_max_temperature(config[CONF_MAX_TEMPERATURE]))
     cg.add(var.set_target_temperature_step(config[CONF_TARGET_TEMPERATURE_STEP]))

@@ -54,7 +54,7 @@ sensor:
     filters:
       - heartbeat:
           period: 10s
-          optimistic: true    
+          optimistic: true
   - platform: total_daily_energy
     name: ${device_name}
     power_id: light_power

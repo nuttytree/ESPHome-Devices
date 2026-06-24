@@ -13,9 +13,7 @@ light::LightTraits TreoPoolLightOutput::get_traits() {
   return traits;
 }
 
-void TreoPoolLightOutput::setup() {
-  register_service(&TreoPoolLightOutput::color_reset, "color_reset");
-}
+void TreoPoolLightOutput::setup() { register_service(&TreoPoolLightOutput::color_reset, "color_reset"); }
 
 void TreoPoolLightOutput::setup_state(light::LightState *state) {
   this->state_ = state;
@@ -45,7 +43,7 @@ void TreoPoolLightOutput::write_state(light::LightState *state) {
   bool target_state;
   this->state_->current_values_as_binary(&target_state);
   this->output_->set_state(target_state);
-  
+
   if (target_state) {
     int effect_index = this->state_->get_current_effect_index();
     int current_color = this->get_current_color_();
@@ -82,7 +80,7 @@ void TreoPoolLightOutput::color_change_on_() {
     if (target_state) {
       this->is_changing_colors_ = false;
     } else {
-      this->set_timeout("COLOR_CHANGE", COLOR_CHANGE_ON_OFF_TIME, [this]() { 
+      this->set_timeout("COLOR_CHANGE", COLOR_CHANGE_ON_OFF_TIME, [this]() {
         this->is_changing_colors_ = false;
         this->write_state(this->state_);
       });
@@ -106,7 +104,8 @@ int TreoPoolLightOutput::get_target_color_() {
   if (this->state_ == nullptr)
     return this->get_current_color_();
   int idx = this->state_->get_current_effect_index();
-  if (idx >= 1 && idx <= 8) return idx;
+  if (idx >= 1 && idx <= 8)
+    return idx;
   return this->get_current_color_();
 }
 
@@ -128,25 +127,15 @@ void TreoPoolLightOutput::color_reset() {
   this->set_timeout("COLOR_RESET_ON_1", 5500, [this]() {
     this->output_->set_state(true);
 
-    this->set_timeout("COLOR_RESET_OFF_1", 250, [this]() {
-      this->output_->set_state(false);
-    });
+    this->set_timeout("COLOR_RESET_OFF_1", 250, [this]() { this->output_->set_state(false); });
 
-    this->set_timeout("COLOR_RESET_ON_2", 500, [this]() {
-      this->output_->set_state(true);
-    });
+    this->set_timeout("COLOR_RESET_ON_2", 500, [this]() { this->output_->set_state(true); });
 
-    this->set_timeout("COLOR_RESET_OFF_2", 750, [this]() {
-      this->output_->set_state(false);
-    });
+    this->set_timeout("COLOR_RESET_OFF_2", 750, [this]() { this->output_->set_state(false); });
 
-    this->set_timeout("COLOR_RESET_ON_3", 1000, [this]() {
-      this->output_->set_state(true);
-    });
+    this->set_timeout("COLOR_RESET_ON_3", 1000, [this]() { this->output_->set_state(true); });
 
-    this->set_timeout("COLOR_RESET_OFF_3", 1250, [this]() {
-      this->output_->set_state(false);
-    });
+    this->set_timeout("COLOR_RESET_OFF_3", 1250, [this]() { this->output_->set_state(false); });
 
     this->set_timeout("COLOR_RESET_FINISH", 6750, [this]() {
       this->set_current_color_(1);

@@ -28,7 +28,7 @@ struct EconetZone {
   float cached_target_low_f{NAN};
   float cached_target_high_f{NAN};
   climate::ClimateMode cached_mode{climate::CLIMATE_MODE_OFF};
-  int16_t cached_fan_mode{-1};           // -1 = not yet received
+  int16_t cached_fan_mode{-1};  // -1 = not yet received
   int16_t cached_fan_mode_no_schedule{-1};
 };
 
@@ -82,7 +82,7 @@ class EcoNetZoneControl : public climate::Climate, public Component, public econ
   const EconetZone *locked_min_zone_{nullptr};
   const EconetZone *locked_max_zone_{nullptr};
   uint64_t zone_lock_until_{0};
-  uint8_t last_fan_mode_{0xFF};   ///< Last spread_mode written; 0xFF = never written.
+  uint8_t last_fan_mode_{0xFF};      ///< Last spread_mode written; 0xFF = never written.
   uint64_t fan_mode_lock_until_{0};  ///< Do not change spread_mode before this millis_64() timestamp.
 };
 

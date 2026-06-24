@@ -10,7 +10,7 @@ substitutions:
 external_components:
   - source:
       type: local
-      path: ./components 
+      path: ./components
     components: [ econet_zone_control ]
 
 packages:
@@ -78,5 +78,5 @@ climate:
         target_temperature: 1°F
 
 sensor:
- - id: !extend thermostat_current_humidity
-   internal: true
+  - id: !extend thermostat_current_humidity
+    internal: true

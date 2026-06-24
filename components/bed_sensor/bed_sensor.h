@@ -21,18 +21,14 @@ class BedSensor : public PollingComponent {
   void set_side_one_value_sensor(sensor::Sensor *side_one_value_sensor) {
     this->side_one_value_sensor_ = side_one_value_sensor;
   }
-  void set_side_one_sensor(binary_sensor::BinarySensor *side_one_sensor) {
-    this->side_one_sensor_ = side_one_sensor;
-  }
+  void set_side_one_sensor(binary_sensor::BinarySensor *side_one_sensor) { this->side_one_sensor_ = side_one_sensor; }
 
   void set_side_two_output(output::BinaryOutput *side_two_output) { this->side_two_output_ = side_two_output; }
   void set_side_two_name(const char *side_two_name) { this->side_two_name_ = side_two_name; }
   void set_side_two_value_sensor(sensor::Sensor *side_two_value_sensor) {
     this->side_two_value_sensor_ = side_two_value_sensor;
   }
-  void set_side_two_sensor(binary_sensor::BinarySensor *side_two_sensor) {
-    this->side_two_sensor_ = side_two_sensor;
-  }
+  void set_side_two_sensor(binary_sensor::BinarySensor *side_two_sensor) { this->side_two_sensor_ = side_two_sensor; }
 
   void set_someone_sensor(binary_sensor::BinarySensor *someone_in_bed) { this->someone_in_bed_ = someone_in_bed; }
   void set_someone_name(const char *someone_name) { this->someone_name_ = someone_name; }
