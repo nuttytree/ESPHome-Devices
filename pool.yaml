@@ -1,3 +1,5 @@
+# Note this device is a work in progress
+
 substitutions:
   device_id: pool
   device_name: Pool
@@ -12,12 +14,12 @@ external_components:
   - source:
       type: local
       path: ./components
-    components: [ pool_controller ]
+    components: [pool_controller]
   - source:
       type: git
       url: https://github.com/latonita/esphome
       ref: waveshare_expander
-    components: [ waveshare_io_ch32v003 ]
+    components: [waveshare_io_ch32v003]
     refresh: 1h
 
 esphome:
@@ -32,6 +34,7 @@ binary_sensor:
   - platform: gpio
     id: flow_main
     name: "Main Pump Flow"
+    icon: mdi:waves-arrow-right
     pin:
       pcf8574: io_expander
       number: 4
@@ -81,24 +84,24 @@ display:
     vsync_pulse_width: 45
     data_pins:
       red:
-        - 1         #r3
-        - 2         #r4
-        - 42        #r5
-        - 41        #r6
-        - 40        #r7
+        - 1  # r3
+        - 2  # r4
+        - 42  # r5
+        - 41  # r6
+        - 40  # r7
       green:
-        - 39        #g2
-        - 0         #g3
-        - 45        #g4
-        - 48        #g5
-        - 47        #g6
-        - 21        #g7
+        - 39  # g2
+        - 0  # g3
+        - 45  # g4
+        - 48  # g5
+        - 47  # g6
+        - 21  # g7
       blue:
-        - 14        #b3
-        - 38        #b4
-        - 18        #b5
-        - 17        #b6
-        - 10        #b7
+        - 14  # b3
+        - 38  # b4
+        - 18  # b5
+        - 17  # b6
+        - 10  # b7
 
 font:
   - file: "gfonts://Roboto"
@@ -202,7 +205,7 @@ output:
       inverted: true
 
 pcf8574:
-  - id: 'io_expander'
+  - id: "io_expander"
     address: 0x20
     pcf8575: false
     interrupt_pin:
@@ -230,40 +233,36 @@ pool_controller:
     schedules:
       - name: Normal
         runtimes:
-          - start_time: '4:00'
-            end_time: '6:00'
+          - start_time: "4:00"
+            end_time: "6:00"
             minutes_per_hour: 60
 
-          - start_time: '6:00'
-            end_time: '18:00'
+          - start_time: "6:00"
+            end_time: "18:00"
             minutes_per_hour: 40
             days_of_week: MON-FRI
-          - start_time: '18:00'
-            end_time: '21:00'
-            minutes_per_hour: 20
-            days_of_week: MON-FRI
-          - start_time: '21:00'
-            end_time: '22:00'
-            minutes_per_hour: 40
+          - start_time: "21:00"
+            end_time: "22:00"
+            minutes_per_hour: 60
             days_of_week: MON-FRI
 
-          - start_time: '6:00'
-            end_time: '22:00'
+          - start_time: "6:00"
+            end_time: "22:00"
             minutes_per_hour: 40
             days_of_week: SAT,SUN
       - name: Always Except Peak
         runtimes:
-          - start_time: '0:00'
-            end_time: '18:00'
+          - start_time: "0:00"
+            end_time: "18:00"
             minutes_per_hour: 60
             days_of_week: MON-FRI
-          - start_time: '21:00'
-            end_time: '24:00'
+          - start_time: "21:00"
+            end_time: "24:00"
             minutes_per_hour: 60
             days_of_week: MON-FRI
 
-          - start_time: '0:00'
-            end_time: '24:00'
+          - start_time: "0:00"
+            end_time: "24:00"
             minutes_per_hour: 60
             days_of_week: SAT,SUN
   auxiliary_pumps:
@@ -285,13 +284,13 @@ pool_controller:
       schedules:
         - name: Normal
           runtimes:
-            - start_time: '4:00'
-              end_time: '5:00'
+            - start_time: "4:00"
+              end_time: "5:00"
               minutes_per_hour: 60
         - name: Double Time
           runtimes:
-            - start_time: '4:00'
-              end_time: '6:00'
+            - start_time: "4:00"
+              end_time: "6:00"
               minutes_per_hour: 60
       restore_mode: Always Off
   # pool_heater:

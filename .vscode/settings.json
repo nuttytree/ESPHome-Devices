@@ -1,6 +1,7 @@
 {
     "files.eol": "\n",
     "files.associations": {
+        "*.yaml": "yaml",
         "bitset": "cpp",
         "algorithm": "cpp",
         "chrono": "cpp",

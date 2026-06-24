@@ -32,6 +32,8 @@ repos:
           - --branch=master
       - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: [--fix=lf]
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.21.2
     hooks:

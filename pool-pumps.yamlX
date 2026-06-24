@@ -12,10 +12,10 @@ packages:
 external_components:
   - source:
       type: local
-      path: ./components 
+      path: ./components
     components: [ pool_controller ]
 
-    
+
 binary_sensor:
   # Prevent short circuit with "floating" pin!
   - platform: gpio

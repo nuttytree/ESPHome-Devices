@@ -1,193 +1,228 @@
 #include "pool_controller.h"
-#include "esphome/components/time/automation.h"
-#include "esphome/core/application.h"
-#include "esphome/core/base_automation.h"
+#include "pool_heater.h"
+
+#include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
-#include "esphome/core/time.h"
+#include "esphome/core/util.h"
+
+#include <cinttypes>
 
 namespace esphome {
 namespace pool_controller {
 
-static const char *const TAG = "pool.controller";
+static const char *const TAG = "pool_controller";
 
-static const uint32_t RUNTIME_30_MINUTES_PER_HALF_HOUR = UINT32_MAX;
-static const uint32_t RUNTIME_15_MINUTES_PER_HALF_HOUR = 900000;
-static const uint32_t RUNTIME_10_MINUTES_PER_HALF_HOUR = 600000;
-
-// Minimum time the pump needs to be off before the automation will turn it back on (300000 = 5 minutes)
-static const uint32_t MINIMUM_AUTOMATION_PUMP_OFF_TIME = 300000;
-
-// Minimum time the pump needs to be on before the automation will turn it back off (300000 = 5 minutes)
-static const uint32_t MINIMUM_AUTOMATION_PUMP_ON_TIME = 300000;
-
-PoolController::PoolController() {
-  ESP_LOGCONFIG(TAG, "Creating pump mode select component");
-  this->pump_select_ = new PoolSelect();
-  App.register_component(this->pump_select_);
-  App.register_select(this->pump_select_);
-  this->pump_select_->set_name("Pool Pump Mode");
-  this->pump_select_->set_object_id("pump_select");
-  this->pump_select_->set_icon("mdi:pump");
-  this->pump_select_->set_disabled_by_default(false);
-  this->pump_select_->traits.set_options({"Off", "Normal", "Always Except Peak", "Always"});
-  this->pump_select_->set_initial_option("Off");
-  this->pump_select_->add_on_state_callback(
-      [this](const std::string &value, size_t index) { this->pump_mode_ = static_cast<PumpMode>(index); });
-
-  ESP_LOGCONFIG(TAG, "Creating cleaner mode select component");
-  this->cleaner_select_ = new PoolSelect();
-  App.register_component(this->cleaner_select_);
-  App.register_select(this->cleaner_select_);
-  this->cleaner_select_->set_name("Pool Cleaner Mode");
-  this->cleaner_select_->set_object_id("cleaner_select");
-  this->cleaner_select_->set_icon("mdi:robot-vacuum");
-  this->cleaner_select_->set_disabled_by_default(false);
-  this->cleaner_select_->traits.set_options({"Off", "Normal", "When Pump Is On"});
-  this->cleaner_select_->set_initial_option("Off");
-  this->cleaner_select_->add_on_state_callback(
-      [this](const std::string &value, size_t index) { this->cleaner_mode_ = static_cast<CleanerMode>(index); });
-
-  // this->heat_select_ = new PoolSelect();
-  // App.register_component(this->heat_select_);
-  // App.register_select(this->heat_select_);
-  // this->heat_select_->set_name("Pool Heat Mode");
-  // this->heat_select_->traits.set_icon("mdi:thermometer");
-  // this->heat_select_->traits.set_options({"Off", "Normal", "Always"});
+void PoolController::setup() {
+  ESP_LOGCONFIG(TAG, "Setting up Pool Controller");
+  if (this->disable_pumps_sensor_ != nullptr) {
+    this->disable_pumps_sensor_->add_on_state_callback([this](bool state) {
+      if (state) {
+        ESP_LOGD(TAG, "Disable-pumps sensor activated — shutting down all pumps");
+        this->request_primary_turn_off_();
+      }
+    });
+  }
 }
 
-void PoolController::set_time(time::RealTimeClock *time) {
-  this->time_ = time;
-
-  ESP_LOGD(TAG, "Adding cron trigger");
-  auto cron_trigger = new time::CronTrigger(time);
-  cron_trigger->add_second(0);
-  cron_trigger->add_minutes({0, 30});
-  cron_trigger->add_hours({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23});
-  cron_trigger->add_days_of_month({1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
-                                   17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31});
-  cron_trigger->add_months({1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
-  cron_trigger->add_days_of_week({1, 2, 3, 4, 5, 6, 7});
-  App.register_component(cron_trigger);
-  auto lambda_action = new LambdaAction<>([=]() -> void {
-    this->pump_switch_->reset_runtime();
-    this->cleaner_switch_->reset_runtime();
-  });
-  auto automation = new Automation<>(cron_trigger);
-  automation->add_actions({lambda_action});
+void PoolController::reset_all_pump_runtimes_() {
+  ESP_LOGD(TAG, "Half-hour boundary – resetting pump runtime counters (%02d:%02d)", this->last_check_->hour,
+           this->last_check_->minute);
+  if (this->primary_pump_ != nullptr)
+    this->primary_pump_->reset_runtime();
+  for (auto *aux : this->auxiliary_pumps_)
+    aux->reset_runtime();
 }
 
-void PoolController::set_pump_switch(switch_::Switch *pump_switch) {
-  this->pump_switch_ = new PumpSwitch(pump_switch);
-  App.register_switch(this->pump_switch_);
-  this->pump_switch_->set_name("Pool Pump");
-  this->pump_switch_->set_object_id("controller_managed_pump_switch");
-  this->pump_switch_->set_icon("mdi:pump");
-  this->pump_switch_->add_turn_off_check([this]() -> bool {
-    ESP_LOGD(TAG, "Pump switch turn off check is checking the state of the pool cleaner");
-    if (this->cleaner_switch_->state) {
-      this->cleaner_switch_->turn_off();
+void PoolController::tick_all_pump_schedules_(const ESPTime &now) {
+  // If a delayed primary turn-off is in progress, only service the timer.
+  if (this->primary_turn_off_pending_) {
+    if (millis_64() >= this->primary_turn_off_at_ms_) {
+      if (this->primary_pump_ != nullptr && this->primary_pump_->state)
+        this->primary_pump_->turn_off();
+      this->primary_turn_off_pending_ = false;
     }
-    return this->cleaner_switch_->get_current_off_time() > 5000;
-  });
-  App.register_component(this->pump_switch_);
+    return;
+  }
+
+  if (this->primary_pump_ != nullptr)
+    this->tick_pump_schedule_(this->primary_pump_, now);
+
+  // If the primary tick just armed the sequenced shutdown, skip aux ticks this
+  // cycle so auxiliaries cannot immediately turn themselves back on.
+  if (this->primary_turn_off_pending_)
+    return;
+
+  for (auto *aux : this->auxiliary_pumps_)
+    this->tick_pump_schedule_(aux, now);
 }
 
-void PoolController::set_cleaner_switch(switch_::Switch *cleaner_switch) {
-  this->cleaner_switch_ = new PumpSwitch(cleaner_switch);
-  App.register_switch(this->cleaner_switch_);
-  this->cleaner_switch_->set_name("Pool Cleaner");
-  this->cleaner_switch_->set_object_id("controller_managed_cleaner_switch");
-  this->cleaner_switch_->set_icon("mdi:robot-vacuum");
-  this->cleaner_switch_->add_turn_on_check([this]() {
-    ESP_LOGD(TAG, "Cleaner switch turn on check is checking the state of the pool pump");
-    if (!this->pump_switch_->state) {
-      this->pump_switch_->turn_on();
+void PoolController::tick_pump_schedule_(PumpSwitch *pump, const ESPTime &now) {
+  // Off schedule — ensure pump is always off.
+  if (pump->is_off_schedule()) {
+    if (pump == this->primary_pump_) {
+      this->request_primary_turn_off_();
+    } else {
+      if (pump->state)
+        pump->turn_off();
     }
-    return this->pump_switch_->get_current_on_time() > 5000;
-  });
-  App.register_component(this->cleaner_switch_);
+    return;
+  }
+
+  const uint16_t slot_start = static_cast<uint16_t>(now.hour) * 60 + (now.minute >= 30 ? 30 : 0);
+  uint32_t target_seconds = 0;
+
+  if (pump->is_builtin_last_schedule()) {
+    if (pump == this->primary_pump_) {
+      // "Always": run the full 30-minute window.
+      target_seconds = 60u * 30u;  // 1800 s
+    } else {
+      // "When X is Running": mirror the primary pump's state.
+      if (this->primary_pump_ != nullptr && this->primary_pump_->state) {
+        if (!pump->state && pump->can_turn_on() && !pump->is_disabled() && this->primary_is_ready_for_aux_())
+          pump->turn_on();
+      } else {
+        if (pump->state)
+          pump->turn_off();
+      }
+      return;
+    }
+  } else {
+    // User-defined schedule.
+    // Auxiliary pumps are blocked entirely when the primary pump is on the Off schedule.
+    if (pump != this->primary_pump_ && this->primary_pump_ != nullptr && this->primary_pump_->is_off_schedule()) {
+      if (pump->state)
+        pump->turn_off();
+      return;
+    }
+    // Target on-time for this 30-minute window:
+    //   minutes_per_hour / 2 converted to seconds  =  minutes_per_hour * 30
+    const ScheduleRuntime *rt = pump->find_active_runtime(slot_start, now.day_of_week);
+    if (rt != nullptr && rt->minutes_per_hour > 0)
+      target_seconds = static_cast<uint32_t>(rt->minutes_per_hour) * 30;
+  }
+
+  const uint32_t current_runtime = pump->get_runtime_seconds();
+
+  // A full-window target (60 min/hr = 1800 s) means run continuously for the entire
+  // 30-minute slot.  Never turn the pump off because the runtime counter caught up to
+  // the target — the half-hour reset will clear the counter without stopping the pump.
+  const bool full_window = (target_seconds == 60u * 30u);
+
+  if (!full_window && (target_seconds == 0 || current_runtime >= target_seconds)) {
+    // Own schedule says stop — but keep the primary alive if an auxiliary still needs it.
+    if (pump == this->primary_pump_ && this->any_auxiliary_needs_primary_(slot_start, now.day_of_week)) {
+      if (!pump->state && pump->can_turn_on() && !pump->is_disabled())
+        pump->turn_on();
+      return;
+    }
+    // Sequence the primary turn-off; auxiliaries turn off immediately.
+    if (pump == this->primary_pump_) {
+      this->request_primary_turn_off_();
+    } else {
+      if (pump->state)
+        pump->turn_off();
+    }
+    return;
+  }
+
+  // Below target (or full-window) — turn on if the pump is off and the cooldown has elapsed.
+  if (!pump->state && pump->can_turn_on() && !pump->is_disabled()) {
+    // Auxiliaries must wait sequence_delay_ms_ after the primary turned on before starting.
+    if (pump != this->primary_pump_ && !this->primary_is_ready_for_aux_())
+      return;
+    pump->turn_on();
+  }
 }
 
-void PoolController::setup() {}
+void PoolController::request_primary_turn_off_() {
+  // Turn off the pool heater immediately so it is off before the primary pump stops.
+  if (this->pool_heater_ != nullptr)
+    this->pool_heater_->request_heater_off();
+
+  // Turn off all auxiliary pumps immediately.
+  for (auto *aux : this->auxiliary_pumps_)
+    if (aux->state)
+      aux->turn_off();
+
+  // Queue the primary pump turn-off after sequence_delay_ms_ (if not already pending).
+  if (this->primary_pump_ != nullptr && this->primary_pump_->state && !this->primary_turn_off_pending_) {
+    ESP_LOGD(TAG, "Sequenced shutdown: heater/auxiliaries off now, primary off in %" PRIu32 " ms",
+             this->sequence_delay_ms_);
+    this->primary_turn_off_pending_ = true;
+    this->primary_turn_off_at_ms_ = millis_64() + this->sequence_delay_ms_;
+  }
+}
+
+bool PoolController::primary_is_ready_for_aux_() const {
+  if (this->primary_pump_ == nullptr || !this->primary_pump_->state)
+    return false;
+  // Auxiliaries may start only after the primary has been running for sequence_delay_ms_.
+  return (millis_64() - this->primary_pump_->turned_on_ms_) >= this->sequence_delay_ms_;
+}
+
+bool PoolController::any_auxiliary_needs_primary_(uint16_t slot_start, uint8_t day_of_week) const {
+  for (auto *aux : this->auxiliary_pumps_) {
+    // Only user-defined schedules can independently demand the primary pump.
+    if (aux->is_off_schedule() || aux->is_builtin_last_schedule())
+      continue;
+    if (aux->is_disabled())
+      continue;
+    const ScheduleRuntime *rt = aux->find_active_runtime(slot_start, day_of_week);
+    if (rt == nullptr || rt->minutes_per_hour == 0)
+      continue;
+    const uint32_t target = static_cast<uint32_t>(rt->minutes_per_hour) * 30;
+    // A full-window auxiliary (60 min/hr) always needs the primary for the entire slot.
+    if (target == 60u * 30u)
+      return true;
+    if (aux->get_runtime_seconds() < target)
+      return true;
+  }
+  return false;
+}
 
 void PoolController::loop() {
-  manage_pump_();
+  if (this->rtc_ == nullptr)
+    return;
 
-  manage_cleaner_();
-}
+  ESPTime now = this->rtc_->now();
+  if (!now.is_valid())
+    return;
 
-void PoolController::manage_pump_() {
-  uint32_t desired_runtime = 0;
-  ESPTime now = this->time_->now();
-  uint8_t hour = now.hour;
-  uint8_t day_of_week = now.day_of_week;
-  switch (this->pump_mode_) {
-    case PumpMode::PUMP_MODE_OFF:
-      if (this->pump_switch_->state) {
-        this->pump_switch_->turn_off();
-      }
-      break;
+  // Mirrors the CronTrigger::loop() pattern to handle NTP time jumps correctly.
+  static constexpr int MAX_TIMESTAMP_DRIFT = 900;  // seconds
 
-    case PumpMode::PUMP_MODE_NORMAL:
-      if (hour >= 4 && hour < 6) {
-        desired_runtime = RUNTIME_30_MINUTES_PER_HALF_HOUR;  // normal cleaner run time
-      } else if (day_of_week > 1 && day_of_week < 7 && hour >= 15 && hour < 20) {
-        desired_runtime = RUNTIME_10_MINUTES_PER_HALF_HOUR;  // peak electric rate
-      } else if (hour >= 6 && hour < 22) {
-        desired_runtime = RUNTIME_15_MINUTES_PER_HALF_HOUR;
-      }
-      break;
+  if (this->last_check_.has_value()) {
+    if (*this->last_check_ > now && this->last_check_->timestamp - now.timestamp > MAX_TIMESTAMP_DRIFT) {
+      // Clock jumped backwards (e.g. NTP correction) — reset tracking.
+      ESP_LOGW(TAG, "Time has jumped back — resetting runtime counter tracking");
+      this->last_check_ = now;
+      return;
+    } else if (*this->last_check_ >= now) {
+      // Already handled this second.
+      return;
+    } else if (now > *this->last_check_ && now.timestamp - this->last_check_->timestamp > MAX_TIMESTAMP_DRIFT) {
+      // Clock jumped forward — skip ahead without firing missed resets.
+      ESP_LOGW(TAG, "Time has jumped forward — skipping missed runtime resets");
+      this->last_check_ = now;
+      return;
+    }
 
-    case PumpMode::PUMP_MODE_ALWAYS_EXCEPT_PEAK:
-      if (day_of_week == 1 || day_of_week == 7 || hour < 15 || hour >= 20) {
-        desired_runtime = RUNTIME_30_MINUTES_PER_HALF_HOUR;
-      }
-      break;
-
-    case PumpMode::PUMP_MODE_ALWAYS:
-      desired_runtime = RUNTIME_30_MINUTES_PER_HALF_HOUR;
-      break;
+    // Walk second-by-second so no :00/:30 boundary is ever missed.
+    while (true) {
+      this->last_check_->increment_second();
+      if (*this->last_check_ >= now)
+        break;
+      if (this->last_check_->second == 0 && this->last_check_->minute % 30 == 0)
+        this->reset_all_pump_runtimes_();
+      this->tick_all_pump_schedules_(*this->last_check_);
+    }
   }
 
-  if (!this->pump_switch_->state && desired_runtime > this->pump_switch_->get_runtime() &&
-      this->pump_switch_->get_current_off_time() > MINIMUM_AUTOMATION_PUMP_OFF_TIME) {
-    this->pump_switch_->turn_on();
-  } else if (this->pump_switch_->state && desired_runtime < this->pump_switch_->get_runtime() &&
-             this->pump_switch_->get_current_on_time() > MINIMUM_AUTOMATION_PUMP_ON_TIME) {
-    this->pump_switch_->turn_off();
-  }
-}
+  this->last_check_ = now;
 
-void PoolController::manage_cleaner_() {
-  bool desired_state = false;
-  uint8_t hour = this->time_->now().hour;
-  switch (this->cleaner_mode_) {
-    case CleanerMode::CLEANER_MODE_OFF:
-      if (this->cleaner_switch_->state) {
-        this->cleaner_switch_->turn_off();
-      }
-      break;
-
-    case CleanerMode::CLEANER_MODE_NORMAL:
-      if (hour >= 4 && hour < 6) {
-        desired_state = true;
-      }
-      break;
-
-    case CleanerMode::CLEANER_MODE_WHEN_PUMP_IS_ON:
-      if (this->pump_switch_->state) {
-        desired_state = true;
-      }
-      break;
-  }
-
-  if (!this->cleaner_switch_->state && desired_state &&
-      this->cleaner_switch_->get_current_off_time() > MINIMUM_AUTOMATION_PUMP_OFF_TIME) {
-    this->cleaner_switch_->turn_on();
-  } else if (this->cleaner_switch_->state && !desired_state &&
-             this->cleaner_switch_->get_current_on_time() > MINIMUM_AUTOMATION_PUMP_ON_TIME) {
-    this->cleaner_switch_->turn_off();
-  }
+  if (now.second == 0 && now.minute % 30 == 0)
+    this->reset_all_pump_runtimes_();
+  this->tick_all_pump_schedules_(now);
 }
 
 }  // namespace pool_controller
