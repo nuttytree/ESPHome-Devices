@@ -26,7 +26,8 @@ void AuxiliaryPumpSwitch::write_state(bool state) {
   if (state && this->primary_pump_ != nullptr && !this->primary_pump_->state) {
     // Primary is off — turn it on first, then retry after 2 s.
     // Named timeout cancels any previous pending attempt, preventing stacking.
-    ESP_LOGD(TAG, "Primary off — turning it on and delaying auxiliary start by %" PRIu32 " ms", this->sequence_delay_ms_);
+    ESP_LOGD(TAG, "Primary off — turning it on and delaying auxiliary start by %" PRIu32 " ms",
+             this->sequence_delay_ms_);
     this->primary_pump_->turn_on();
     this->set_timeout("aux_seq_on", this->sequence_delay_ms_, [this]() {
       this->turn_on();  // Re-enter write_state; primary is on now so it proceeds.

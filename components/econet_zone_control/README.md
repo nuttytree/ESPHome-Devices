@@ -78,4 +78,3 @@ climate:
 * **fan_mode_datapoint** (Optional, string, default: ""): Econet enum datapoint for fan mode when following a schedule (e.g. `STAT_FAN`).
 * **fan_mode_no_schedule_datapoint** (Optional, string, default: ""): Econet enum datapoint for fan mode when not following a schedule (e.g. `STATNFAN`). Both `fan_mode_datapoint` and `fan_mode_no_schedule_datapoint` are written simultaneously to ensure the setting takes effect regardless of schedule state.
 * **current_humidity_datapoint** (Optional, string, default: ""): Econet datapoint for current humidity (%). Averaged across all zones. Omit to disable humidity reporting.
-

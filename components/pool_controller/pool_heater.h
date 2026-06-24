@@ -30,9 +30,7 @@ class PoolHeater : public water_heater::WaterHeater, public Component {
   void loop() override;
   void dump_config() override;
 
-  water_heater::WaterHeaterCallInternal make_call() override {
-    return water_heater::WaterHeaterCallInternal(this);
-  }
+  water_heater::WaterHeaterCallInternal make_call() override { return water_heater::WaterHeaterCallInternal(this); }
 
   // ── Integration helpers ────────────────────────────────────────────────────
   /// Force heater off immediately — called during the primary pump sequenced shutdown.
@@ -52,7 +50,6 @@ class PoolHeater : public water_heater::WaterHeater, public Component {
   /// Bang-bang heater controller.  Called every loop tick and on every control() call.
   void apply_control_();
 
-
   // ── Configuration ──────────────────────────────────────────────────────────
   /// Defaults are 0.5 °F expressed in °C (= 5/18 ≈ 0.27778 °C).
   float deadband_{0.27778f};
@@ -68,13 +65,12 @@ class PoolHeater : public water_heater::WaterHeater, public Component {
   PrimaryPumpSwitch *primary_pump_{nullptr};
 
   // ── Runtime state ──────────────────────────────────────────────────────────
-  bool sensor_is_fahrenheit_{false};     ///< True when the sensor reports in °F.
-  bool has_reading_since_pump_on_{false};///< Cleared each time the primary pump starts.
-  bool heater_active_{false};            ///< True when heater_output_ is energised.
+  bool sensor_is_fahrenheit_{false};       ///< True when the sensor reports in °F.
+  bool has_reading_since_pump_on_{false};  ///< Cleared each time the primary pump starts.
+  bool heater_active_{false};              ///< True when heater_output_ is energised.
   /// current_temperature_ (inherited from WaterHeater) holds the last accepted
   /// °C reading. It starts as NAN and is only written by update_temperature_(),
   /// so it doubles as the "have I ever received a valid reading?" guard.
-
 };
 
 }  // namespace pool_controller

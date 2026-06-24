@@ -2,7 +2,7 @@ substitutions:
   board: needs_value
 
 # ${platform}:
-#   board: 
+#   board:
 
 esp8266:
   board: ${board}

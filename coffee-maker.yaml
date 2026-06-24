@@ -37,21 +37,21 @@ interval:
           static int brewStage = 0;    // 0=Off, 1=Pre-Wet, 2=Bloom, 3=Brew
           static unsigned long brewStageChange = 0;
           static bool isBoldBrew = false;
-  
+
           // Coffee maker was off but now is on so it is in the pre-wet stage
           if (id(power_switch).state && brewStage == 0) {
             brewStage = 1;  //Pre-Wet
             brewStageChange = millis() + 75000;
             isBoldBrew = id(bold_switch).state;
           }
-  
+
           // Coffee should be wet now so turn off and let it bloom
           else if (id(power_switch).state && brewStage == 1 && millis() >= brewStageChange) {
             id(power_switch).turn_off();
             brewStage = 2;  //Bloom
             brewStageChange = millis() + 45000;
           }
-          
+
           // Coffee has bloomed so turn back on to finish brewing
           else if (!id(power_switch).state && brewStage == 2 && millis() >= brewStageChange) {
             if (isBoldBrew && !id(bold_switch).state) {
@@ -60,17 +60,17 @@ interval:
             id(power_switch).turn_on();
             brewStage = 3;  //Brew
           }
-  
+
           // Manually powered off during Pre-Wet stage
           else if (!id(power_switch).state && brewStage == 1) {
             brewStage = 0;
           }
-  
+
           // Manualy powered on during Bloom stage
           else if (id(power_switch).state && brewStage == 2) {
             brewStage = 3;
           }
-  
+
           // Done brewing
           else if (!id(power_switch).state && brewStage == 3) {
             brewStage = 0;

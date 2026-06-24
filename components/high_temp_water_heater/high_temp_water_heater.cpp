@@ -26,8 +26,8 @@ void HighTempWaterHeater::setup() {
     auto unit = this->temperature_sensor_->get_unit_of_measurement_ref();
     // "\xc2\xb0F" is the UTF-8 encoding of "°F"
     this->temperature_sensor_is_fahrenheit_ = (unit == "\xc2\xb0\x46");
-    ESP_LOGD(TAG, "Temperature sensor unit: '%s' — treating as %s",
-             unit.c_str(), this->temperature_sensor_is_fahrenheit_ ? "\xc2\xb0\x46" : "\xc2\xb0\x43");
+    ESP_LOGD(TAG, "Temperature sensor unit: '%s' — treating as %s", unit.c_str(),
+             this->temperature_sensor_is_fahrenheit_ ? "\xc2\xb0\x46" : "\xc2\xb0\x43");
   }
 
   // Initial sync before restoring state.
@@ -64,10 +64,9 @@ water_heater::WaterHeaterTraits HighTempWaterHeater::traits() {
   auto traits = water_heater::WaterHeaterTraits();
 
   // Feature flags are fixed regardless of what the source advertises.
-  traits.add_feature_flags(water_heater::WATER_HEATER_SUPPORTS_CURRENT_TEMPERATURE |
-                           water_heater::WATER_HEATER_SUPPORTS_TARGET_TEMPERATURE |
-                           water_heater::WATER_HEATER_SUPPORTS_OPERATION_MODE |
-                           water_heater::WATER_HEATER_SUPPORTS_AWAY_MODE);
+  traits.add_feature_flags(
+      water_heater::WATER_HEATER_SUPPORTS_CURRENT_TEMPERATURE | water_heater::WATER_HEATER_SUPPORTS_TARGET_TEMPERATURE |
+      water_heater::WATER_HEATER_SUPPORTS_OPERATION_MODE | water_heater::WATER_HEATER_SUPPORTS_AWAY_MODE);
 
   // Temperature range and step come from component config, not from the source.
   traits.set_min_temperature(this->min_temperature_);
@@ -78,10 +77,9 @@ water_heater::WaterHeaterTraits HighTempWaterHeater::traits() {
   if (this->source_ != nullptr) {
     traits.set_supported_modes(this->source_->get_traits().get_supported_modes());
   } else {
-    traits.set_supported_modes(
-        {water_heater::WATER_HEATER_MODE_OFF, water_heater::WATER_HEATER_MODE_ECO,
-         water_heater::WATER_HEATER_MODE_ELECTRIC, water_heater::WATER_HEATER_MODE_PERFORMANCE,
-         water_heater::WATER_HEATER_MODE_HIGH_DEMAND});
+    traits.set_supported_modes({water_heater::WATER_HEATER_MODE_OFF, water_heater::WATER_HEATER_MODE_ECO,
+                                water_heater::WATER_HEATER_MODE_ELECTRIC, water_heater::WATER_HEATER_MODE_PERFORMANCE,
+                                water_heater::WATER_HEATER_MODE_HIGH_DEMAND});
   }
 
   return traits;
@@ -128,9 +126,8 @@ void HighTempWaterHeater::update_state_() {
   float new_monitored;
   if (this->temperature_sensor_ != nullptr) {
     float raw = this->temperature_sensor_->state;
-    float sensor_c = (this->temperature_sensor_is_fahrenheit_ && !std::isnan(raw))
-                         ? (raw - 32.0f) * (5.0f / 9.0f)
-                         : raw;
+    float sensor_c =
+        (this->temperature_sensor_is_fahrenheit_ && !std::isnan(raw)) ? (raw - 32.0f) * (5.0f / 9.0f) : raw;
     new_monitored = sensor_c + this->temperature_sensor_offset_;
   } else {
     new_monitored = this->current_temperature_;
@@ -182,14 +179,14 @@ void HighTempWaterHeater::apply_control_() {
     // turn off when it rises above (target + over_run).
     if (this->heating_active_) {
       if (this->monitored_temp_ >= this->target_temperature_ + this->over_run_) {
-        ESP_LOGD(TAG, "Heating cut: monitored=%.1f >= target=%.1f + over_run=%.1f",
-                 this->monitored_temp_, this->target_temperature_, this->over_run_);
+        ESP_LOGD(TAG, "Heating cut: monitored=%.1f >= target=%.1f + over_run=%.1f", this->monitored_temp_,
+                 this->target_temperature_, this->over_run_);
         this->heating_active_ = false;
       }
     } else {
       if (this->monitored_temp_ <= this->target_temperature_ - this->dead_band_) {
-        ESP_LOGD(TAG, "Heating start: monitored=%.1f <= target=%.1f - dead_band=%.1f",
-                 this->monitored_temp_, this->target_temperature_, this->dead_band_);
+        ESP_LOGD(TAG, "Heating start: monitored=%.1f <= target=%.1f - dead_band=%.1f", this->monitored_temp_,
+                 this->target_temperature_, this->dead_band_);
         this->heating_active_ = true;
       }
     }

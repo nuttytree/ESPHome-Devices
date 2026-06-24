@@ -7,7 +7,6 @@
 
 #include <cinttypes>
 
-
 namespace esphome {
 namespace pool_controller {
 
@@ -26,8 +25,8 @@ void PoolController::setup() {
 }
 
 void PoolController::reset_all_pump_runtimes_() {
-  ESP_LOGD(TAG, "Half-hour boundary – resetting pump runtime counters (%02d:%02d)",
-           this->last_check_->hour, this->last_check_->minute);
+  ESP_LOGD(TAG, "Half-hour boundary – resetting pump runtime counters (%02d:%02d)", this->last_check_->hour,
+           this->last_check_->minute);
   if (this->primary_pump_ != nullptr)
     this->primary_pump_->reset_runtime();
   for (auto *aux : this->auxiliary_pumps_)
@@ -90,8 +89,7 @@ void PoolController::tick_pump_schedule_(PumpSwitch *pump, const ESPTime &now) {
   } else {
     // User-defined schedule.
     // Auxiliary pumps are blocked entirely when the primary pump is on the Off schedule.
-    if (pump != this->primary_pump_ && this->primary_pump_ != nullptr &&
-        this->primary_pump_->is_off_schedule()) {
+    if (pump != this->primary_pump_ && this->primary_pump_ != nullptr && this->primary_pump_->is_off_schedule()) {
       if (pump->state)
         pump->turn_off();
       return;
@@ -112,8 +110,7 @@ void PoolController::tick_pump_schedule_(PumpSwitch *pump, const ESPTime &now) {
 
   if (!full_window && (target_seconds == 0 || current_runtime >= target_seconds)) {
     // Own schedule says stop — but keep the primary alive if an auxiliary still needs it.
-    if (pump == this->primary_pump_ &&
-        this->any_auxiliary_needs_primary_(slot_start, now.day_of_week)) {
+    if (pump == this->primary_pump_ && this->any_auxiliary_needs_primary_(slot_start, now.day_of_week)) {
       if (!pump->state && pump->can_turn_on() && !pump->is_disabled())
         pump->turn_on();
       return;
@@ -149,7 +146,8 @@ void PoolController::request_primary_turn_off_() {
 
   // Queue the primary pump turn-off after sequence_delay_ms_ (if not already pending).
   if (this->primary_pump_ != nullptr && this->primary_pump_->state && !this->primary_turn_off_pending_) {
-    ESP_LOGD(TAG, "Sequenced shutdown: heater/auxiliaries off now, primary off in %" PRIu32 " ms", this->sequence_delay_ms_);
+    ESP_LOGD(TAG, "Sequenced shutdown: heater/auxiliaries off now, primary off in %" PRIu32 " ms",
+             this->sequence_delay_ms_);
     this->primary_turn_off_pending_ = true;
     this->primary_turn_off_at_ms_ = millis_64() + this->sequence_delay_ms_;
   }
@@ -194,8 +192,7 @@ void PoolController::loop() {
   static constexpr int MAX_TIMESTAMP_DRIFT = 900;  // seconds
 
   if (this->last_check_.has_value()) {
-    if (*this->last_check_ > now &&
-        this->last_check_->timestamp - now.timestamp > MAX_TIMESTAMP_DRIFT) {
+    if (*this->last_check_ > now && this->last_check_->timestamp - now.timestamp > MAX_TIMESTAMP_DRIFT) {
       // Clock jumped backwards (e.g. NTP correction) — reset tracking.
       ESP_LOGW(TAG, "Time has jumped back — resetting runtime counter tracking");
       this->last_check_ = now;
@@ -203,8 +200,7 @@ void PoolController::loop() {
     } else if (*this->last_check_ >= now) {
       // Already handled this second.
       return;
-    } else if (now > *this->last_check_ &&
-               now.timestamp - this->last_check_->timestamp > MAX_TIMESTAMP_DRIFT) {
+    } else if (now > *this->last_check_ && now.timestamp - this->last_check_->timestamp > MAX_TIMESTAMP_DRIFT) {
       // Clock jumped forward — skip ahead without firing missed resets.
       ESP_LOGW(TAG, "Time has jumped forward — skipping missed runtime resets");
       this->last_check_ = now;

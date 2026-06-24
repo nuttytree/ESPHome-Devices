@@ -43,15 +43,24 @@ DEPENDENCIES = ["time"]
 
 pool_controller_ns = cg.esphome_ns.namespace("pool_controller")
 PoolController = pool_controller_ns.class_("PoolController", cg.Component)
-PoolHeater = pool_controller_ns.class_("PoolHeater", water_heater.WaterHeater, cg.Component)
-ScheduleSelect = pool_controller_ns.class_("ScheduleSelect", esphome_select.Select, cg.Component)
-PrimaryPumpSwitch = pool_controller_ns.class_("PrimaryPumpSwitch", esphome_switch.Switch, cg.Component)
-AuxiliaryPumpSwitch = pool_controller_ns.class_("AuxiliaryPumpSwitch", esphome_switch.Switch, cg.Component)
+PoolHeater = pool_controller_ns.class_(
+    "PoolHeater", water_heater.WaterHeater, cg.Component
+)
+ScheduleSelect = pool_controller_ns.class_(
+    "ScheduleSelect", esphome_select.Select, cg.Component
+)
+PrimaryPumpSwitch = pool_controller_ns.class_(
+    "PrimaryPumpSwitch", esphome_switch.Switch, cg.Component
+)
+AuxiliaryPumpSwitch = pool_controller_ns.class_(
+    "AuxiliaryPumpSwitch", esphome_switch.Switch, cg.Component
+)
 PumpAnomalyTrigger = pool_controller_ns.class_(
     "PumpAnomalyTrigger", automation.Trigger.template(cg.std_string)
 )
 
 # ── Time / schedule helpers ────────────────────────────────────────────────────
+
 
 def _time_to_minutes(time_val):
     """Convert a time_of_day dict to total minutes since midnight."""
@@ -183,9 +192,8 @@ def _validate_unique_schedule_names(schedules):
 
 def _validate_sensor_config(config):
     """Require current_sensor when any feature that reads current is enabled."""
-    needs_sensor = (
-        config.get(CONF_USE_CURRENT_FOR_STATE, False)
-        or config.get(CONF_ENABLE_ANOMALY_DETECTION, False)
+    needs_sensor = config.get(CONF_USE_CURRENT_FOR_STATE, False) or config.get(
+        CONF_ENABLE_ANOMALY_DETECTION, False
     )
     if needs_sensor and CONF_CURRENT_SENSOR not in config:
         raise cv.Invalid(
@@ -260,22 +268,22 @@ POOL_HEATER_SCHEMA = (
 
 # ── Top-level component schema ───────────────────────────────────────────────
 
-CONFIG_SCHEMA = (
-    cv.Schema(
-        {
-            cv.GenerateID(): cv.declare_id(PoolController),
-            cv.GenerateID(CONF_TIME_ID): cv.use_id(time.RealTimeClock),
-            cv.Required(CONF_PRIMARY_PUMP): PRIMARY_PUMP_SCHEMA,
-            cv.Optional(CONF_AUXILIARY_PUMPS, default=[]): cv.ensure_list(AUX_PUMP_SCHEMA),
-            cv.Optional(CONF_SEQUENCE_DELAY, default="2s"): cv.positive_time_period_milliseconds,
-            cv.Optional(CONF_DISABLE_PUMPS_SENSOR): cv.use_id(binary_sensor.BinarySensor),
-            cv.Optional(_CONF_POOL_HEATER): POOL_HEATER_SCHEMA,
-        }
-    )
-    .extend(cv.COMPONENT_SCHEMA)
-)
+CONFIG_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(): cv.declare_id(PoolController),
+        cv.GenerateID(CONF_TIME_ID): cv.use_id(time.RealTimeClock),
+        cv.Required(CONF_PRIMARY_PUMP): PRIMARY_PUMP_SCHEMA,
+        cv.Optional(CONF_AUXILIARY_PUMPS, default=[]): cv.ensure_list(AUX_PUMP_SCHEMA),
+        cv.Optional(
+            CONF_SEQUENCE_DELAY, default="2s"
+        ): cv.positive_time_period_milliseconds,
+        cv.Optional(CONF_DISABLE_PUMPS_SENSOR): cv.use_id(binary_sensor.BinarySensor),
+        cv.Optional(_CONF_POOL_HEATER): POOL_HEATER_SCHEMA,
+    }
+).extend(cv.COMPONENT_SCHEMA)
 
 # ── Codegen helpers ────────────────────────────────────────────────────────────
+
 
 async def _pump_to_code(var, pump_config, delay_ms, disable_sensor):
     """Register a pump switch and emit all its configuration calls."""
@@ -292,12 +300,14 @@ async def _pump_to_code(var, pump_config, delay_ms, disable_sensor):
     for schedule in pump_config[CONF_SCHEDULES]:
         cg.add(var.add_schedule(schedule[CONF_NAME]))
         for runtime in schedule[CONF_RUNTIMES]:
-            cg.add(var.add_runtime_to_last_schedule(
-                _time_to_minutes(runtime[CONF_START_TIME]),
-                _time_to_minutes(runtime[CONF_END_TIME]),
-                runtime[CONF_MINUTES_PER_HOUR],
-                _days_to_mask(runtime),
-            ))
+            cg.add(
+                var.add_runtime_to_last_schedule(
+                    _time_to_minutes(runtime[CONF_START_TIME]),
+                    _time_to_minutes(runtime[CONF_END_TIME]),
+                    runtime[CONF_MINUTES_PER_HOUR],
+                    _days_to_mask(runtime),
+                )
+            )
 
     if CONF_CURRENT_SENSOR in pump_config:
         current_sens = await cg.get_variable(pump_config[CONF_CURRENT_SENSOR])
@@ -334,6 +344,7 @@ async def _schedule_select_to_code(pump_var, pump_config, builtin_last_option):
 
 # ── Top-level to_code ──────────────────────────────────────────────────────────
 
+
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -363,7 +374,9 @@ async def to_code(config):
         aux = cg.new_Pvariable(aux_config[CONF_ID])
         await _pump_to_code(aux, aux_config, delay_ms, disable_sensor)
         cg.add(aux.set_primary_pump(primary))
-        await _schedule_select_to_code(aux, aux_config, f"When {primary_name} is Running")
+        await _schedule_select_to_code(
+            aux, aux_config, f"When {primary_name} is Running"
+        )
         aux_pumps.append(aux)
 
     if aux_pumps:

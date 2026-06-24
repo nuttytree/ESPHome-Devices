@@ -119,6 +119,6 @@ time:
           - pzemac.reset_energy: pzem
 
 uart:
-    tx_pin: GPIO21
-    rx_pin: GPIO25
-    baud_rate: 9600
+  tx_pin: GPIO21
+  rx_pin: GPIO25
+  baud_rate: 9600

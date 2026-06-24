@@ -26,4 +26,3 @@ packages:
   version_sensor:   !include text_sensor/version.yaml
   wifi_info_sensor: !include text_sensor/wifi_info.yaml
   time:             !include time/time.yaml
-

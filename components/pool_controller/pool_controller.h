@@ -24,7 +24,9 @@ class PoolController : public Component {
 
   void set_rtc(time::RealTimeClock *rtc) { this->rtc_ = rtc; }
   void set_primary_pump(PrimaryPumpSwitch *primary_pump) { this->primary_pump_ = primary_pump; }
-  void set_auxiliary_pumps(std::vector<AuxiliaryPumpSwitch *> auxiliary_pumps) { this->auxiliary_pumps_ = std::move(auxiliary_pumps); }
+  void set_auxiliary_pumps(std::vector<AuxiliaryPumpSwitch *> auxiliary_pumps) {
+    this->auxiliary_pumps_ = std::move(auxiliary_pumps);
+  }
   void set_sequence_delay(uint32_t delay_ms) { this->sequence_delay_ms_ = delay_ms; }
   void set_disable_pumps_sensor(binary_sensor::BinarySensor *sensor) { this->disable_pumps_sensor_ = sensor; }
   void set_pool_heater(PoolHeater *heater) { this->pool_heater_ = heater; }
@@ -33,8 +35,10 @@ class PoolController : public Component {
   PrimaryPumpSwitch *primary_pump_{nullptr};
   time::RealTimeClock *rtc_{nullptr};
   std::vector<AuxiliaryPumpSwitch *> auxiliary_pumps_;
-  binary_sensor::BinarySensor *disable_pumps_sensor_{nullptr};  ///< Optional sensor that turns off pumps and blocks turn-ons when active.
-  PoolHeater *pool_heater_{nullptr};                            ///< Optional pool heater — turned off before the primary pump during sequenced shutdown.
+  binary_sensor::BinarySensor *disable_pumps_sensor_{
+      nullptr};  ///< Optional sensor that turns off pumps and blocks turn-ons when active.
+  PoolHeater *pool_heater_{
+      nullptr};  ///< Optional pool heater — turned off before the primary pump during sequenced shutdown.
 
   /// Mirrors CronTrigger::last_check_ — used for time-drift-safe :00/:30 detection.
   optional<ESPTime> last_check_;

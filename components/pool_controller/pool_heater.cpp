@@ -29,9 +29,8 @@ void PoolHeater::setup() {
     auto unit = this->temperature_sensor_->get_unit_of_measurement_ref();
     // "\xc2\xb0F" is the UTF-8 encoding of "°F".
     this->sensor_is_fahrenheit_ = (unit == "\xc2\xb0\x46");
-    ESP_LOGD(TAG, "Temperature sensor '%s' unit: '%s' — treating as %s",
-             this->temperature_sensor_->get_name().c_str(), unit.c_str(),
-             this->sensor_is_fahrenheit_ ? "\xc2\xb0\x46" : "\xc2\xb0\x43");
+    ESP_LOGD(TAG, "Temperature sensor '%s' unit: '%s' — treating as %s", this->temperature_sensor_->get_name().c_str(),
+             unit.c_str(), this->sensor_is_fahrenheit_ ? "\xc2\xb0\x46" : "\xc2\xb0\x43");
   }
 
   // Invalidate reading whenever the primary pump starts so we wait 15 s before trusting the sensor.
@@ -72,10 +71,8 @@ void PoolHeater::dump_config() {
   LOG_WATER_HEATER("", "Pool Heater (Pool Controller)", this);
   if (this->temperature_sensor_ != nullptr)
     ESP_LOGCONFIG(TAG, "  Temperature Sensor: %s", this->temperature_sensor_->get_name().c_str());
-  ESP_LOGCONFIG(TAG, "  Deadband: %.4f\xc2\xb0\x43 (%.4f\xc2\xb0\x46)",
-                this->deadband_, this->deadband_ * 9.0f / 5.0f);
-  ESP_LOGCONFIG(TAG, "  Overrun:  %.4f\xc2\xb0\x43 (%.4f\xc2\xb0\x46)",
-                this->overrun_, this->overrun_ * 9.0f / 5.0f);
+  ESP_LOGCONFIG(TAG, "  Deadband: %.4f\xc2\xb0\x43 (%.4f\xc2\xb0\x46)", this->deadband_, this->deadband_ * 9.0f / 5.0f);
+  ESP_LOGCONFIG(TAG, "  Overrun:  %.4f\xc2\xb0\x43 (%.4f\xc2\xb0\x46)", this->overrun_, this->overrun_ * 9.0f / 5.0f);
   this->dump_traits_(TAG);
 }
 
@@ -138,8 +135,8 @@ void PoolHeater::update_temperature_() {
   if (!this->has_reading_since_pump_on_) {
     this->has_reading_since_pump_on_ = true;
     changed = true;
-    ESP_LOGD(TAG, "First accepted reading since pump start: %.2f\xc2\xb0\x43 (%.2f\xc2\xb0\x46)",
-             temp_c, temp_c * 9.0f / 5.0f + 32.0f);
+    ESP_LOGD(TAG, "First accepted reading since pump start: %.2f\xc2\xb0\x43 (%.2f\xc2\xb0\x46)", temp_c,
+             temp_c * 9.0f / 5.0f + 32.0f);
   }
 
   if (changed) {
@@ -172,22 +169,22 @@ void PoolHeater::apply_control_() {
   }
 
   // Bang-bang control.
-  const float temp   = this->current_temperature_;
+  const float temp = this->current_temperature_;
   const float target = this->target_temperature_;
 
   if (this->heater_active_) {
     // Running: turn off once temperature reaches target + overrun.
     if (temp >= target + this->overrun_) {
-      ESP_LOGD(TAG, "Temp %.2f\xc2\xb0\x43 reached overrun threshold (%.2f\xc2\xb0\x43) — heater OFF",
-               temp, target + this->overrun_);
+      ESP_LOGD(TAG, "Temp %.2f\xc2\xb0\x43 reached overrun threshold (%.2f\xc2\xb0\x43) — heater OFF", temp,
+               target + this->overrun_);
       this->heater_output_->set_state(false);
       this->heater_active_ = false;
     }
   } else {
     // Idle: turn on once temperature drops to target - deadband.
     if (temp <= target - this->deadband_) {
-      ESP_LOGD(TAG, "Temp %.2f\xc2\xb0\x43 below deadband threshold (%.2f\xc2\xb0\x43) — heater ON",
-               temp, target - this->deadband_);
+      ESP_LOGD(TAG, "Temp %.2f\xc2\xb0\x43 below deadband threshold (%.2f\xc2\xb0\x43) — heater ON", temp,
+               target - this->deadband_);
       this->heater_output_->set_state(true);
       this->heater_active_ = true;
     }

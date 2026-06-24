@@ -51,8 +51,8 @@ class PumpSwitch : public switch_::Switch, public Component {
   void set_output(output::BinaryOutput *output) { output_ = output; }
 
   void add_schedule(const char *name) { schedules_.push_back({StringRef(name), {}}); }
-  void add_runtime_to_last_schedule(uint16_t start_minute, uint16_t end_minute,
-                                    uint8_t minutes_per_hour, uint8_t days_of_week) {
+  void add_runtime_to_last_schedule(uint16_t start_minute, uint16_t end_minute, uint8_t minutes_per_hour,
+                                    uint8_t days_of_week) {
     schedules_.back().runtimes.push_back({start_minute, end_minute, minutes_per_hour, days_of_week});
   }
 
@@ -138,32 +138,33 @@ class PumpSwitch : public switch_::Switch, public Component {
   output::BinaryOutput *output_ = nullptr;
   std::vector<Schedule> schedules_;
 
-  size_t active_schedule_idx_{0};        ///< Index into schedules_ for the currently active schedule.
-  uint32_t runtime_seconds_ = 0;         ///< Accumulated runtime (seconds) since last half-hour reset.
-  uint64_t runtime_start_ms_ = 0;        ///< millis_64() when pump last turned on; 0 when off.
-  uint64_t last_off_ms_ = 0;             ///< millis_64() when pump last turned off; used for 5-min cooldown.
-  uint64_t turned_on_ms_ = 0;            ///< millis_64() when pump last physically turned on; used for turn-on sequencing.
-  uint32_t sequence_delay_ms_ = 2000;    ///< Delay (ms) between primary and auxiliary pump state changes.
-  binary_sensor::BinarySensor *disable_pumps_sensor_{nullptr};  ///< Optional sensor that turns off pumps and blocks turn-ons when active.
-  ESPPreferenceObject runtime_pref_;     ///< Persists runtime_seconds_ across reboots.
+  size_t active_schedule_idx_{0};  ///< Index into schedules_ for the currently active schedule.
+  uint32_t runtime_seconds_ = 0;   ///< Accumulated runtime (seconds) since last half-hour reset.
+  uint64_t runtime_start_ms_ = 0;  ///< millis_64() when pump last turned on; 0 when off.
+  uint64_t last_off_ms_ = 0;       ///< millis_64() when pump last turned off; used for 5-min cooldown.
+  uint64_t turned_on_ms_ = 0;      ///< millis_64() when pump last physically turned on; used for turn-on sequencing.
+  uint32_t sequence_delay_ms_ = 2000;  ///< Delay (ms) between primary and auxiliary pump state changes.
+  binary_sensor::BinarySensor *disable_pumps_sensor_{
+      nullptr};                       ///< Optional sensor that turns off pumps and blocks turn-ons when active.
+  ESPPreferenceObject runtime_pref_;  ///< Persists runtime_seconds_ across reboots.
 
   // ── Anomaly detection state ────────────────────────────────────────────────
   bool enable_anomaly_detection_{false};
 #ifdef USE_SENSOR
   sensor::Sensor *current_sensor_{nullptr};
 #endif
-  float anomaly_threshold_pct_{20.0f};   ///< % deviation from baseline that triggers an anomaly alert.
-  uint32_t learning_samples_{200};       ///< Samples to collect before the baseline is locked.
+  float anomaly_threshold_pct_{20.0f};  ///< % deviation from baseline that triggers an anomaly alert.
+  uint32_t learning_samples_{200};      ///< Samples to collect before the baseline is locked.
   Trigger<std::string> *anomaly_trigger_{nullptr};
 
   AnomalyBaseline anomaly_baseline_{};
-  bool baseline_locked_{false};          ///< True once learning_samples_ steady-state samples have been collected.
-  uint32_t sample_count_{0};             ///< Steady-state samples collected so far.
-  uint64_t last_sample_ms_{0};           ///< millis_64() of the last sensor sample; shared rate-limiter for loop features.
-  uint64_t last_anomaly_ms_{0};          ///< millis_64() of the last anomaly fired; used for 5-min debounce.
-  float startup_peak_current_{0.0f};     ///< Highest current seen during the current run's startup window.
-  bool startup_processed_{false};        ///< True once the startup peak has been evaluated for this run.
-  ESPPreferenceObject anomaly_pref_;     ///< Persists AnomalyBaseline across reboots.
+  bool baseline_locked_{false};       ///< True once learning_samples_ steady-state samples have been collected.
+  uint32_t sample_count_{0};          ///< Steady-state samples collected so far.
+  uint64_t last_sample_ms_{0};        ///< millis_64() of the last sensor sample; shared rate-limiter for loop features.
+  uint64_t last_anomaly_ms_{0};       ///< millis_64() of the last anomaly fired; used for 5-min debounce.
+  float startup_peak_current_{0.0f};  ///< Highest current seen during the current run's startup window.
+  bool startup_processed_{false};     ///< True once the startup peak has been evaluated for this run.
+  ESPPreferenceObject anomaly_pref_;  ///< Persists AnomalyBaseline across reboots.
 
   // ── Current-based state fields ─────────────────────────────────────────────
   /// When true, state reflects the output command (not current draw), but runtime is
@@ -175,11 +176,11 @@ class PumpSwitch : public switch_::Switch, public Component {
   // ── Flow sensor state ──────────────────────────────────────────────────────
   binary_sensor::BinarySensor *flow_sensor_{nullptr};  ///< Optional water flow sensor.
   uint32_t flow_timeout_ms_{2000};                     ///< Ms of absent flow before shutdown. Default: 2 s.
-  uint64_t flow_check_start_ms_{0};                    ///< millis_64() when no-flow condition first detected; 0 if clear.
+  uint64_t flow_check_start_ms_{0};  ///< millis_64() when no-flow condition first detected; 0 if clear.
 
 #ifdef USE_SENSOR
-  void tick_anomaly_();          ///< Called at 1 Hz while the pump is running.
-  void process_startup_peak_();  ///< Evaluates the inrush peak captured during the startup window.
+  void tick_anomaly_();                           ///< Called at 1 Hz while the pump is running.
+  void process_startup_peak_();                   ///< Evaluates the inrush peak captured during the startup window.
   void fire_anomaly_(const std::string &reason);  ///< Logs + triggers the anomaly automation (5-min debounce).
 #endif
 };

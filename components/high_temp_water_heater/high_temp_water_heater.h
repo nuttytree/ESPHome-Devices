@@ -22,9 +22,7 @@ class HighTempWaterHeater : public water_heater::WaterHeater, public Component {
   void loop() override;
   void dump_config() override;
 
-  water_heater::WaterHeaterCallInternal make_call() override {
-    return water_heater::WaterHeaterCallInternal(this);
-  }
+  water_heater::WaterHeaterCallInternal make_call() override { return water_heater::WaterHeaterCallInternal(this); }
 
  protected:
   water_heater::WaterHeaterTraits traits() override;

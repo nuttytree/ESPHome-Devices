@@ -38,7 +38,8 @@ void PrimaryPumpSwitch::write_state(bool state) {
       }
     }
     if (any_aux_on || heater_was_active) {
-      ESP_LOGD(TAG, "Sequenced shutdown: auxiliaries/heater off now, primary off in %" PRIu32 " ms", this->sequence_delay_ms_);
+      ESP_LOGD(TAG, "Sequenced shutdown: auxiliaries/heater off now, primary off in %" PRIu32 " ms",
+               this->sequence_delay_ms_);
       this->set_timeout("primary_seq_off", this->sequence_delay_ms_, [this]() {
         this->output_->set_state(false);
         this->publish_state(false);

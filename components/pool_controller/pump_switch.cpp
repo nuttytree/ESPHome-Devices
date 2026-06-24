@@ -28,8 +28,8 @@ void PumpSwitch::setup() {
       this->baseline_locked_ = (this->sample_count_ >= this->learning_samples_);
       ESP_LOGD(TAG, "'%s' anomaly baseline restored: %.3fA (%s, %" PRIu32 " samples, %u startup runs)",
                this->get_name().c_str(), this->anomaly_baseline_.steady_state,
-               this->baseline_locked_ ? "locked" : "learning",
-               this->sample_count_, this->anomaly_baseline_.startup_runs);
+               this->baseline_locked_ ? "locked" : "learning", this->sample_count_,
+               this->anomaly_baseline_.startup_runs);
     }
   }
 
@@ -86,8 +86,7 @@ void PumpSwitch::loop() {
 
 #ifdef USE_SENSOR
   // ── Current sensor processing (1 Hz) ──────────────────────────────────────
-  if (this->current_sensor_ != nullptr &&
-      (this->use_current_for_state_ || this->enable_anomaly_detection_)) {
+  if (this->current_sensor_ != nullptr && (this->use_current_for_state_ || this->enable_anomaly_detection_)) {
     if (now - this->last_sample_ms_ >= 1000) {
       this->last_sample_ms_ = now;
       const float current = this->current_sensor_->state;
@@ -97,10 +96,9 @@ void PumpSwitch::loop() {
       if (this->use_current_for_state_ && !std::isnan(current)) {
         const bool motor_running = this->state && (current >= this->current_on_threshold_);
         if (motor_running != this->motor_running_) {
-          ESP_LOGD(TAG, "'%s' motor running state: %s (output=%s, %.3fA %s %.3fA threshold)",
-                   this->get_name().c_str(), motor_running ? "YES" : "NO",
-                   this->state ? "ON" : "OFF",
-                   current, motor_running ? ">=" : "<", this->current_on_threshold_);
+          ESP_LOGD(TAG, "'%s' motor running state: %s (output=%s, %.3fA %s %.3fA threshold)", this->get_name().c_str(),
+                   motor_running ? "YES" : "NO", this->state ? "ON" : "OFF", current, motor_running ? ">=" : "<",
+                   this->current_on_threshold_);
           this->motor_running_ = motor_running;
           this->track_runtime(motor_running);
         }
@@ -124,11 +122,11 @@ void PumpSwitch::loop() {
       // Pump expected to produce flow but sensor reports none.
       if (this->flow_check_start_ms_ == 0) {
         this->flow_check_start_ms_ = now;
-        ESP_LOGD(TAG, "'%s' no flow detected — starting %" PRIu32 " ms watchdog",
-                 this->get_name().c_str(), this->flow_timeout_ms_);
+        ESP_LOGD(TAG, "'%s' no flow detected — starting %" PRIu32 " ms watchdog", this->get_name().c_str(),
+                 this->flow_timeout_ms_);
       } else if (now - this->flow_check_start_ms_ >= this->flow_timeout_ms_) {
-        ESP_LOGW(TAG, "'%s' no flow for %" PRIu32 " ms — shutting down pump",
-                 this->get_name().c_str(), this->flow_timeout_ms_);
+        ESP_LOGW(TAG, "'%s' no flow for %" PRIu32 " ms — shutting down pump", this->get_name().c_str(),
+                 this->flow_timeout_ms_);
         this->flow_check_start_ms_ = 0;
         this->turn_off();
       }
@@ -193,8 +191,8 @@ void PumpSwitch::tick_anomaly_() {
     if (this->sample_count_ >= this->learning_samples_) {
       this->baseline_locked_ = true;
       this->anomaly_pref_.save(&this->anomaly_baseline_);
-      ESP_LOGI(TAG, "'%s' anomaly baseline locked at %.3fA after %" PRIu32 " samples",
-               this->get_name().c_str(), this->anomaly_baseline_.steady_state, this->sample_count_);
+      ESP_LOGI(TAG, "'%s' anomaly baseline locked at %.3fA after %" PRIu32 " samples", this->get_name().c_str(),
+               this->anomaly_baseline_.steady_state, this->sample_count_);
     }
     return;
   }
@@ -231,8 +229,7 @@ void PumpSwitch::process_startup_peak_() {
     bl.startup_runs = 1;
   } else if (bl.startup_runs < 10) {
     // Average the first 10 runs to establish a stable inrush reference.
-    bl.startup_peak =
-        (bl.startup_peak * bl.startup_runs + this->startup_peak_current_) / (bl.startup_runs + 1);
+    bl.startup_peak = (bl.startup_peak * bl.startup_runs + this->startup_peak_current_) / (bl.startup_runs + 1);
     bl.startup_runs++;
   } else if (bl.startup_runs >= ANOMALY_MIN_STARTUP_RUNS) {
     // Established baseline: flag if the inrush peak is less than 50 % of normal.
@@ -250,8 +247,8 @@ void PumpSwitch::fire_anomaly_(const std::string &reason) {
   if (now - this->last_anomaly_ms_ < ANOMALY_COOLDOWN_MS)
     return;
   this->last_anomaly_ms_ = now;
-  ESP_LOGW(TAG, "'%s' pump anomaly: %s (baseline=%.3fA)",
-           this->get_name().c_str(), reason.c_str(), this->anomaly_baseline_.steady_state);
+  ESP_LOGW(TAG, "'%s' pump anomaly: %s (baseline=%.3fA)", this->get_name().c_str(), reason.c_str(),
+           this->anomaly_baseline_.steady_state);
   if (this->anomaly_trigger_ != nullptr)
     this->anomaly_trigger_->trigger(reason);
 }
