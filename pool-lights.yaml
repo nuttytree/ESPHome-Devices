@@ -11,12 +11,12 @@ packages:
 external_components:
   - source:
       type: local
-      path: ./components 
+      path: ./components
     components: [ treo_led_pool_light ]
 
 # Required to allow the Treo light to register the color reset service
 api:
- custom_services: True
+  custom_services: True
 
 binary_sensor:
   - platform: gpio

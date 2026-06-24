@@ -28,11 +28,13 @@ class PoolController : public Component {
   PoolController();
   void set_time(time::RealTimeClock *time);
   void set_pump_switch(switch_::Switch *pump_switch);
-  void set_pump_current_monitoring(sensor::Sensor *sensor, float min_current, float max_current, uint32_t max_out_of_range_time) {
+  void set_pump_current_monitoring(sensor::Sensor *sensor, float min_current, float max_current,
+                                   uint32_t max_out_of_range_time) {
     this->pump_switch_->set_current_monitoring(sensor, min_current, max_current, max_out_of_range_time);
   }
   void set_cleaner_switch(switch_::Switch *cleaner_switch);
-  void set_cleaner_current_monitoring(sensor::Sensor *sensor, float min_current, float max_current, uint32_t max_out_of_range_time) {
+  void set_cleaner_current_monitoring(sensor::Sensor *sensor, float min_current, float max_current,
+                                      uint32_t max_out_of_range_time) {
     this->cleaner_switch_->set_current_monitoring(sensor, min_current, max_current, max_out_of_range_time);
   }
   float get_setup_priority() const override { return setup_priority::LATE; }
@@ -48,7 +50,7 @@ class PoolController : public Component {
   PumpSwitch *pump_switch_;
   PoolSelect *cleaner_select_;
   PumpSwitch *cleaner_switch_;
-  
+
   PumpMode pump_mode_;
   CleanerMode cleaner_mode_;
 };

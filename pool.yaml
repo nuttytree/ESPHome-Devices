@@ -11,7 +11,7 @@ packages:
 external_components:
   - source:
       type: local
-      path: ./components 
+      path: ./components
     components: [ pool_controller ]
   - source:
       type: git
@@ -37,7 +37,7 @@ binary_sensor:
       number: 4
       mode:
         input: true
-      inverted: true    
+      inverted: true
   - platform: gpio
     id: flow_aux
     name: "Auxiliary Pump Flow"
@@ -47,7 +47,7 @@ binary_sensor:
       number: 5
       mode:
         input: true
-      inverted: true    
+      inverted: true
 
 display:
   - platform: mipi_rgb
@@ -178,28 +178,28 @@ output:
       pcf8574: io_expander
       number: 0
       mode: OUTPUT
-      inverted: true    
+      inverted: true
   - platform: gpio
     id: fill_output
     pin:
       pcf8574: io_expander
       number: 1
       mode: OUTPUT
-      inverted: true    
+      inverted: true
   - platform: gpio
     id: cleaner_output
     pin:
       pcf8574: io_expander
       number: 2
       mode: OUTPUT
-      inverted: true    
+      inverted: true
   - platform: gpio
     id: pump_output
     pin:
       pcf8574: io_expander
       number: 3
       mode: OUTPUT
-      inverted: true    
+      inverted: true
 
 pcf8574:
   - id: 'io_expander'
@@ -339,7 +339,7 @@ sensor:
     filters:
       - heartbeat:
           period: 10s
-          optimistic: true    
+          optimistic: true
   - platform: total_daily_energy
     name: Pump
     power_id: pump_power
@@ -357,7 +357,7 @@ sensor:
     filters:
       - heartbeat:
           period: 10s
-          optimistic: true    
+          optimistic: true
   - platform: total_daily_energy
     name: Cleaner
     power_id: cleaner_power
@@ -405,7 +405,7 @@ switch:
     name: Heater Test
     device_class: switch
     restore_mode: RESTORE_DEFAULT_OFF
-  
+
 time:
   - id: !extend time_source
     on_time_sync:
@@ -430,7 +430,7 @@ touchscreen:
   - platform: gt911
     id: pool_touchscreen
     display: pool_display
-    interrupt_pin: 
+    interrupt_pin:
       number: GPIO4
       mode: INPUT_PULLUP
     reset_pin:

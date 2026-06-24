@@ -52,8 +52,8 @@ void EcoNetZoneControl::setup() {
           this->current_temperature_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
             zp->cached_temperature = fahrenheit_to_celsius(dp.value_float);
-            ESP_LOGD(TAG, "Zone src_adr=0x%08X current_temperature=%.1f°C (%.1f°F)",
-                     zp->src_adr, zp->cached_temperature, dp.value_float);
+            ESP_LOGD(TAG, "Zone src_adr=0x%08X current_temperature=%.1f°C (%.1f°F)", zp->src_adr,
+                     zp->cached_temperature, dp.value_float);
             this->update_zones_();
           },
           false, zone_cfg.src_adr);
@@ -64,8 +64,7 @@ void EcoNetZoneControl::setup() {
           this->target_temperature_low_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
             zp->cached_target_low_f = dp.value_float;
-            ESP_LOGD(TAG, "Zone src_adr=0x%08X target_temperature_low=%.1f°F",
-                     zp->src_adr, dp.value_float);
+            ESP_LOGD(TAG, "Zone src_adr=0x%08X target_temperature_low=%.1f°F", zp->src_adr, dp.value_float);
             this->update_zones_();
           },
           false, zone_cfg.src_adr);
@@ -76,8 +75,7 @@ void EcoNetZoneControl::setup() {
           this->target_temperature_high_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
             zp->cached_target_high_f = dp.value_float;
-            ESP_LOGD(TAG, "Zone src_adr=0x%08X target_temperature_high=%.1f°F",
-                     zp->src_adr, dp.value_float);
+            ESP_LOGD(TAG, "Zone src_adr=0x%08X target_temperature_high=%.1f°F", zp->src_adr, dp.value_float);
             this->update_zones_();
           },
           false, zone_cfg.src_adr);
@@ -88,8 +86,7 @@ void EcoNetZoneControl::setup() {
           this->current_humidity_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
             zp->cached_humidity = dp.value_float;
-            ESP_LOGD(TAG, "Zone src_adr=0x%08X current_humidity=%.1f%%",
-                     zp->src_adr, zp->cached_humidity);
+            ESP_LOGD(TAG, "Zone src_adr=0x%08X current_humidity=%.1f%%", zp->src_adr, zp->cached_humidity);
             this->update_zones_();
           },
           false, zone_cfg.src_adr);
@@ -99,8 +96,7 @@ void EcoNetZoneControl::setup() {
       this->parent_->register_listener(
           this->fan_mode_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
-            ESP_LOGD(TAG, "Zone src_adr=0x%08X fan_mode reported as enum %u",
-                     zp->src_adr, dp.value_enum);
+            ESP_LOGD(TAG, "Zone src_adr=0x%08X fan_mode reported as enum %u", zp->src_adr, dp.value_enum);
             zp->cached_fan_mode = dp.value_enum;
             this->update_zones_();
           },
@@ -111,8 +107,7 @@ void EcoNetZoneControl::setup() {
       this->parent_->register_listener(
           this->fan_mode_no_schedule_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
-            ESP_LOGD(TAG, "Zone src_adr=0x%08X fan_mode_no_schedule reported as enum %u",
-                     zp->src_adr, dp.value_enum);
+            ESP_LOGD(TAG, "Zone src_adr=0x%08X fan_mode_no_schedule reported as enum %u", zp->src_adr, dp.value_enum);
             zp->cached_fan_mode_no_schedule = dp.value_enum;
             this->update_zones_();
           },
@@ -147,8 +142,8 @@ void EcoNetZoneControl::dump_config() {
   LOG_CLIMATE("", "EcoNet Zone Control", this);
   ESP_LOGCONFIG(TAG, "  Zones: %zu", this->zones_.size());
   for (const auto &zone : this->zones_)
-    ESP_LOGCONFIG(TAG, "    src_adr=0x%08X request_mod=%d %s",
-                  zone.src_adr, zone.request_mod, zone.is_primary ? "[PRIMARY]" : "");
+    ESP_LOGCONFIG(TAG, "    src_adr=0x%08X request_mod=%d %s", zone.src_adr, zone.request_mod,
+                  zone.is_primary ? "[PRIMARY]" : "");
   ESP_LOGCONFIG(TAG, "  Mode Datapoint: %s", dp(this->mode_id_));
   ESP_LOGCONFIG(TAG, "  Operating Mode Datapoint: %s", dp(this->operating_mode_id_));
   ESP_LOGCONFIG(TAG, "  Automatic Fan Mode: %u", this->automatic_fan_mode_);
@@ -161,8 +156,7 @@ void EcoNetZoneControl::dump_config() {
   if (!this->fan_modes_.empty()) {
     ESP_LOGCONFIG(TAG, "  Fan Modes:");
     for (const auto &entry : this->fan_modes_)
-      ESP_LOGCONFIG(TAG, "    min_delta >= %.1f°C -> enum %u",
-                    entry.minimum_temperature_delta, entry.id);
+      ESP_LOGCONFIG(TAG, "    min_delta >= %.1f°C -> enum %u", entry.minimum_temperature_delta, entry.id);
   }
 }
 
@@ -198,20 +192,18 @@ void EcoNetZoneControl::control(const climate::ClimateCall &call) {
     }
   }
 
-  if (call.get_target_temperature_low().has_value() &&
-      this->target_temperature_low_id_ && *this->target_temperature_low_id_) {
+  if (call.get_target_temperature_low().has_value() && this->target_temperature_low_id_ &&
+      *this->target_temperature_low_id_) {
     float val_f = celsius_to_fahrenheit(*call.get_target_temperature_low());
     ESP_LOGD(TAG, "Control: set primary zone target_low=%.1f°F", val_f);
-    this->parent_->set_float_datapoint_value(this->target_temperature_low_id_, val_f,
-                                             this->primary_zone_->src_adr);
+    this->parent_->set_float_datapoint_value(this->target_temperature_low_id_, val_f, this->primary_zone_->src_adr);
   }
 
-  if (call.get_target_temperature_high().has_value() &&
-      this->target_temperature_high_id_ && *this->target_temperature_high_id_) {
+  if (call.get_target_temperature_high().has_value() && this->target_temperature_high_id_ &&
+      *this->target_temperature_high_id_) {
     float val_f = celsius_to_fahrenheit(*call.get_target_temperature_high());
     ESP_LOGD(TAG, "Control: set primary zone target_high=%.1f°F", val_f);
-    this->parent_->set_float_datapoint_value(this->target_temperature_high_id_, val_f,
-                                             this->primary_zone_->src_adr);
+    this->parent_->set_float_datapoint_value(this->target_temperature_high_id_, val_f, this->primary_zone_->src_adr);
   }
 }
 
@@ -227,8 +219,7 @@ void EcoNetZoneControl::update_zones_() {
 
     if (!std::isnan(this->primary_zone_->cached_target_low_f)) {
       float new_low_c = fahrenheit_to_celsius(this->primary_zone_->cached_target_low_f);
-      if (std::isnan(this->target_temperature_low) ||
-          std::abs(new_low_c - this->target_temperature_low) > 0.05f) {
+      if (std::isnan(this->target_temperature_low) || std::abs(new_low_c - this->target_temperature_low) > 0.05f) {
         this->target_temperature_low = new_low_c;
         state_changed = true;
       }
@@ -236,8 +227,7 @@ void EcoNetZoneControl::update_zones_() {
 
     if (!std::isnan(this->primary_zone_->cached_target_high_f)) {
       float new_high_c = fahrenheit_to_celsius(this->primary_zone_->cached_target_high_f);
-      if (std::isnan(this->target_temperature_high) ||
-          std::abs(new_high_c - this->target_temperature_high) > 0.05f) {
+      if (std::isnan(this->target_temperature_high) || std::abs(new_high_c - this->target_temperature_high) > 0.05f) {
         this->target_temperature_high = new_high_c;
         state_changed = true;
       }
@@ -255,8 +245,7 @@ void EcoNetZoneControl::update_zones_() {
       }
     }
     float avg = (count > 0) ? (sum / count) : NAN;
-    if (avg != this->current_temperature &&
-        !(std::isnan(avg) && std::isnan(this->current_temperature))) {
+    if (avg != this->current_temperature && !(std::isnan(avg) && std::isnan(this->current_temperature))) {
       this->current_temperature = avg;
       state_changed = true;
     }
@@ -273,8 +262,7 @@ void EcoNetZoneControl::update_zones_() {
       }
     }
     float avg = (count > 0) ? (sum / count) : NAN;
-    if (avg != this->current_humidity &&
-        !(std::isnan(avg) && std::isnan(this->current_humidity))) {
+    if (avg != this->current_humidity && !(std::isnan(avg) && std::isnan(this->current_humidity))) {
       this->current_humidity = avg;
       state_changed = true;
     }
@@ -294,22 +282,20 @@ void EcoNetZoneControl::update_zones_() {
           !std::isnan(this->primary_zone_->cached_target_low_f) &&
           (std::isnan(zone.cached_target_low_f) ||
            std::abs(zone.cached_target_low_f - this->primary_zone_->cached_target_low_f) >= 0.1f)) {
-        ESP_LOGD(TAG, "Zone src_adr=0x%08X target_low out of sync (%.1f vs %.1f°F), correcting",
-                 zone.src_adr, zone.cached_target_low_f, this->primary_zone_->cached_target_low_f);
+        ESP_LOGD(TAG, "Zone src_adr=0x%08X target_low out of sync (%.1f vs %.1f°F), correcting", zone.src_adr,
+                 zone.cached_target_low_f, this->primary_zone_->cached_target_low_f);
         this->parent_->set_float_datapoint_value(this->target_temperature_low_id_,
-                                                  this->primary_zone_->cached_target_low_f,
-                                                  zone.src_adr);
+                                                 this->primary_zone_->cached_target_low_f, zone.src_adr);
       }
 
       if (this->target_temperature_high_id_ && *this->target_temperature_high_id_ &&
           !std::isnan(this->primary_zone_->cached_target_high_f) &&
           (std::isnan(zone.cached_target_high_f) ||
            std::abs(zone.cached_target_high_f - this->primary_zone_->cached_target_high_f) >= 0.1f)) {
-        ESP_LOGD(TAG, "Zone src_adr=0x%08X target_high out of sync (%.1f vs %.1f°F), correcting",
-                 zone.src_adr, zone.cached_target_high_f, this->primary_zone_->cached_target_high_f);
+        ESP_LOGD(TAG, "Zone src_adr=0x%08X target_high out of sync (%.1f vs %.1f°F), correcting", zone.src_adr,
+                 zone.cached_target_high_f, this->primary_zone_->cached_target_high_f);
         this->parent_->set_float_datapoint_value(this->target_temperature_high_id_,
-                                                  this->primary_zone_->cached_target_high_f,
-                                                  zone.src_adr);
+                                                 this->primary_zone_->cached_target_high_f, zone.src_adr);
       }
     }
   }
@@ -341,10 +327,8 @@ void EcoNetZoneControl::update_current_action_() {
     return;
 
   // Reset zone lock when leaving idle/fan so zones are re-evaluated fresh on re-entry
-  if ((this->action == climate::CLIMATE_ACTION_IDLE ||
-       this->action == climate::CLIMATE_ACTION_FAN) &&
-      new_action != climate::CLIMATE_ACTION_IDLE &&
-      new_action != climate::CLIMATE_ACTION_FAN) {
+  if ((this->action == climate::CLIMATE_ACTION_IDLE || this->action == climate::CLIMATE_ACTION_FAN) &&
+      new_action != climate::CLIMATE_ACTION_IDLE && new_action != climate::CLIMATE_ACTION_FAN) {
     ESP_LOGD(TAG, "Exiting idle/fan state — resetting fan zone lock");
     this->locked_min_zone_ = nullptr;
     this->locked_max_zone_ = nullptr;
@@ -357,10 +341,8 @@ void EcoNetZoneControl::update_current_action_() {
   // first temperature evaluation always writes immediately.  Zone selection lock
   // is intentionally preserved — the hottest/coldest zones shouldn't have
   // changed during the active cycle.
-  if ((new_action == climate::CLIMATE_ACTION_IDLE ||
-       new_action == climate::CLIMATE_ACTION_FAN) &&
-      this->action != climate::CLIMATE_ACTION_IDLE &&
-      this->action != climate::CLIMATE_ACTION_FAN &&
+  if ((new_action == climate::CLIMATE_ACTION_IDLE || new_action == climate::CLIMATE_ACTION_FAN) &&
+      this->action != climate::CLIMATE_ACTION_IDLE && this->action != climate::CLIMATE_ACTION_FAN &&
       this->action != climate::CLIMATE_ACTION_OFF) {
     ESP_LOGD(TAG, "Entering idle/fan from active state — resetting fan mode debounce");
     this->last_fan_mode_ = 0xFF;
@@ -379,8 +361,7 @@ void EcoNetZoneControl::update_zone_fan_mode_() {
   // Wait until every zone has reported a temperature before touching fan modes
   for (const auto &zone : this->zones_) {
     if (std::isnan(zone.cached_temperature)) {
-      ESP_LOGV(TAG, "Zone src_adr=0x%08X has no temperature yet — deferring fan mode update",
-               zone.src_adr);
+      ESP_LOGV(TAG, "Zone src_adr=0x%08X has no temperature yet — deferring fan mode update", zone.src_adr);
       return;
     }
   }
@@ -392,16 +373,13 @@ void EcoNetZoneControl::update_zone_fan_mode_() {
   const EconetZone *min_zone = nullptr;
   const EconetZone *max_zone = nullptr;
 
-  if (this->action == climate::CLIMATE_ACTION_IDLE ||
-      this->action == climate::CLIMATE_ACTION_FAN) {
+  if (this->action == climate::CLIMATE_ACTION_IDLE || this->action == climate::CLIMATE_ACTION_FAN) {
     // Zone lock: once zones are assigned, keep them for 15 minutes to prevent flip-flopping.
     // Speed adjustments still happen freely; only the zone selection is frozen.
     uint64_t now = millis_64();
-    if (this->locked_min_zone_ != nullptr && this->locked_max_zone_ != nullptr &&
-        now < this->zone_lock_until_) {
+    if (this->locked_min_zone_ != nullptr && this->locked_max_zone_ != nullptr && now < this->zone_lock_until_) {
       // Lock still active — use locked zones directly, skip the scan entirely
-      ESP_LOGV(TAG, "Fan zone lock active for %llu more seconds",
-               (this->zone_lock_until_ - now) / 1000ull);
+      ESP_LOGV(TAG, "Fan zone lock active for %llu more seconds", (this->zone_lock_until_ - now) / 1000ull);
       min_zone = this->locked_min_zone_;
       max_zone = this->locked_max_zone_;
     } else {
@@ -413,8 +391,7 @@ void EcoNetZoneControl::update_zone_fan_mode_() {
           max_zone = &zone;
       }
       if (this->locked_min_zone_ != min_zone || this->locked_max_zone_ != max_zone) {
-        ESP_LOGD(TAG, "Fan zone lock set: min=0x%08X max=0x%08X for 15 minutes",
-                 min_zone->src_adr, max_zone->src_adr);
+        ESP_LOGD(TAG, "Fan zone lock set: min=0x%08X max=0x%08X for 15 minutes", min_zone->src_adr, max_zone->src_adr);
       }
       this->locked_min_zone_ = min_zone;
       this->locked_max_zone_ = max_zone;
@@ -441,13 +418,11 @@ void EcoNetZoneControl::update_zone_fan_mode_() {
       this->fan_mode_lock_until_ = now + (5ull * 60ull * 1000ull);
     } else if (fan_mode != this->last_fan_mode_) {
       if (now < this->fan_mode_lock_until_) {
-        ESP_LOGD(TAG, "Fan mode change %u->%u deferred: lock active for %llu more seconds",
-                 this->last_fan_mode_, fan_mode,
-                 (this->fan_mode_lock_until_ - now) / 1000ull);
+        ESP_LOGD(TAG, "Fan mode change %u->%u deferred: lock active for %llu more seconds", this->last_fan_mode_,
+                 fan_mode, (this->fan_mode_lock_until_ - now) / 1000ull);
         fan_mode = this->last_fan_mode_;  // hold the current mode
       } else {
-        ESP_LOGD(TAG, "Fan mode changing: %u->%u (lock released)",
-                 this->last_fan_mode_, fan_mode);
+        ESP_LOGD(TAG, "Fan mode changing: %u->%u (lock released)", this->last_fan_mode_, fan_mode);
         this->last_fan_mode_ = fan_mode;
         this->fan_mode_lock_until_ = now + (5ull * 60ull * 1000ull);
       }
@@ -459,9 +434,7 @@ void EcoNetZoneControl::update_zone_fan_mode_() {
     if (!dp_id || !*dp_id)
       return;
     for (auto &zone : this->zones_) {
-      uint8_t target = (&zone == min_zone || &zone == max_zone)
-                           ? fan_mode
-                           : this->automatic_fan_mode_;
+      uint8_t target = (&zone == min_zone || &zone == max_zone) ? fan_mode : this->automatic_fan_mode_;
       if (zone.*cache_field >= 0 && static_cast<uint8_t>(zone.*cache_field) == target)
         continue;
       ESP_LOGD(TAG, "Zone src_adr=0x%08X set %s to enum %u", zone.src_adr, dp_id, target);

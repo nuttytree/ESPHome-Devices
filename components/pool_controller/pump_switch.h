@@ -12,10 +12,18 @@ namespace pool_controller {
 class PumpSwitch : public switch_::Switch, public PollingComponent {
  public:
   PumpSwitch(switch_::Switch *physical_switch);
-  void add_turn_on_check(std::function<bool()> &&turn_on_check) { this->turn_on_checks_.push_back(std::move(turn_on_check)); }
-  void add_turn_off_check(std::function<bool()> &&turn_off_check) { this->turn_off_checks_.push_back(std::move(turn_off_check)); }
-  void set_current_monitoring(sensor::Sensor *sensor, float min_current, float max_current, uint32_t max_out_of_range_time) {
-    this->current_sensor_ = sensor; this->min_current_ = min_current; this->max_current_ = max_current; this->max_current_out_of_range_time_ = max_out_of_range_time;
+  void add_turn_on_check(std::function<bool()> &&turn_on_check) {
+    this->turn_on_checks_.push_back(std::move(turn_on_check));
+  }
+  void add_turn_off_check(std::function<bool()> &&turn_off_check) {
+    this->turn_off_checks_.push_back(std::move(turn_off_check));
+  }
+  void set_current_monitoring(sensor::Sensor *sensor, float min_current, float max_current,
+                              uint32_t max_out_of_range_time) {
+    this->current_sensor_ = sensor;
+    this->min_current_ = min_current;
+    this->max_current_ = max_current;
+    this->max_current_out_of_range_time_ = max_out_of_range_time;
   }
   float get_setup_priority() const override { return setup_priority::DATA; }
   void update() override;
@@ -26,7 +34,7 @@ class PumpSwitch : public switch_::Switch, public PollingComponent {
   void reset_runtime() { this->runtime_ = 0; }
   void set_is_disabled(bool is_disabled);
   void emergency_stop();
-  
+
  protected:
   void write_state(bool state) override;
 
@@ -34,7 +42,7 @@ class PumpSwitch : public switch_::Switch, public PollingComponent {
   void update_runtime_();
   void update_physical_switch_();
   void check_current_();
-  
+
   switch_::Switch *physical_switch_;
   sensor::Sensor *current_sensor_;
   std::vector<std::function<bool()>> turn_on_checks_;

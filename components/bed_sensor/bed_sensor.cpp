@@ -12,8 +12,7 @@ void BedSensor::setup() {
     this->side_one_output_->set_state(false);
   if (this->side_two_output_ != nullptr)
     this->side_two_output_->set_state(false);
-  this->combined_name_ =
-      std::string(this->side_one_name_) + " and " + std::string(this->side_two_name_);
+  this->combined_name_ = std::string(this->side_one_name_) + " and " + std::string(this->side_two_name_);
 }
 
 void BedSensor::dump_config() {

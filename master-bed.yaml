@@ -11,7 +11,7 @@ packages:
 external_components:
   - source:
       type: local
-      path: ./components 
+      path: ./components
     components: [ bed_sensor ]
 
 sensor:

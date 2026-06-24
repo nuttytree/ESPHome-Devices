@@ -36,7 +36,7 @@ class TreoPoolLightOutput : public light::LightOutput, public Component, public 
 class TreoPoolLightEffect : public light::LightEffect {
  public:
   TreoPoolLightEffect(const char *name) : LightEffect(name) {}
-  void apply() override { }
+  void apply() override {}
 };
 
 }  // namespace esphome::treo_light

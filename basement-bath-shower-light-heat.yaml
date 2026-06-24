@@ -71,7 +71,7 @@ sensor:
     filters:
       - heartbeat:
           period: 10s
-          optimistic: true    
+          optimistic: true
   - platform: template
     id: heater_power
     name: Basement Bathroom Heater Power
@@ -85,7 +85,7 @@ sensor:
     filters:
       - heartbeat:
           period: 10s
-          optimistic: true    
+          optimistic: true
   - platform: total_daily_energy
     name: Basement Shower Light
     power_id: shower_light_power

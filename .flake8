@@ -1,0 +1,27 @@
+[flake8]
+max-line-length = 120
+# E501: line too long (handled by max-line-length)
+# W503: Line break occurred before a binary operator
+# E203: Whitespace before ':'
+# D202 No blank lines allowed after function docstring
+# D100-D107: Missing docstrings (not required for ESPHome components)
+# D200/D205/D209/D400/D401: Docstring formatting
+
+ignore =
+  E501,
+  W503,
+  E203,
+  D202,
+
+  D100,
+  D101,
+  D102,
+  D103,
+  D104,
+  D105,
+  D107,
+  D200,
+  D205,
+  D209,
+  D400,
+  D401,
