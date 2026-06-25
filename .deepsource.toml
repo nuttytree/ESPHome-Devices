@@ -8,6 +8,3 @@ name = "python"
 
 [[analyzers]]
 name = "cxx"
-
-  [analyzers.meta]
-  ignore_rules = ["cxx-c2018"]
