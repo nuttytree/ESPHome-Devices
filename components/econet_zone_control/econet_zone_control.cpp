@@ -31,7 +31,7 @@ void EcoNetZoneControl::setup() {
   for (auto &zone_cfg : this->zones_) {
     EconetZone *zp = &zone_cfg;
 
-    if (this->mode_id_ && *this->mode_id_) {
+    if (this->mode_id_ != nullptr && *this->mode_id_) {
       this->parent_->register_listener(
           this->mode_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
@@ -47,7 +47,7 @@ void EcoNetZoneControl::setup() {
           false, zone_cfg.src_adr);
     }
 
-    if (this->current_temperature_id_ && *this->current_temperature_id_) {
+    if (this->current_temperature_id_ != nullptr && *this->current_temperature_id_) {
       this->parent_->register_listener(
           this->current_temperature_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
@@ -59,7 +59,7 @@ void EcoNetZoneControl::setup() {
           false, zone_cfg.src_adr);
     }
 
-    if (this->target_temperature_low_id_ && *this->target_temperature_low_id_) {
+    if (this->target_temperature_low_id_ != nullptr && *this->target_temperature_low_id_) {
       this->parent_->register_listener(
           this->target_temperature_low_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
@@ -70,7 +70,7 @@ void EcoNetZoneControl::setup() {
           false, zone_cfg.src_adr);
     }
 
-    if (this->target_temperature_high_id_ && *this->target_temperature_high_id_) {
+    if (this->target_temperature_high_id_ != nullptr && *this->target_temperature_high_id_) {
       this->parent_->register_listener(
           this->target_temperature_high_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
@@ -81,7 +81,7 @@ void EcoNetZoneControl::setup() {
           false, zone_cfg.src_adr);
     }
 
-    if (this->current_humidity_id_ && *this->current_humidity_id_) {
+    if (this->current_humidity_id_ != nullptr && *this->current_humidity_id_) {
       this->parent_->register_listener(
           this->current_humidity_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
@@ -92,7 +92,7 @@ void EcoNetZoneControl::setup() {
           false, zone_cfg.src_adr);
     }
 
-    if (this->fan_mode_id_ && *this->fan_mode_id_) {
+    if (this->fan_mode_id_ != nullptr && *this->fan_mode_id_) {
       this->parent_->register_listener(
           this->fan_mode_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
@@ -103,7 +103,7 @@ void EcoNetZoneControl::setup() {
           false, zone_cfg.src_adr);
     }
 
-    if (this->fan_mode_no_schedule_id_ && *this->fan_mode_no_schedule_id_) {
+    if (this->fan_mode_no_schedule_id_ != nullptr && *this->fan_mode_no_schedule_id_) {
       this->parent_->register_listener(
           this->fan_mode_no_schedule_id_, zone_cfg.request_mod, false,
           [this, zp](const econet::EconetDatapoint &dp) {
@@ -116,7 +116,7 @@ void EcoNetZoneControl::setup() {
   }
 
   // Top-level operating mode listener (not per-zone)
-  if (this->operating_mode_id_ && *this->operating_mode_id_) {
+  if (this->operating_mode_id_ != nullptr && *this->operating_mode_id_) {
     this->parent_->register_listener(
         this->operating_mode_id_, this->request_mod_, this->request_once_,
         [this](const econet::EconetDatapoint &dp) {
@@ -165,7 +165,7 @@ climate::ClimateTraits EcoNetZoneControl::traits() {
 
   uint32_t flags = climate::CLIMATE_SUPPORTS_CURRENT_TEMPERATURE | climate::CLIMATE_SUPPORTS_ACTION |
                    climate::CLIMATE_REQUIRES_TWO_POINT_TARGET_TEMPERATURE;
-  if (this->current_humidity_id_ && *this->current_humidity_id_)
+  if (this->current_humidity_id_ != nullptr && *this->current_humidity_id_)
     flags |= climate::CLIMATE_SUPPORTS_CURRENT_HUMIDITY;
   traits.set_feature_flags(flags);
 
@@ -183,7 +183,7 @@ void EcoNetZoneControl::control(const climate::ClimateCall &call) {
   if (this->primary_zone_ == nullptr)
     return;
 
-  if (call.get_mode().has_value() && this->mode_id_ && *this->mode_id_) {
+  if (call.get_mode().has_value() && this->mode_id_ != nullptr && *this->mode_id_) {
     auto it = std::find_if(this->modes_.begin(), this->modes_.end(),
                            [&](const ModeEntry &m) { return m.mode == *call.get_mode(); });
     if (it != this->modes_.end()) {
@@ -192,14 +192,14 @@ void EcoNetZoneControl::control(const climate::ClimateCall &call) {
     }
   }
 
-  if (call.get_target_temperature_low().has_value() && this->target_temperature_low_id_ &&
+  if (call.get_target_temperature_low().has_value() && this->target_temperature_low_id_ != nullptr &&
       *this->target_temperature_low_id_) {
     float val_f = celsius_to_fahrenheit(*call.get_target_temperature_low());
     ESP_LOGD(TAG, "Control: set primary zone target_low=%.1f°F", val_f);
     this->parent_->set_float_datapoint_value(this->target_temperature_low_id_, val_f, this->primary_zone_->src_adr);
   }
 
-  if (call.get_target_temperature_high().has_value() && this->target_temperature_high_id_ &&
+  if (call.get_target_temperature_high().has_value() && this->target_temperature_high_id_ != nullptr &&
       *this->target_temperature_high_id_) {
     float val_f = celsius_to_fahrenheit(*call.get_target_temperature_high());
     ESP_LOGD(TAG, "Control: set primary zone target_high=%.1f°F", val_f);
@@ -252,7 +252,7 @@ void EcoNetZoneControl::update_zones_() {
   }
 
   // 3. Current humidity — average across all zones (if configured)
-  if (this->current_humidity_id_ && *this->current_humidity_id_) {
+  if (this->current_humidity_id_ != nullptr && *this->current_humidity_id_) {
     float sum = 0.0f;
     int count = 0;
     for (const auto &zone : this->zones_) {
@@ -278,7 +278,7 @@ void EcoNetZoneControl::update_zones_() {
       if (zone.is_primary)
         continue;
 
-      if (this->target_temperature_low_id_ && *this->target_temperature_low_id_ &&
+      if (this->target_temperature_low_id_ != nullptr && *this->target_temperature_low_id_ &&
           !std::isnan(this->primary_zone_->cached_target_low_f) &&
           (std::isnan(zone.cached_target_low_f) ||
            std::abs(zone.cached_target_low_f - this->primary_zone_->cached_target_low_f) >= 0.1f)) {
@@ -288,7 +288,7 @@ void EcoNetZoneControl::update_zones_() {
                                                  this->primary_zone_->cached_target_low_f, zone.src_adr);
       }
 
-      if (this->target_temperature_high_id_ && *this->target_temperature_high_id_ &&
+      if (this->target_temperature_high_id_ != nullptr && *this->target_temperature_high_id_ &&
           !std::isnan(this->primary_zone_->cached_target_high_f) &&
           (std::isnan(zone.cached_target_high_f) ||
            std::abs(zone.cached_target_high_f - this->primary_zone_->cached_target_high_f) >= 0.1f)) {
