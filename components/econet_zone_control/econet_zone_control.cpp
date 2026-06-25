@@ -116,7 +116,7 @@ void EcoNetZoneControl::setup() {
   }
 
   // Top-level operating mode listener (not per-zone)
-  if (this->operating_mode_id_ != nullptr && *this->operating_mode_id_) {
+  if (this->operating_mode_id_ != nullptr && (*this->operating_mode_id_ != 0)) {
     this->parent_->register_listener(
         this->operating_mode_id_, this->request_mod_, this->request_once_,
         [this](const econet::EconetDatapoint &dp) {
@@ -252,7 +252,7 @@ void EcoNetZoneControl::update_zones_() {
   }
 
   // 3. Current humidity — average across all zones (if configured)
-  if (this->current_humidity_id_ != nullptr && *this->current_humidity_id_) {
+  if (this->current_humidity_id_ != nullptr && (*this->current_humidity_id_ != 0)) {
     float sum = 0.0f;
     int count = 0;
     for (const auto &zone : this->zones_) {
