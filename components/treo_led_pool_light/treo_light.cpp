@@ -15,6 +15,7 @@ light::LightTraits TreoPoolLightOutput::get_traits() {
 
 void TreoPoolLightOutput::setup() { register_service(&TreoPoolLightOutput::color_reset, "color_reset"); }
 
+// skipcq: cxx-c2014
 void TreoPoolLightOutput::setup_state(light::LightState *state) {
   this->state_ = state;
 
