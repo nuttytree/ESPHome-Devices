@@ -1,6 +1,8 @@
 #include "econet_zone_control.h"
 
+#include <algorithm>
 #include <cmath>
+#include <set>
 
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
@@ -169,10 +171,14 @@ climate::ClimateTraits EcoNetZoneControl::traits() {
     flags |= climate::CLIMATE_SUPPORTS_CURRENT_HUMIDITY;
   traits.set_feature_flags(flags);
 
-  traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
-  traits.add_supported_mode(climate::CLIMATE_MODE_FAN_ONLY);
-  traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
-  traits.add_supported_mode(climate::CLIMATE_MODE_COOL);
+  std::set<climate::ClimateMode> supported_modes;
+  for (const auto &entry : this->modes_)
+    supported_modes.insert(entry.mode);
+  if (supported_modes.empty())
+    supported_modes.insert(climate::CLIMATE_MODE_OFF);
+
+  for (auto mode : supported_modes)
+    traits.add_supported_mode(mode);
 
   return traits;
 }

@@ -111,6 +111,11 @@ int TreoPoolLightOutput::get_target_color_() {
 }
 
 void TreoPoolLightOutput::color_reset() {
+  if (this->is_changing_colors_) {
+    ESP_LOGW(TAG, "Color reset requested while a color change is already in progress; ignoring.");
+    return;
+  }
+
   // Occasionally the current color can get out of sync with the physical light to fix this we do a reset
   // which sets the physical light back to color 1 and then update the color back to the "current" color.
   // The steps to accomplish this are:
