@@ -1,5 +1,12 @@
 {
     "files.eol": "\n",
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.analysis.extraPaths": [
+        "../dev_esphome"
+    ],
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/../dev_esphome"
+    ],
     "files.associations": {
         "*.yaml": "yaml",
         "bitset": "cpp",
