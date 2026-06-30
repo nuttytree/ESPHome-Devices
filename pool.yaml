@@ -29,8 +29,8 @@ esphome:
       - output.set_level:
           id: backlight_pwm_output
           level: 0%
-      - lambda: |-
-          id(water_temp).set_address(102);
+      # - lambda: |-
+      #     id(water_temp).set_address(102);
 
 binary_sensor:
   - platform: gpio
@@ -387,18 +387,18 @@ sensor:
   #   address: 99
   #   unit_of_measurement: "pH"
   #   update_interval: 10s
-  - platform: ezo
-    id: water_temp
-    address: 101
-    accuracy_decimals: 2
-    unit_of_measurement: "°C"
-    update_interval: 10s
   # - platform: ezo
-  #   id: return_temp
-  #   address: 102
+  #   id: water_temp
+  #   address: 101
   #   accuracy_decimals: 2
   #   unit_of_measurement: "°C"
   #   update_interval: 10s
+  - platform: ezo
+    id: return_temp
+    address: 102
+    accuracy_decimals: 2
+    unit_of_measurement: "°C"
+    update_interval: 10s
 
 switch:
   - platform: output
