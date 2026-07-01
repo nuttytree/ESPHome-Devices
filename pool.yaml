@@ -399,7 +399,8 @@ sensor:
     icon: mdi:water-thermometer
     address: 102
     accuracy_decimals: 2
-    unit_of_measurement: "°F"
+    device_class: temperature
+    unit_of_measurement: "°C"
     update_interval: 10s
 
 switch:
