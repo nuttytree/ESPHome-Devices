@@ -383,6 +383,7 @@ sensor:
     icon: mdi:chemical-weapon
     address: 98
     device_class: voltage
+    accuracy_decimals: 0
     unit_of_measurement: "mV"
     update_interval: 10s
   - platform: ezo
@@ -390,10 +391,13 @@ sensor:
     name: pH
     icon: mdi:ph
     address: 99
-    unit_of_measurement: "pH"
+    device_class: ph
+    accuracy_decimals: 2
     update_interval: 10s
   - platform: ezo
     id: water_temp
+    name: Water Temperature
+    icon: mdi:water-thermometer
     address: 101
     accuracy_decimals: 2
     unit_of_measurement: "°C"
