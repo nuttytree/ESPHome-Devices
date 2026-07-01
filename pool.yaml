@@ -400,6 +400,7 @@ sensor:
     icon: mdi:water-thermometer
     address: 101
     accuracy_decimals: 2
+    device_class: temperature
     unit_of_measurement: "°C"
     update_interval: 10s
   - platform: ezo
