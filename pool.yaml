@@ -398,7 +398,7 @@ sensor:
     id: return_temp
     address: 102
     accuracy_decimals: 2
-    unit_of_measurement: "°C"
+    unit_of_measurement: "°F"
     update_interval: 10s
 
 switch:
