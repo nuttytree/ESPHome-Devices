@@ -396,6 +396,7 @@ sensor:
   - platform: ezo
     name: Return Water Temperature
     id: return_temp
+    icon: mdi:water-thermometer
     address: 102
     accuracy_decimals: 2
     unit_of_measurement: "°F"
