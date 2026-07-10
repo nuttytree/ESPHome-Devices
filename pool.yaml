@@ -363,20 +363,6 @@ sensor:
     name: Cleaner
     power_id: cleaner_power
     method: left
-  # - platform: total_daily_energy
-  #   name: "Pool Pump Total Daily Energy"
-  #   icon: mdi:flash
-  #   power_id: pool_pump_power
-  #   method: left
-  #   filters:
-  #     - throttle: 1min
-  # - platform: total_daily_energy
-  #   name: "Pool Cleaner Total Daily Energy"
-  #   icon: mdi:flash
-  #   power_id: pool_cleaner_power
-  #   method: left
-  #   filters:
-  #     - throttle: 1min
   - platform: ezo
     id: orp
     name: Oxidation Reduction Potential
@@ -412,6 +398,40 @@ sensor:
     device_class: temperature
     unit_of_measurement: "°C"
     update_interval: 10s
+  - platform: pzem6l24
+    id: pzem
+    address: 0x01
+    update_interval: 10s
+
+    # Voltage
+    voltage_a:
+      name: "Pump Voltage"
+    voltage_b:
+      name: "Cleaner Voltage"
+
+    # Current
+    current_a:
+      name: "Pump Current"
+    current_b:
+      name: "Cleaner Current"
+
+    # Active power
+    active_power_a:
+      name: "Pump Active Power"
+    active_power_b:
+      name: "Cleaner Active Power"
+
+    # Power factor
+    power_factor_a:
+      name: "Pump Power Factor"
+    power_factor_b:
+      name: "Cleaner Power Factor"
+
+    # Energy
+    active_energy_a:
+      name: "Pump Energy"
+    active_energy_b:
+      name: "Cleaner Energy"
 
 switch:
   - platform: output
