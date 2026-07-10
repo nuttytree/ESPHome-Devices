@@ -54,6 +54,8 @@ binary_sensor:
 button:
   - platform: template
     name: "Reset Energy Counters"
+    icon: "mdi:lightning-bolt"
+    entity_category: diagnostic
     on_press:
       - pzem6l24.reset_energy:
           id: pzem
