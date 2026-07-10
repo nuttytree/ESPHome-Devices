@@ -169,6 +169,9 @@ lvgl:
             text_color: 0xaaaaaa
             text_font: font_roboto_24
 
+modbus:
+  uart_id: modbus_uart
+
 output:
   - platform: waveshare_io_ch32v003
     id: backlight_pwm_output
