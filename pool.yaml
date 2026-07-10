@@ -14,7 +14,7 @@ external_components:
   - source:
       type: local
       path: ./components
-    components: [pool_controller,pzem6l24]
+    components: [pool_controller, pzem6l24]
 
   - source: github://esphome/esphome@dev
     components: [waveshare_io_ch32v003]
