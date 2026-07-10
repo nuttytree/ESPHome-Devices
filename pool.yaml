@@ -419,16 +419,20 @@ sensor:
 
     # Current
     current_a:
+      id: pump_current
       name: "Pump Current"
     current_b:
+      id: cleaner_current
       name: "Cleaner Current"
 
     # Active power
     active_power_a:
-      name: "Pump Active Power"
+      id: pump_power
+      name: "Pump Power"
     active_power_b:
-      name: "Cleaner Active Power"
-
+      id: cleaner_power
+      name: "Cleaner Power"
+  
     # Power factor
     power_factor_a:
       name: "Pump Power Factor"
