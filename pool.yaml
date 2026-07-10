@@ -51,6 +51,14 @@ binary_sensor:
         input: true
       inverted: true
 
+button:
+  - platform: template
+    name: "Reset Energy Counters"
+    on_press:
+      - pzem6l24.reset_energy:
+          id: pzem
+          phase: all
+
 display:
   - platform: mipi_rgb
     id: pool_display
@@ -401,7 +409,7 @@ sensor:
   - platform: pzem6l24
     id: pzem
     address: 0x01
-    update_interval: 10s
+    update_interval: 1s
 
     # Voltage
     voltage_a:
