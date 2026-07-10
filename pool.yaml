@@ -15,12 +15,9 @@ external_components:
       type: local
       path: ./components
     components: [pool_controller,pzem6l24]
-  - source:
-      type: git
-      url: https://github.com/latonita/esphome
-      ref: waveshare_expander
+
+  - source: github://esphome/esphome@dev
     components: [waveshare_io_ch32v003]
-    refresh: 1h
 
 esphome:
   on_boot:
