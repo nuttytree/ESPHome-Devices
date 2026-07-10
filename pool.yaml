@@ -457,6 +457,12 @@ touchscreen:
               - lvgl.resume:
               - light.turn_on: lcd_backlight
 
+uart:
+  id: modbus_uart
+  tx_pin: GPIO43
+  rx_pin: GPIO44
+  baud_rate: 9600
+
 waveshare_io_ch32v003:
   - id: wave_io
     address: 0x24
