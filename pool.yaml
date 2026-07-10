@@ -228,7 +228,7 @@ pool_controller:
     id: pool_pump
     icon: mdi:pump
     output: pump_output
-    # current_sensor: pool_pump_current
+    current_sensor: pump_current
     # enable_anomaly_detection: true
     # use_current_for_state: true
     schedule_select:
@@ -280,7 +280,7 @@ pool_controller:
       name: "Cleaner"
       icon: mdi:robot-vacuum
       output: cleaner_output
-      # current_sensor: pool_cleaner_current
+      current_sensor: cleaner_current
       # enable_anomaly_detection: true
       # use_current_for_state: true
       schedule_select:
