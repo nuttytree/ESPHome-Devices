@@ -441,9 +441,9 @@ sensor:
 
     # Energy
     active_energy_a:
-      name: "Pump Energy"
+      name: "Pump"
     active_energy_b:
-      name: "Cleaner Energy"
+      name: "Cleaner"
 
 switch:
   - platform: output
