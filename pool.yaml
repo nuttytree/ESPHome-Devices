@@ -26,8 +26,8 @@ esphome:
       - output.set_level:
           id: backlight_pwm_output
           level: 0%
-      - lambda: |-
-          id(return_temp).set_address(101);
+      # - lambda: |-
+      #     id(return_temp).set_address(101);
 
 binary_sensor:
   - platform: gpio
