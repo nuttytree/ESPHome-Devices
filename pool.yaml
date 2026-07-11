@@ -437,6 +437,14 @@ time:
                 auto t = id(time_source).now();
                 if (!t.is_valid()) return std::string("");
                 return t.strftime("%a %b %d  %I:%M %p");
+      - seconds: 0
+        minutes: 0
+        hours: 0
+        then:
+          - pzem6l24.reset_energy:
+              id: pzem
+              phase: all
+
 
 touchscreen:
   - platform: gt911
