@@ -382,7 +382,7 @@ sensor:
     entity_category: diagnostic
     update_interval: 2s
     lambda: |- 
-      if (id(pump_output).state) {
+      if (id(pool_pump).state) {
         return id(pump_voltage).state;
       } else {
         return 0;
