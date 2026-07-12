@@ -396,7 +396,7 @@ sensor:
     name: Pump Current
     icon: mdi:current-ac
     unit_of_measurement: "A"
-    accuracy_decimals: 1
+    accuracy_decimals: 2
     device_class: current
     state_class: measurement
     entity_category: diagnostic
@@ -406,12 +406,21 @@ sensor:
     name: Cleaner Current
     icon: mdi:current-ac
     unit_of_measurement: "A"
-    accuracy_decimals: 1
+    accuracy_decimals: 2
     device_class: current
     state_class: measurement
     entity_category: diagnostic
     update_interval: 1s
     lambda: return (id(pool_cleaner).state) ? id(cleaner_current_int).state : 0;
+  - platform: template
+    name: Pump Power Factor
+    icon: mdi:angle-acute
+    accuracy_decimals: 2
+    device_class: power_factor
+    state_class: measurement
+    entity_category: diagnostic
+    update_interval: 1s
+    lambda: return (id(pool_pump).state) ? id(pump_power_factor_int).state : 0;
   - platform: pzem6l24
     id: pzem
     address: 0x01
@@ -431,6 +440,7 @@ sensor:
   
     # Power factor
     power_factor_a:
+      id: pump_power_factor_int
       name: "Pump Power Factor"
     power_factor_b:
       name: "Cleaner Power Factor"
