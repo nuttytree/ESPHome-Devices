@@ -428,6 +428,12 @@ sensor:
       id: pump_current_int
     current_b:
       id: cleaner_current_int
+  
+    # Power factor
+    power_factor_a:
+      name: "Pump Power Factor"
+    power_factor_b:
+      name: "Cleaner Power Factor"
 
     # Active power
     active_power_a:
@@ -436,12 +442,6 @@ sensor:
     active_power_b:
       id: cleaner_power
       name: "Cleaner Power"
-  
-    # Power factor
-    power_factor_a:
-      name: "Pump Power Factor"
-    power_factor_b:
-      name: "Cleaner Power Factor"
 
     # Energy
     active_energy_a:
