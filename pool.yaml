@@ -383,7 +383,7 @@ sensor:
     update_interval: 2s
     lambda: |- 
       if (id(pump_output).state) {
-        return id(pzem).get_voltage_a();
+        return id(pump_voltage).state;
       } else {
         return 0;
       }
@@ -394,9 +394,9 @@ sensor:
 
     # Voltage
     voltage_a:
-      name: "Pump Voltage"
+      id: pump_voltage
     voltage_b:
-      name: "Cleaner Voltage"
+      id: cleaner_voltage
 
     # Current
     current_a:
