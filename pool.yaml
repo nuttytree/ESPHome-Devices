@@ -372,6 +372,21 @@ sensor:
     device_class: temperature
     unit_of_measurement: "°C"
     update_interval: 10s
+  - platform: template
+    name: Pump Voltage
+    icon: mdi:sine-wave
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    device_class: voltage
+    state_class: measurement
+    entity_category: diagnostic
+    update_interval: 2s
+    lambda: |- 
+      if (id(pump_output).state) {
+        return id(pzem).get_voltage_a();
+      } else {
+        return 0;
+      }
   - platform: pzem6l24
     id: pzem
     address: 0x01
