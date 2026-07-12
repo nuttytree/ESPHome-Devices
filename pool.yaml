@@ -445,7 +445,6 @@ time:
               id: pzem
               phase: all
 
-
 touchscreen:
   - platform: gt911
     id: pool_touchscreen
