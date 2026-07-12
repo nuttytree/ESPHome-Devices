@@ -380,13 +380,28 @@ sensor:
     device_class: voltage
     state_class: measurement
     entity_category: diagnostic
-    update_interval: 2s
-    lambda: |- 
-      if (id(pool_pump).state) {
-        return id(pump_voltage).state;
-      } else {
-        return 0;
-      }
+    update_interval: 1s
+    lambda: return (id(pool_pump).state) ? id(pump_voltage).state : 0;
+  - platform: template
+    name: Cleaner Voltage
+    icon: mdi:sine-wave
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    device_class: voltage
+    state_class: measurement
+    entity_category: diagnostic
+    update_interval: 1s
+    lambda: return (id(pool_cleaner).state) ? id(cleaner_voltage).state : 0;
+  - platform: template
+    name: Pump Current
+    icon: mdi:sine-wave
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    device_class: voltage
+    state_class: measurement
+    entity_category: diagnostic
+    update_interval: 1s
+    lambda: return (id(pool_pump).state) ? id(pump_voltage).state : 0;
   - platform: pzem6l24
     id: pzem
     address: 0x01
@@ -401,10 +416,8 @@ sensor:
     # Current
     current_a:
       id: pump_current
-      name: "Pump Current"
     current_b:
       id: cleaner_current
-      name: "Cleaner Current"
 
     # Active power
     active_power_a:
