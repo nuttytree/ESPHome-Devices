@@ -432,13 +432,22 @@ sensor:
     lambda: return (id(pool_cleaner).state) ? id(cleaner_power_factor_int).state : 0;
   - platform: template
     name: Pump Power
-    icon: mdi:angle-acute
-    accuracy_decimals: 2
-    device_class: power_factor
+    icon: mdi:lightning-bolt
+    unit_of_measurement: "W"
+    accuracy_decimals: 1
+    device_class: power
     state_class: measurement
-    entity_category: diagnostic
     update_interval: 1s
-    lambda: return (id(pool_pump).state) ? id(pump_power_factor_int).state : 0;
+    lambda: return (id(pool_pump).state) ? id(pump_power_int).state : 0;
+  - platform: template
+    name: Cleaner Power
+    icon: mdi:lightning-bolt
+    unit_of_measurement: "W"
+    accuracy_decimals: 1
+    device_class: power
+    state_class: measurement
+    update_interval: 1s
+    lambda: return (id(pool_cleaner).state) ? id(cleaner_power_int).state : 0;
   - platform: pzem6l24
     id: pzem
     address: 0x01
@@ -465,10 +474,8 @@ sensor:
     # Active power
     active_power_a:
       id: pump_power_int
-      name: "Pump Power"
     active_power_b:
       id: cleaner_power_int
-      name: "Cleaner Power"
 
     # Energy
     active_energy_a:
