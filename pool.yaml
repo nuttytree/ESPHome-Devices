@@ -393,6 +393,7 @@ sensor:
     update_interval: 1s
     lambda: return (id(pool_cleaner).state) ? id(cleaner_voltage_int).state : 0;
   - platform: template
+    id: pump_current
     name: Pump Current
     icon: mdi:current-ac
     unit_of_measurement: "A"
@@ -403,6 +404,7 @@ sensor:
     update_interval: 1s
     lambda: return (id(pool_pump).state) ? id(pump_current_int).state : 0;
   - platform: template
+    id: cleaner_current
     name: Cleaner Current
     icon: mdi:current-ac
     unit_of_measurement: "A"
