@@ -381,7 +381,7 @@ sensor:
     state_class: measurement
     entity_category: diagnostic
     update_interval: 1s
-    lambda: return (id(pool_pump).state) ? id(pump_voltage_int).state : 0;
+    lambda: return id(pool_pump).state) ? id(pump_voltage_int).state : 0;
   - platform: template
     name: Cleaner Voltage
     icon: mdi:sine-wave
@@ -391,7 +391,7 @@ sensor:
     state_class: measurement
     entity_category: diagnostic
     update_interval: 1s
-    lambda: return (id(pool_cleaner).state) ? id(cleaner_voltage_int).state : 0;
+    lambda: return id(pool_cleaner).state) ? id(cleaner_voltage_int).state : 0;
   - platform: template
     id: pump_current
     name: Pump Current
@@ -402,7 +402,7 @@ sensor:
     state_class: measurement
     entity_category: diagnostic
     update_interval: 1s
-    lambda: return (id(pool_pump).state) ? id(pump_current_int).state : 0;
+    lambda: return id(pool_pump).state) ? id(pump_current_int).state : 0;
   - platform: template
     id: cleaner_current
     name: Cleaner Current
@@ -413,7 +413,7 @@ sensor:
     state_class: measurement
     entity_category: diagnostic
     update_interval: 1s
-    lambda: return (id(pool_cleaner).state) ? id(cleaner_current_int).state : 0;
+    lambda: return id(pool_cleaner).state) ? id(cleaner_current_int).state : 0;
   - platform: template
     name: Pump Power Factor
     icon: mdi:angle-acute
@@ -422,7 +422,7 @@ sensor:
     state_class: measurement
     entity_category: diagnostic
     update_interval: 1s
-    lambda: return (id(pool_pump).state) ? id(pump_power_factor_int).state : 0;
+    lambda: return id(pool_pump).state) ? id(pump_power_factor_int).state : 0;
   - platform: template
     name: Cleaner Power Factor
     icon: mdi:angle-acute
@@ -431,7 +431,7 @@ sensor:
     state_class: measurement
     entity_category: diagnostic
     update_interval: 1s
-    lambda: return (id(pool_cleaner).state) ? id(cleaner_power_factor_int).state : 0;
+    lambda: return id(pool_cleaner).state) ? id(cleaner_power_factor_int).state : 0;
   - platform: template
     name: Pump Power
     icon: mdi:lightning-bolt
@@ -440,7 +440,7 @@ sensor:
     device_class: power
     state_class: measurement
     update_interval: 1s
-    lambda: return (id(pool_pump).state) ? id(pump_power_int).state : 0;
+    lambda: return id(pool_pump).state) ? id(pump_power_int).state : 0;
   - platform: template
     name: Cleaner Power
     icon: mdi:lightning-bolt
@@ -449,7 +449,7 @@ sensor:
     device_class: power
     state_class: measurement
     update_interval: 1s
-    lambda: return (id(pool_cleaner).state) ? id(cleaner_power_int).state : 0;
+    lambda: return id(pool_cleaner).state) ? id(cleaner_power_int).state : 0;
   - platform: template
     name: Pump
     icon: mdi:lightning-bolt
@@ -458,7 +458,7 @@ sensor:
     device_class: energy
     state_class: measurement
     update_interval: 1s
-    lambda: return (id(pool_pump).state) ? id(pump_energy_int).state : 0;
+    lambda: return id(pool_pump).state) ? id(pump_energy_int).state : 0;
   - platform: template
     name: Cleaner
     icon: mdi:lightning-bolt
@@ -467,7 +467,7 @@ sensor:
     device_class: energy
     state_class: measurement
     update_interval: 1s
-    lambda: return (id(pool_cleaner).state) ? id(cleaner_energy_int).state : 0;
+    lambda: return id(pool_cleaner).state) ? id(cleaner_energy_int).state : 0;
   - platform: pzem6l24
     id: pzem
     address: 0x01
