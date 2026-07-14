@@ -34,7 +34,7 @@ AUTO_LOAD = ["modbus"]
 
 pzem6l24_ns = cg.esphome_ns.namespace("pzem6l24")
 PZEM6L24 = pzem6l24_ns.class_(
-    "PZEM6L24", cg.PollingComponent, modbus.ModbusClientDevice
+    "PZEM6L24", cg.PollingComponent, modbus.ModbusDevice
 )
 ResetEnergyAction = pzem6l24_ns.class_("ResetEnergyAction", automation.Action)
 
@@ -263,7 +263,7 @@ FINAL_VALIDATE_SCHEMA = _final_validate
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    await modbus.register_modbus_client_device(var, config)
+    await modbus.register_modbus_device(var, config)
 
     # Per-phase voltage
     await _register_sensor(var, config, CONF_VOLTAGE_A, "set_voltage_sensor_a")
