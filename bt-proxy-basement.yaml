@@ -8,7 +8,6 @@ packages:
   device_base: !include ./packages/device_base_esp32.yaml
 
 esp32:
-  cpu_frequency: 160MHZ
 
 bluetooth_proxy:
   active: true
