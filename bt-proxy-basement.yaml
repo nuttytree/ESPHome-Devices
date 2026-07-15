@@ -12,3 +12,6 @@ esp32:
   cpu_frequency: 160MHZ
 
 bluetooth_proxy:
+  active: true
+  cache_services: true
+  connection_slots: 4
