@@ -2,8 +2,8 @@ substitutions:
   device_id: bt-proxy-basement
   device_name: Basement Bluetooth Proxy
   board: nodemcu-32s
-  api_key: !secret garage_fridge_key
-  pwd: !secret garage_fridge_pwd
+  # api_key: !secret garage_fridge_key
+  # pwd: !secret garage_fridge_pwd
 
 packages:
   device_base: !include ./packages/device_base_esp32.yaml
