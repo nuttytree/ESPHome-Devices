@@ -1,7 +1,6 @@
 substitutions:
   device_id: bt-proxy-basement
   device_name: Basement Bluetooth Proxy
-  board: esp32dev
   api_key: !secret bt_proxy_basement_key
   pwd: !secret bt_proxy_basement_pwd
 
