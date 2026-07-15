@@ -7,8 +7,6 @@ substitutions:
 packages:
   device_base: !include ./packages/device_base_esp32.yaml
 
-esp32:
-
 bluetooth_proxy:
   active: true
   cache_services: true
