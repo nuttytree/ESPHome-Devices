@@ -1,0 +1,30 @@
+# Board: NodeMCU-32S (NodeMCU)
+# Definition: definitions/boards/nodemcu-32s/manifest.yaml
+
+esphome:
+  name: bt-proxy
+  friendly_name: bt-proxy
+
+esp32:
+  variant: esp32
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+  encryption:
+    key: "Gj00ESUAH+2dLkF5YO4EW7tMLJtqULKwQ0mgUfd1KAE="
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: bt-proxy Fallback Hotspot
+    password: "n7ifsURLfWn0"
+
+captive_portal:
