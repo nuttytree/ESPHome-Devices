@@ -379,47 +379,51 @@ sensor:
 
     # Voltage
     voltage_a:
+      id: supply_voltage
+      name: Supply Voltage
+      entity_category: diagnostic
+    voltage_b:
       id: pump_voltage
       name: Pump Voltage
       entity_category: diagnostic
-    voltage_b:
+    voltage_c:
       id: cleaner_voltage_int
       name: Cleaner Voltage
       entity_category: diagnostic
 
     # Current
-    current_a:
+    current_b:
       id: pump_current
       name: Pump Current
       entity_category: diagnostic
-    current_b:
+    current_c:
       id: cleaner_current
       name: Cleaner Current
       entity_category: diagnostic
   
     # Power factor
-    power_factor_a:
+    power_factor_b:
       id: pump_power_factor
       name: Pump Power Factor
       entity_category: diagnostic
-    power_factor_b:
+    power_factor_c:
       id: cleaner_power_factor
       name: Cleaner Power Factor
       entity_category: diagnostic
 
     # Active power
-    active_power_a:
+    active_power_b:
       id: pump_power
       name: Pump Power
-    active_power_b:
+    active_power_c:
       id: cleaner_power
       name: Cleaner Power
 
     # Energy
-    active_energy_a:
+    active_energy_b:
       id: pump_energy
       name: Pump
-    active_energy_b:
+    active_energy_c:
       id: cleaner_energy
       name: Cleaner
 
