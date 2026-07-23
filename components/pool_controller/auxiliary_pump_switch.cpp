@@ -37,14 +37,17 @@ void AuxiliaryPumpSwitch::write_state(bool state) {
 
   this->output_->set_state(state);
   this->publish_state(state);
-  if (!this->use_current_for_state_) {
+  if (!this->has_current_sensor() && !this->has_flow_sensor()) {
     this->track_runtime(state);
   } else if (!state) {
-    // Output commanded off — stop runtime counting immediately regardless of current.
+    // Output commanded off — stop runtime counting immediately regardless of sensor confirmation.
     this->motor_running_ = false;
+    this->flow_running_ = false;
     this->track_runtime(false);
   }
-  // When use_current_for_state_ && state==true: runtime starts in loop() when current confirms motor is running.
+  // When a current or flow sensor is configured and state==true: runtime starts in loop() once the
+  // sensor confirms the pump is actually running.
+  this->update_no_current_();
 }
 
 }  // namespace pool_controller

@@ -21,7 +21,8 @@ void PumpSwitch::setup() {
     this->runtime_seconds_ = 0;
   }
 
-  if (this->enable_anomaly_detection_) {
+#ifdef USE_SENSOR
+  if (this->current_sensor_ != nullptr) {
     this->anomaly_pref_ = this->make_entity_preference<AnomalyBaseline>();
     if (this->anomaly_pref_.load(&this->anomaly_baseline_)) {
       this->sample_count_ = this->anomaly_baseline_.sample_count;
@@ -32,7 +33,9 @@ void PumpSwitch::setup() {
                this->anomaly_baseline_.startup_runs);
     }
   }
+#endif
 
+  this->set_anomaly_detected_(false);
   this->turn_off();
   // Enforce the 5-minute cooldown from boot — we don't know the previous pump state.
   this->last_off_ms_ = millis_64();
@@ -60,7 +63,54 @@ void PumpSwitch::track_runtime(bool new_state) {
     this->runtime_start_ms_ = 0;
     this->runtime_pref_.save(&this->runtime_seconds_);
     this->last_off_ms_ = millis_64();
+    this->set_anomaly_detected_(false);
   }
+}
+
+void PumpSwitch::set_anomaly_detected_(bool detected) {
+  if (this->anomaly_detected_ == detected)
+    return;
+  this->anomaly_detected_ = detected;
+  if (this->anomaly_status_sensor_ != nullptr)
+    this->anomaly_status_sensor_->publish_state(detected);
+}
+
+void PumpSwitch::update_no_current_() {
+  const bool fault = this->has_current_sensor() && this->state && !this->motor_running_;
+  if (fault == this->no_current_detected_)
+    return;
+  this->no_current_detected_ = fault;
+  if (this->no_current_sensor_ != nullptr)
+    this->no_current_sensor_->publish_state(fault);
+}
+
+void PumpSwitch::set_flow_loss_(bool latched) {
+  if (latched == this->flow_loss_latched_)
+    return;
+  this->flow_loss_latched_ = latched;
+  if (this->flow_loss_sensor_ != nullptr)
+    this->flow_loss_sensor_->publish_state(latched);
+}
+
+void PumpSwitch::set_unexpected_flow_(bool detected) {
+  if (detected == this->unexpected_flow_detected_)
+    return;
+  this->unexpected_flow_detected_ = detected;
+  if (this->unexpected_flow_sensor_ != nullptr)
+    this->unexpected_flow_sensor_->publish_state(detected);
+}
+
+void PumpSwitch::reset_anomaly_baseline() {
+#ifdef USE_SENSOR
+  this->anomaly_baseline_ = AnomalyBaseline();
+  this->sample_count_ = 0;
+  this->baseline_locked_ = false;
+  this->startup_peak_current_ = 0.0f;
+  this->startup_processed_ = false;
+  this->set_anomaly_detected_(false);
+  this->anomaly_pref_.save(&this->anomaly_baseline_);
+  ESP_LOGI(TAG, "'%s' anomaly baseline reset; capturing new samples", this->get_name().c_str());
+#endif
 }
 
 const ScheduleRuntime *PumpSwitch::find_active_runtime(uint16_t slot_start_minute, uint8_t day_of_week) const {
@@ -86,14 +136,14 @@ void PumpSwitch::loop() {
 
 #ifdef USE_SENSOR
   // ── Current sensor processing (1 Hz) ──────────────────────────────────────
-  if (this->current_sensor_ != nullptr && (this->use_current_for_state_ || this->enable_anomaly_detection_)) {
+  if (this->current_sensor_ != nullptr) {
     if (now - this->last_sample_ms_ >= 1000) {
       this->last_sample_ms_ = now;
       const float current = this->current_sensor_->state;
 
       // Current-based runtime tracking: state always reflects the output command.
       // Runtime is only accumulated while the output is on AND current confirms the motor is running.
-      if (this->use_current_for_state_ && !std::isnan(current)) {
+      if (!std::isnan(current)) {
         const bool motor_running = this->state && (current >= this->current_on_threshold_);
         if (motor_running != this->motor_running_) {
           ESP_LOGD(TAG, "'%s' motor running state: %s (output=%s, %.3fA %s %.3fA threshold)", this->get_name().c_str(),
@@ -101,6 +151,7 @@ void PumpSwitch::loop() {
                    this->current_on_threshold_);
           this->motor_running_ = motor_running;
           this->track_runtime(motor_running);
+          this->update_no_current_();
         }
       }
 
@@ -111,12 +162,26 @@ void PumpSwitch::loop() {
   }
 #endif
 
+  // ── Flow-based runtime tracking ────────────────────────────────────────────
+  // Only used when a flow sensor is configured without a current sensor — in that case
+  // runtime is only accumulated while the output is on AND flow is actually detected.
+  // When a current sensor is also present, runtime is controlled by current instead (above).
+  if (this->flow_sensor_ != nullptr && !this->has_current_sensor()) {
+    const bool flow_running = this->state && this->flow_sensor_->state;
+    if (flow_running != this->flow_running_) {
+      ESP_LOGD(TAG, "'%s' flow running state: %s (output=%s)", this->get_name().c_str(),
+               flow_running ? "YES" : "NO", this->state ? "ON" : "OFF");
+      this->flow_running_ = flow_running;
+      this->track_runtime(flow_running);
+    }
+  }
+
   // ── Flow sensor watchdog ───────────────────────────────────────────────────
-  // "Should be moving water" means:
-  //   - no current sensor: output is on (state == true)
-  //   - with current sensor: output is on AND current confirms motor is running
-  if (this->flow_sensor_ != nullptr) {
-    const bool should_have_flow = this->use_current_for_state_ ? this->motor_running_ : this->state;
+  // Only shuts the pump down when a current sensor confirms the motor is actually running.
+  // Without that confirmation, "commanded on but no flow" is indistinguishable from a manual
+  // override switch physically holding the pump off, so no-flow alone must not trigger a shutdown.
+  if (this->flow_sensor_ != nullptr && this->has_current_sensor()) {
+    const bool should_have_flow = this->motor_running_;
 
     if (should_have_flow && !this->flow_sensor_->state) {
       // Pump expected to produce flow but sensor reports none.
@@ -128,6 +193,7 @@ void PumpSwitch::loop() {
         ESP_LOGW(TAG, "'%s' no flow for %" PRIu32 " ms — shutting down pump", this->get_name().c_str(),
                  this->flow_timeout_ms_);
         this->flow_check_start_ms_ = 0;
+        this->set_flow_loss_(true);
         this->turn_off();
       }
     } else {
@@ -137,7 +203,34 @@ void PumpSwitch::loop() {
         this->flow_check_start_ms_ = 0;
       }
     }
+
+    // Clear the latched flow-loss fault only once the pump is on, current confirms the motor is
+    // running, AND flow is detected again — all three at once.
+    if (should_have_flow && this->flow_sensor_->state)
+      this->set_flow_loss_(false);
   }
+
+  // ── Unexpected flow watchdog ────────────────────────────────────────────────
+  // Detects water flow while the pump is commanded off — e.g. a stuck valve, a neighboring pump
+  // pushing water through this branch, or a manual override running the pump. Debounced by
+  // flow_timeout to allow for residual flow immediately after shutdown.
+  if (this->flow_sensor_ != nullptr) {
+    if (!this->state && this->flow_sensor_->state) {
+      if (this->unexpected_flow_check_start_ms_ == 0) {
+        this->unexpected_flow_check_start_ms_ = now;
+      } else if (now - this->unexpected_flow_check_start_ms_ >= this->flow_timeout_ms_) {
+        this->set_unexpected_flow_(true);
+      }
+    } else {
+      this->unexpected_flow_check_start_ms_ = 0;
+      this->set_unexpected_flow_(false);
+    }
+  }
+}
+
+void PumpUnexpectedFlowBinarySensor::setup() {
+  Component::setup();
+  this->publish_initial_state(false);
 }
 
 // All anomaly methods below are compiled only when the sensor platform is present.
@@ -207,14 +300,17 @@ void PumpSwitch::tick_anomaly_() {
 
   const float band = baseline * (this->anomaly_threshold_pct_ / 100.0f);
   if (current > baseline + band) {
+    this->set_anomaly_detected_(true);
     this->fire_anomaly_("CURRENT_HIGH");
   } else if (current < baseline - band) {
+    this->set_anomaly_detected_(true);
     this->fire_anomaly_("CURRENT_LOW");
   }
 
   // Long-term drift: slow EMA rising above half the threshold band suggests bearing wear.
   const float drift_band = baseline * (this->anomaly_threshold_pct_ / 200.0f);
   if (this->anomaly_baseline_.drift_ema > baseline + drift_band) {
+    this->set_anomaly_detected_(true);
     this->fire_anomaly_("BASELINE_DRIFT");
   }
 }
@@ -234,6 +330,7 @@ void PumpSwitch::process_startup_peak_() {
   } else if (bl.startup_runs >= ANOMALY_MIN_STARTUP_RUNS) {
     // Established baseline: flag if the inrush peak is less than 50 % of normal.
     if (this->startup_peak_current_ < bl.startup_peak * 0.5f) {
+      this->set_anomaly_detected_(true);
       this->fire_anomaly_("NO_STARTUP_SPIKE");
     }
   }
@@ -251,6 +348,40 @@ void PumpSwitch::fire_anomaly_(const std::string &reason) {
            this->anomaly_baseline_.steady_state);
   if (this->anomaly_trigger_ != nullptr)
     this->anomaly_trigger_->trigger(reason);
+}
+
+void PumpAnomalySwitch::setup() {
+  Component::setup();
+  bool initial_state = this->get_initial_state_with_restore_mode().value_or(false);
+  this->publish_state(initial_state);
+  if (this->pump_ != nullptr)
+    this->pump_->set_enable_anomaly_detection(this->state);
+}
+
+void PumpAnomalySwitch::write_state(bool state) {
+  this->publish_state(state);
+  if (this->pump_ != nullptr)
+    this->pump_->set_enable_anomaly_detection(state);
+}
+
+void PumpAnomalyStatusBinarySensor::setup() {
+  Component::setup();
+  this->publish_initial_state(false);
+}
+
+void PumpNoCurrentBinarySensor::setup() {
+  Component::setup();
+  this->publish_initial_state(false);
+}
+
+void PumpFlowLossBinarySensor::setup() {
+  Component::setup();
+  this->publish_initial_state(false);
+}
+
+void PumpAnomalyResetButton::press_action() {
+  if (this->pump_ != nullptr)
+    this->pump_->reset_anomaly_baseline();
 }
 
 #endif  // USE_SENSOR

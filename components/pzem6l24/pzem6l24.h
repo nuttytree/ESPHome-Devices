@@ -20,8 +20,9 @@ enum ResetPhase : uint8_t {
   RESET_PHASE_ALL = 0x0F,       // Reset all energy counters
 };
 
-class PZEM6L24 final : public PollingComponent, public modbus::ModbusDevice {
+class PZEM6L24 final : public PollingComponent, public modbus::ModbusClientDevice {
  public:
+  // Per-phase voltage setters
   void set_voltage_sensor_a(sensor::Sensor *voltage_a) { this->voltage_a_ = voltage_a; }
   void set_voltage_sensor_b(sensor::Sensor *voltage_b) { this->voltage_b_ = voltage_b; }
   void set_voltage_sensor_c(sensor::Sensor *voltage_c) { this->voltage_c_ = voltage_c; }
