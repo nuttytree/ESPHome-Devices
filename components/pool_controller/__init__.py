@@ -9,7 +9,6 @@ from esphome.components import select as esphome_select
 from esphome.components.time import validate_cron_days_of_week
 from esphome.const import (
     CONF_DAYS_OF_WEEK,
-    CONF_ENTITY_CATEGORY,
     CONF_ID,
     CONF_NAME,
     CONF_OUTPUT,
@@ -50,12 +49,24 @@ from .const import (
 AUTO_LOAD = ["binary_sensor", "button", "select", "switch", "water_heater"]
 DEPENDENCIES = ["time"]
 
-DEFAULT_ANOMALY_DETECTION_SWITCH_PREFIX = "__pool_controller_anomaly_detection_switch_default_name__"
-DEFAULT_ANOMALY_STATUS_BINARY_SENSOR_PREFIX = "__pool_controller_anomaly_status_binary_sensor_default_name__"
-DEFAULT_ANOMALY_BASELINE_RESET_BUTTON_PREFIX = "__pool_controller_anomaly_baseline_reset_button_default_name__"
-DEFAULT_NO_CURRENT_BINARY_SENSOR_PREFIX = "__pool_controller_no_current_binary_sensor_default_name__"
-DEFAULT_FLOW_LOSS_BINARY_SENSOR_PREFIX = "__pool_controller_flow_loss_binary_sensor_default_name__"
-DEFAULT_UNEXPECTED_FLOW_BINARY_SENSOR_PREFIX = "__pool_controller_unexpected_flow_binary_sensor_default_name__"
+DEFAULT_ANOMALY_DETECTION_SWITCH_PREFIX = (
+    "__pool_controller_anomaly_detection_switch_default_name__"
+)
+DEFAULT_ANOMALY_STATUS_BINARY_SENSOR_PREFIX = (
+    "__pool_controller_anomaly_status_binary_sensor_default_name__"
+)
+DEFAULT_ANOMALY_BASELINE_RESET_BUTTON_PREFIX = (
+    "__pool_controller_anomaly_baseline_reset_button_default_name__"
+)
+DEFAULT_NO_CURRENT_BINARY_SENSOR_PREFIX = (
+    "__pool_controller_no_current_binary_sensor_default_name__"
+)
+DEFAULT_FLOW_LOSS_BINARY_SENSOR_PREFIX = (
+    "__pool_controller_flow_loss_binary_sensor_default_name__"
+)
+DEFAULT_UNEXPECTED_FLOW_BINARY_SENSOR_PREFIX = (
+    "__pool_controller_unexpected_flow_binary_sensor_default_name__"
+)
 
 pool_controller_ns = cg.esphome_ns.namespace("pool_controller")
 PoolController = pool_controller_ns.class_("PoolController", cg.Component)
@@ -247,7 +258,9 @@ PUMP_SCHEMA = {
     cv.Optional(CONF_CURRENT_SENSOR): cv.use_id(sensor.Sensor),
     cv.Optional(
         CONF_ANOMALY_DETECTION_SWITCH,
-        default=lambda: {CONF_NAME: f"{DEFAULT_ANOMALY_DETECTION_SWITCH_PREFIX}{uuid.uuid4()}"},
+        default=lambda: {
+            CONF_NAME: f"{DEFAULT_ANOMALY_DETECTION_SWITCH_PREFIX}{uuid.uuid4()}"
+        },
     ): esphome_switch.switch_schema(
         PumpAnomalySwitch,
         default_restore_mode="RESTORE_DEFAULT_ON",
@@ -256,7 +269,9 @@ PUMP_SCHEMA = {
     ),
     cv.Optional(
         CONF_ANOMALY_BASELINE_RESET_BUTTON,
-        default=lambda: {CONF_NAME: f"{DEFAULT_ANOMALY_BASELINE_RESET_BUTTON_PREFIX}{uuid.uuid4()}"},
+        default=lambda: {
+            CONF_NAME: f"{DEFAULT_ANOMALY_BASELINE_RESET_BUTTON_PREFIX}{uuid.uuid4()}"
+        },
     ): button.button_schema(
         PumpAnomalyResetButton,
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
@@ -264,7 +279,9 @@ PUMP_SCHEMA = {
     ),
     cv.Optional(
         CONF_ANOMALY_STATUS_BINARY_SENSOR,
-        default=lambda: {CONF_NAME: f"{DEFAULT_ANOMALY_STATUS_BINARY_SENSOR_PREFIX}{uuid.uuid4()}"},
+        default=lambda: {
+            CONF_NAME: f"{DEFAULT_ANOMALY_STATUS_BINARY_SENSOR_PREFIX}{uuid.uuid4()}"
+        },
     ): binary_sensor.binary_sensor_schema(
         PumpAnomalyStatusBinarySensor,
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
@@ -274,7 +291,9 @@ PUMP_SCHEMA = {
     cv.Optional(CONF_CURRENT_ON_THRESHOLD, default=0.5): cv.positive_float,
     cv.Optional(
         CONF_NO_CURRENT_BINARY_SENSOR,
-        default=lambda: {CONF_NAME: f"{DEFAULT_NO_CURRENT_BINARY_SENSOR_PREFIX}{uuid.uuid4()}"},
+        default=lambda: {
+            CONF_NAME: f"{DEFAULT_NO_CURRENT_BINARY_SENSOR_PREFIX}{uuid.uuid4()}"
+        },
     ): binary_sensor.binary_sensor_schema(
         PumpNoCurrentBinarySensor,
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
@@ -290,7 +309,9 @@ PUMP_SCHEMA = {
     cv.Optional(CONF_FLOW_TIMEOUT, default="2s"): cv.positive_time_period_milliseconds,
     cv.Optional(
         CONF_FLOW_LOSS_BINARY_SENSOR,
-        default=lambda: {CONF_NAME: f"{DEFAULT_FLOW_LOSS_BINARY_SENSOR_PREFIX}{uuid.uuid4()}"},
+        default=lambda: {
+            CONF_NAME: f"{DEFAULT_FLOW_LOSS_BINARY_SENSOR_PREFIX}{uuid.uuid4()}"
+        },
     ): binary_sensor.binary_sensor_schema(
         PumpFlowLossBinarySensor,
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
@@ -299,7 +320,9 @@ PUMP_SCHEMA = {
     ),
     cv.Optional(
         CONF_UNEXPECTED_FLOW_BINARY_SENSOR,
-        default=lambda: {CONF_NAME: f"{DEFAULT_UNEXPECTED_FLOW_BINARY_SENSOR_PREFIX}{uuid.uuid4()}"},
+        default=lambda: {
+            CONF_NAME: f"{DEFAULT_UNEXPECTED_FLOW_BINARY_SENSOR_PREFIX}{uuid.uuid4()}"
+        },
     ): binary_sensor.binary_sensor_schema(
         PumpUnexpectedFlowBinarySensor,
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
@@ -397,7 +420,9 @@ async def _pump_to_code(var, pump_config, delay_ms, disable_sensor):
         cg.add(var.set_current_on_threshold(pump_config[CONF_CURRENT_ON_THRESHOLD]))
 
         diag_conf = pump_config[CONF_ANOMALY_DETECTION_SWITCH]
-        if diag_conf.get(CONF_NAME, "").startswith(DEFAULT_ANOMALY_DETECTION_SWITCH_PREFIX):
+        if diag_conf.get(CONF_NAME, "").startswith(
+            DEFAULT_ANOMALY_DETECTION_SWITCH_PREFIX
+        ):
             diag_conf[CONF_NAME] = f"{pump_config[CONF_NAME]} Anomaly Detection"
         diag = cg.new_Pvariable(diag_conf[CONF_ID])
         await esphome_switch.register_switch(diag, diag_conf)
@@ -406,15 +431,21 @@ async def _pump_to_code(var, pump_config, delay_ms, disable_sensor):
 
         if CONF_ANOMALY_BASELINE_RESET_BUTTON in pump_config:
             reset_conf = pump_config[CONF_ANOMALY_BASELINE_RESET_BUTTON]
-            if reset_conf.get(CONF_NAME, "").startswith(DEFAULT_ANOMALY_BASELINE_RESET_BUTTON_PREFIX):
-                reset_conf[CONF_NAME] = f"{pump_config[CONF_NAME]} Reset Anomaly Baseline"
+            if reset_conf.get(CONF_NAME, "").startswith(
+                DEFAULT_ANOMALY_BASELINE_RESET_BUTTON_PREFIX
+            ):
+                reset_conf[CONF_NAME] = (
+                    f"{pump_config[CONF_NAME]} Reset Anomaly Baseline"
+                )
             reset_button = cg.new_Pvariable(reset_conf[CONF_ID])
             await button.register_button(reset_button, reset_conf)
             await cg.register_component(reset_button, reset_conf)
             cg.add(reset_button.set_pump(var))
 
         status_conf = pump_config[CONF_ANOMALY_STATUS_BINARY_SENSOR]
-        if status_conf.get(CONF_NAME, "").startswith(DEFAULT_ANOMALY_STATUS_BINARY_SENSOR_PREFIX):
+        if status_conf.get(CONF_NAME, "").startswith(
+            DEFAULT_ANOMALY_STATUS_BINARY_SENSOR_PREFIX
+        ):
             status_conf[CONF_NAME] = f"{pump_config[CONF_NAME]} Anomaly Status"
         status_sensor = cg.new_Pvariable(status_conf[CONF_ID])
         await binary_sensor.register_binary_sensor(status_sensor, status_conf)
@@ -428,7 +459,9 @@ async def _pump_to_code(var, pump_config, delay_ms, disable_sensor):
             await automation.build_automation(trigger, [(cg.std_string, "x")], conf)
 
         no_current_conf = pump_config[CONF_NO_CURRENT_BINARY_SENSOR]
-        if no_current_conf.get(CONF_NAME, "").startswith(DEFAULT_NO_CURRENT_BINARY_SENSOR_PREFIX):
+        if no_current_conf.get(CONF_NAME, "").startswith(
+            DEFAULT_NO_CURRENT_BINARY_SENSOR_PREFIX
+        ):
             no_current_conf[CONF_NAME] = f"{pump_config[CONF_NAME]} No Current"
         no_current_sensor = cg.new_Pvariable(no_current_conf[CONF_ID])
         await binary_sensor.register_binary_sensor(no_current_sensor, no_current_conf)
@@ -441,16 +474,24 @@ async def _pump_to_code(var, pump_config, delay_ms, disable_sensor):
         cg.add(var.set_flow_timeout_ms(pump_config[CONF_FLOW_TIMEOUT]))
 
         unexpected_flow_conf = pump_config[CONF_UNEXPECTED_FLOW_BINARY_SENSOR]
-        if unexpected_flow_conf.get(CONF_NAME, "").startswith(DEFAULT_UNEXPECTED_FLOW_BINARY_SENSOR_PREFIX):
-            unexpected_flow_conf[CONF_NAME] = f"{pump_config[CONF_NAME]} Unexpected Flow"
+        if unexpected_flow_conf.get(CONF_NAME, "").startswith(
+            DEFAULT_UNEXPECTED_FLOW_BINARY_SENSOR_PREFIX
+        ):
+            unexpected_flow_conf[CONF_NAME] = (
+                f"{pump_config[CONF_NAME]} Unexpected Flow"
+            )
         unexpected_flow_sensor = cg.new_Pvariable(unexpected_flow_conf[CONF_ID])
-        await binary_sensor.register_binary_sensor(unexpected_flow_sensor, unexpected_flow_conf)
+        await binary_sensor.register_binary_sensor(
+            unexpected_flow_sensor, unexpected_flow_conf
+        )
         await cg.register_component(unexpected_flow_sensor, unexpected_flow_conf)
         cg.add(var.set_unexpected_flow_sensor(unexpected_flow_sensor))
 
         if CONF_CURRENT_SENSOR in pump_config:
             flow_loss_conf = pump_config[CONF_FLOW_LOSS_BINARY_SENSOR]
-            if flow_loss_conf.get(CONF_NAME, "").startswith(DEFAULT_FLOW_LOSS_BINARY_SENSOR_PREFIX):
+            if flow_loss_conf.get(CONF_NAME, "").startswith(
+                DEFAULT_FLOW_LOSS_BINARY_SENSOR_PREFIX
+            ):
                 flow_loss_conf[CONF_NAME] = f"{pump_config[CONF_NAME]} Flow Loss"
             flow_loss_sensor = cg.new_Pvariable(flow_loss_conf[CONF_ID])
             await binary_sensor.register_binary_sensor(flow_loss_sensor, flow_loss_conf)

@@ -33,9 +33,7 @@ from esphome.types import ConfigType
 AUTO_LOAD = ["modbus"]
 
 pzem6l24_ns = cg.esphome_ns.namespace("pzem6l24")
-PZEM6L24 = pzem6l24_ns.class_(
-    "PZEM6L24", cg.PollingComponent, modbus.ModbusDevice
-)
+PZEM6L24 = pzem6l24_ns.class_("PZEM6L24", cg.PollingComponent, modbus.ModbusDevice)
 ResetEnergyAction = pzem6l24_ns.class_("ResetEnergyAction", automation.Action)
 
 ResetPhase = pzem6l24_ns.enum("ResetPhase")

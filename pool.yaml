@@ -390,7 +390,7 @@ sensor:
       id: cleaner_current
       name: Cleaner Current
       entity_category: diagnostic
-  
+
     # Power factor
     power_factor_b:
       id: pump_power_factor
