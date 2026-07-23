@@ -414,6 +414,8 @@ sensor:
     active_energy_c:
       id: cleaner_energy
       name: Cleaner
+  - platform: internal_temperature
+    name: Controller Temperature
 
 switch:
   - platform: output
