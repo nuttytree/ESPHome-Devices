@@ -93,9 +93,7 @@ class PumpSwitch : public switch_::Switch, public Component {
   void set_learning_samples(uint32_t n) { this->learning_samples_ = n; }
   /// Called by PumpAnomalyTrigger to register the automation callback.
   void set_anomaly_trigger(Trigger<std::string> *trigger) { this->anomaly_trigger_ = trigger; }
-  void set_anomaly_status_sensor(binary_sensor::BinarySensor *sensor) {
-    this->anomaly_status_sensor_ = sensor;
-  }
+  void set_anomaly_status_sensor(binary_sensor::BinarySensor *sensor) { this->anomaly_status_sensor_ = sensor; }
   /// Reset the stored anomaly baseline and force new sample learning.
   void reset_anomaly_baseline();
 
@@ -210,11 +208,11 @@ class PumpSwitch : public switch_::Switch, public Component {
   binary_sensor::BinarySensor *flow_sensor_{nullptr};  ///< Optional water flow sensor.
   uint32_t flow_timeout_ms_{2000};                     ///< Ms of absent flow before shutdown. Default: 2 s.
   uint64_t flow_check_start_ms_{0};  ///< millis_64() when no-flow condition first detected; 0 if clear.
-  bool flow_running_{false};  ///< True while flow confirms the pump is running (used when no current sensor).
-  binary_sensor::BinarySensor *flow_loss_sensor_{nullptr};  ///< Problem sensor: latched flow-loss shutdown.
-  bool flow_loss_latched_{false};                           ///< Last published state of flow_loss_sensor_.
+  bool flow_running_{false};         ///< True while flow confirms the pump is running (used when no current sensor).
+  binary_sensor::BinarySensor *flow_loss_sensor_{nullptr};        ///< Problem sensor: latched flow-loss shutdown.
+  bool flow_loss_latched_{false};                                 ///< Last published state of flow_loss_sensor_.
   binary_sensor::BinarySensor *unexpected_flow_sensor_{nullptr};  ///< Problem sensor: flow detected while off.
-  bool unexpected_flow_detected_{false};             ///< Last published state of unexpected_flow_sensor_.
+  bool unexpected_flow_detected_{false};                          ///< Last published state of unexpected_flow_sensor_.
   uint64_t unexpected_flow_check_start_ms_{0};  ///< millis_64() when unexpected flow first detected; 0 if clear.
 
   /// Returns true when a flow sensor is configured for this pump.

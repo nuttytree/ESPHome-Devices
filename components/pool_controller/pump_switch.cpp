@@ -169,8 +169,8 @@ void PumpSwitch::loop() {
   if (this->flow_sensor_ != nullptr && !this->has_current_sensor()) {
     const bool flow_running = this->state && this->flow_sensor_->state;
     if (flow_running != this->flow_running_) {
-      ESP_LOGD(TAG, "'%s' flow running state: %s (output=%s)", this->get_name().c_str(),
-               flow_running ? "YES" : "NO", this->state ? "ON" : "OFF");
+      ESP_LOGD(TAG, "'%s' flow running state: %s (output=%s)", this->get_name().c_str(), flow_running ? "YES" : "NO",
+               this->state ? "ON" : "OFF");
       this->flow_running_ = flow_running;
       this->track_runtime(flow_running);
     }
