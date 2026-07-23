@@ -1,7 +1,6 @@
 substitutions:
   device_id: garage-fridge
   device_name: Garage Fridge
-  board: m5stack-atom
   api_key: !secret garage_fridge_key
   pwd: !secret garage_fridge_pwd
   log_baud_rate: '0'

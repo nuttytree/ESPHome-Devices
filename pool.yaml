@@ -14,13 +14,10 @@ external_components:
   - source:
       type: local
       path: ./components
-    components: [pool_controller]
-  - source:
-      type: git
-      url: https://github.com/latonita/esphome
-      ref: waveshare_expander
-    components: [waveshare_io_ch32v003]
-    refresh: 1h
+    components: [pool_controller, pzem6l24]
+
+  # - source: github://esphome/esphome@dev
+  #   components: [waveshare_io_ch32v003]
 
 esphome:
   on_boot:
@@ -29,6 +26,8 @@ esphome:
       - output.set_level:
           id: backlight_pwm_output
           level: 0%
+      # - lambda: |-
+      #     id(return_temp).set_address(101);
 
 binary_sensor:
   - platform: gpio
@@ -51,6 +50,16 @@ binary_sensor:
       mode:
         input: true
       inverted: true
+
+button:
+  - platform: template
+    name: "Reset Energy Counters"
+    icon: "mdi:lightning-bolt"
+    entity_category: diagnostic
+    on_press:
+      - pzem6l24.reset_energy:
+          id: pzem
+          phase: all
 
 display:
   - platform: mipi_rgb
@@ -170,6 +179,9 @@ lvgl:
             text_color: 0xaaaaaa
             text_font: font_roboto_24
 
+modbus:
+  uart_id: modbus_uart
+
 output:
   - platform: waveshare_io_ch32v003
     id: backlight_pwm_output
@@ -218,18 +230,13 @@ pool_controller:
     id: pool_pump
     icon: mdi:pump
     output: pump_output
-    # current_sensor: pool_pump_current
-    # enable_anomaly_detection: true
-    # use_current_for_state: true
+    current_sensor: pump_current
+    flow_sensor: flow_main
     schedule_select:
       id: pump_select
       name: Pump Schedule
       icon: mdi:clock-outline
     restore_mode: Always Off
-    on_turn_on:
-      - component.update: pump_power
-    on_turn_off:
-      - component.update: pump_power
     schedules:
       - name: Normal
         runtimes:
@@ -270,17 +277,12 @@ pool_controller:
       name: "Cleaner"
       icon: mdi:robot-vacuum
       output: cleaner_output
-      # current_sensor: pool_cleaner_current
-      # enable_anomaly_detection: true
-      # use_current_for_state: true
+      current_sensor: cleaner_current
+      flow_sensor: flow_aux
       schedule_select:
         id: cleaner_select
         name: Cleaner Schedule
         icon: mdi:clock-outline
-      on_turn_on:
-        - component.update: cleaner_power
-      on_turn_off:
-        - component.update: cleaner_power
       schedules:
         - name: Normal
           runtimes:
@@ -325,78 +327,97 @@ sensor:
               if (x >= -80) return std::string("\U000F0922");  // 2 bars
               if (x >= -90) return std::string("\U000F091F");  // 1 bar
               return std::string("\U000F092B");                // outline
-  - platform: template
-    id: pump_power
-    name: Pump Power
-    unit_of_measurement: "W"
-    device_class: power
-    state_class: measurement
-    accuracy_decimals: 1
-    update_interval: never
-    lambda: |-
-      return id(pool_pump).state ? 1500.0 : 0.0;
-    filters:
-      - heartbeat:
-          period: 10s
-          optimistic: true
-  - platform: total_daily_energy
-    name: Pump
-    power_id: pump_power
-    method: left
-  - platform: template
-    id: cleaner_power
-    name: Cleaner Power
-    unit_of_measurement: "W"
-    device_class: power
-    state_class: measurement
-    accuracy_decimals: 1
-    update_interval: never
-    lambda: |-
-      return id(pool_cleaner).state ? 875.0 : 0.0;
-    filters:
-      - heartbeat:
-          period: 10s
-          optimistic: true
-  - platform: total_daily_energy
-    name: Cleaner
-    power_id: cleaner_power
-    method: left
-  # - platform: total_daily_energy
-  #   name: "Pool Pump Total Daily Energy"
-  #   icon: mdi:flash
-  #   power_id: pool_pump_power
-  #   method: left
-  #   filters:
-  #     - throttle: 1min
-  # - platform: total_daily_energy
-  #   name: "Pool Cleaner Total Daily Energy"
-  #   icon: mdi:flash
-  #   power_id: pool_cleaner_power
-  #   method: left
-  #   filters:
-  #     - throttle: 1min
-  # - platform: ezo
-  #   id: orp
-  #   address: 98
-  #   unit_of_measurement: "mV"
-  #   update_interval: 10s
-  # - platform: ezo
-  #   id: ph
-  #   address: 99
-  #   unit_of_measurement: "pH"
-  #   update_interval: 10s
-  # - platform: ezo
-  #   id: water_temp
-  #   address: 101
-  #   accuracy_decimals: 2
-  #   unit_of_measurement: "°C"
-  #   update_interval: 10s
-  # - platform: ezo
-  #   id: return_temp
-  #   address: 102
-  #   accuracy_decimals: 2
-  #   unit_of_measurement: "°C"
-  #   update_interval: 10s
+  - platform: ezo
+    id: orp
+    name: Oxidation Reduction Potential
+    icon: mdi:chemical-weapon
+    address: 98
+    device_class: voltage
+    accuracy_decimals: 0
+    unit_of_measurement: "mV"
+    update_interval: 10s
+  - platform: ezo
+    id: ph
+    name: pH
+    icon: mdi:ph
+    address: 99
+    device_class: ph
+    accuracy_decimals: 2
+    update_interval: 10s
+  - platform: ezo
+    id: water_temp
+    name: Water Temperature
+    icon: mdi:water-thermometer
+    address: 101
+    accuracy_decimals: 2
+    device_class: temperature
+    unit_of_measurement: "°C"
+    update_interval: 10s
+  - platform: ezo
+    id: return_temp
+    name: Return Water Temperature
+    icon: mdi:water-thermometer
+    address: 102
+    accuracy_decimals: 2
+    device_class: temperature
+    unit_of_measurement: "°C"
+    update_interval: 10s
+  - platform: pzem6l24
+    id: pzem
+    address: 0x01
+    update_interval: 2s
+
+    # Voltage
+    voltage_a:
+      id: supply_voltage
+      name: Supply Voltage
+      entity_category: diagnostic
+    voltage_b:
+      id: pump_voltage
+      name: Pump Voltage
+      entity_category: diagnostic
+    voltage_c:
+      id: cleaner_voltage_int
+      name: Cleaner Voltage
+      entity_category: diagnostic
+
+    # Current
+    current_b:
+      id: pump_current
+      name: Pump Current
+      entity_category: diagnostic
+    current_c:
+      id: cleaner_current
+      name: Cleaner Current
+      entity_category: diagnostic
+  
+    # Power factor
+    power_factor_b:
+      id: pump_power_factor
+      name: Pump Power Factor
+      entity_category: diagnostic
+    power_factor_c:
+      id: cleaner_power_factor
+      name: Cleaner Power Factor
+      entity_category: diagnostic
+
+    # Active power
+    active_power_b:
+      id: pump_power
+      name: Pump Power
+    active_power_c:
+      id: cleaner_power
+      name: Cleaner Power
+
+    # Energy
+    active_energy_b:
+      id: pump_energy
+      name: Pump
+    active_energy_c:
+      id: cleaner_energy
+      name: Cleaner
+  - platform: internal_temperature
+    name: Controller Temperature
 
 switch:
   - platform: output
@@ -424,6 +445,13 @@ time:
                 auto t = id(time_source).now();
                 if (!t.is_valid()) return std::string("");
                 return t.strftime("%a %b %d  %I:%M %p");
+      - seconds: 0
+        minutes: 0
+        hours: 0
+        then:
+          - pzem6l24.reset_energy:
+              id: pzem
+              phase: all
 
 touchscreen:
   - platform: gt911
@@ -444,6 +472,12 @@ touchscreen:
             then:
               - lvgl.resume:
               - light.turn_on: lcd_backlight
+
+uart:
+  id: modbus_uart
+  tx_pin: GPIO43
+  rx_pin: GPIO44
+  baud_rate: 9600
 
 waveshare_io_ch32v003:
   - id: wave_io

@@ -5,6 +5,7 @@
 #include "esphome/core/preferences.h"
 #include "esphome/core/string_ref.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
+#include "esphome/components/button/button.h"
 #include "esphome/components/output/binary_output.h"
 #include "esphome/components/switch/switch.h"
 #ifdef USE_SENSOR
@@ -40,6 +41,7 @@ struct AnomalyBaseline {
 class AuxiliaryPumpSwitch;
 class PoolController;
 class PoolHeater;
+class PumpAnomalySwitch;
 
 /// Base class for all pump switch types. Holds shared output and schedule state.
 class PumpSwitch : public switch_::Switch, public Component {
@@ -91,18 +93,29 @@ class PumpSwitch : public switch_::Switch, public Component {
   void set_learning_samples(uint32_t n) { this->learning_samples_ = n; }
   /// Called by PumpAnomalyTrigger to register the automation callback.
   void set_anomaly_trigger(Trigger<std::string> *trigger) { this->anomaly_trigger_ = trigger; }
+  void set_anomaly_status_sensor(binary_sensor::BinarySensor *sensor) {
+    this->anomaly_status_sensor_ = sensor;
+  }
+  /// Reset the stored anomaly baseline and force new sample learning.
+  void reset_anomaly_baseline();
 
   // ── Current-based state ────────────────────────────────────────────────────
-  /// When true, published switch state is derived from current draw instead of output command.
-  void set_use_current_for_state(bool use) { this->use_current_for_state_ = use; }
   /// Current threshold (amps) above which the pump is considered running. Default: 0.1 A.
   void set_current_on_threshold(float threshold) { this->current_on_threshold_ = threshold; }
+  /// Problem sensor: true while the pump is commanded on but no current is detected.
+  void set_no_current_sensor(binary_sensor::BinarySensor *sensor) { this->no_current_sensor_ = sensor; }
 
   // ── Flow sensor ────────────────────────────────────────────────────────────
   /// Optional binary sensor that detects water flow.
   void set_flow_sensor(binary_sensor::BinarySensor *sensor) { this->flow_sensor_ = sensor; }
   /// How long (ms) flow must be absent before the pump is shut down. Default: 2000 ms.
   void set_flow_timeout_ms(uint32_t ms) { this->flow_timeout_ms_ = ms; }
+  /// Problem sensor: latches true when the pump is shut down due to lost flow; only clears once
+  /// the pump is on, current confirms the motor is running, and flow is detected again.
+  void set_flow_loss_sensor(binary_sensor::BinarySensor *sensor) { this->flow_loss_sensor_ = sensor; }
+  /// Problem sensor: true when flow is detected while the pump is commanded off, debounced by
+  /// flow_timeout to allow for residual flow immediately after shutdown.
+  void set_unexpected_flow_sensor(binary_sensor::BinarySensor *sensor) { this->unexpected_flow_sensor_ = sensor; }
 
   /// Returns true when the Off schedule (index 0) is active.
   bool is_off_schedule() const { return this->active_schedule_idx_ == 0; }
@@ -129,6 +142,14 @@ class PumpSwitch : public switch_::Switch, public Component {
 
   /// Call this in write_state() before setting the output so runtime is tracked correctly.
   void track_runtime(bool new_state);
+  void set_anomaly_detected_(bool detected);
+
+  /// Re-evaluates the no-current problem sensor from current `state`/`motor_running_`.
+  void update_no_current_();
+  /// Sets (or clears) the latched flow-loss problem sensor.
+  void set_flow_loss_(bool latched);
+  /// Sets (or clears) the unexpected-flow-while-off problem sensor.
+  void set_unexpected_flow_(bool detected);
 
   /// Returns the ScheduleRuntime from the active user-defined schedule that covers
   /// [slot_start_minute, slot_start_minute+30), for the given day_of_week (1=Sun..7=Sat).
@@ -164,25 +185,106 @@ class PumpSwitch : public switch_::Switch, public Component {
   uint64_t last_anomaly_ms_{0};       ///< millis_64() of the last anomaly fired; used for 5-min debounce.
   float startup_peak_current_{0.0f};  ///< Highest current seen during the current run's startup window.
   bool startup_processed_{false};     ///< True once the startup peak has been evaluated for this run.
+  bool anomaly_detected_{false};      ///< True while the current run is flagged as anomalous.
   ESPPreferenceObject anomaly_pref_;  ///< Persists AnomalyBaseline across reboots.
+  binary_sensor::BinarySensor *anomaly_status_sensor_{nullptr};
 
   // ── Current-based state fields ─────────────────────────────────────────────
-  /// When true, state reflects the output command (not current draw), but runtime is
-  /// only accumulated while current confirms the motor is actually running.
-  bool use_current_for_state_{false};
+  /// When a current sensor is configured, the published state still reflects the output
+  /// command, but runtime is only accumulated while current confirms the motor is running.
   float current_on_threshold_{0.1f};  ///< Amps above which motor is considered running. Default: 0.1 A.
   bool motor_running_{false};         ///< True while current confirms the motor is actually drawing current.
+  binary_sensor::BinarySensor *no_current_sensor_{nullptr};  ///< Problem sensor: on but no current detected.
+  bool no_current_detected_{false};                          ///< Last published state of no_current_sensor_.
+
+  /// Returns true when a current sensor is configured for this pump.
+#ifdef USE_SENSOR
+  bool has_current_sensor() const { return this->current_sensor_ != nullptr; }
+#else
+  bool has_current_sensor() const { return false; }
+#endif
 
   // ── Flow sensor state ──────────────────────────────────────────────────────
+  /// When a flow sensor is configured but no current sensor is, the published state still
+  /// reflects the output command, but runtime is only accumulated while flow is detected.
   binary_sensor::BinarySensor *flow_sensor_{nullptr};  ///< Optional water flow sensor.
   uint32_t flow_timeout_ms_{2000};                     ///< Ms of absent flow before shutdown. Default: 2 s.
   uint64_t flow_check_start_ms_{0};  ///< millis_64() when no-flow condition first detected; 0 if clear.
+  bool flow_running_{false};  ///< True while flow confirms the pump is running (used when no current sensor).
+  binary_sensor::BinarySensor *flow_loss_sensor_{nullptr};  ///< Problem sensor: latched flow-loss shutdown.
+  bool flow_loss_latched_{false};                           ///< Last published state of flow_loss_sensor_.
+  binary_sensor::BinarySensor *unexpected_flow_sensor_{nullptr};  ///< Problem sensor: flow detected while off.
+  bool unexpected_flow_detected_{false};             ///< Last published state of unexpected_flow_sensor_.
+  uint64_t unexpected_flow_check_start_ms_{0};  ///< millis_64() when unexpected flow first detected; 0 if clear.
+
+  /// Returns true when a flow sensor is configured for this pump.
+  bool has_flow_sensor() const { return this->flow_sensor_ != nullptr; }
 
 #ifdef USE_SENSOR
   void tick_anomaly_();                           ///< Called at 1 Hz while the pump is running.
   void process_startup_peak_();                   ///< Evaluates the inrush peak captured during the startup window.
   void fire_anomaly_(const std::string &reason);  ///< Logs + triggers the anomaly automation (5-min debounce).
 #endif
+};
+
+class PumpAnomalySwitch : public switch_::Switch, public Component {
+ public:
+  void setup() override;
+  void write_state(bool state) override;
+  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
+
+ protected:
+  PumpSwitch *pump_{nullptr};
+};
+
+class PumpAnomalyStatusBinarySensor : public binary_sensor::BinarySensor, public Component {
+ public:
+  void setup() override;
+  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
+
+ protected:
+  PumpSwitch *pump_{nullptr};
+};
+
+class PumpAnomalyResetButton : public button::Button, public Component {
+ public:
+  void press_action() override;
+  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
+
+ protected:
+  PumpSwitch *pump_{nullptr};
+};
+
+/// Problem sensor: true while the pump is commanded on but no current is detected.
+class PumpNoCurrentBinarySensor : public binary_sensor::BinarySensor, public Component {
+ public:
+  void setup() override;
+  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
+
+ protected:
+  PumpSwitch *pump_{nullptr};
+};
+
+/// Problem sensor: latches true when the pump is shut down due to lost flow; only clears once
+/// the pump is on, current confirms the motor is running, and flow is detected again.
+class PumpFlowLossBinarySensor : public binary_sensor::BinarySensor, public Component {
+ public:
+  void setup() override;
+  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
+
+ protected:
+  PumpSwitch *pump_{nullptr};
+};
+
+/// Problem sensor: true when flow is detected while the pump is commanded off, debounced by
+/// flow_timeout to allow for residual flow immediately after shutdown.
+class PumpUnexpectedFlowBinarySensor : public binary_sensor::BinarySensor, public Component {
+ public:
+  void setup() override;
+  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
+
+ protected:
+  PumpSwitch *pump_{nullptr};
 };
 
 class PrimaryPumpSwitch : public PumpSwitch {

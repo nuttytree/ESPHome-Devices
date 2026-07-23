@@ -1,0 +1,13 @@
+substitutions:
+  device_id: bt-proxy-basement
+  device_name: Basement Bluetooth Proxy
+  api_key: !secret bt_proxy_basement_key
+  pwd: !secret bt_proxy_basement_pwd
+
+packages:
+  device_base: !include ./packages/device_base_esp32.yaml
+
+bluetooth_proxy:
+  active: true
+  cache_services: true
+  connection_slots: 4
