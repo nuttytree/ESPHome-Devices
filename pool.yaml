@@ -231,6 +231,7 @@ pool_controller:
     icon: mdi:pump
     output: pump_output
     current_sensor: pump_current
+    flow_sensor: flow_main
     schedule_select:
       id: pump_select
       name: Pump Schedule
@@ -277,6 +278,7 @@ pool_controller:
       icon: mdi:robot-vacuum
       output: cleaner_output
       current_sensor: cleaner_current
+      flow_sensor: flow_aux
       schedule_select:
         id: cleaner_select
         name: Cleaner Schedule
