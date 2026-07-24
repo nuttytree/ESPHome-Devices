@@ -63,15 +63,15 @@ climate:
 ## Configuration Variables (In addition to the [standard ESPHome climate options](https://esphome.io/components/climate/index.html) and the [ECONET_CLIENT_SCHEMA](https://github.com/esphome-econet/esphome-econet) fields)
 * **operating_mode_datapoint** (Required, string): Econet datapoint ID reporting the current operating mode string (e.g. `HVACMODE`). Used to derive the HA action (heating/cooling/idle/fan).
 * **mode_datapoint** (Required, string): Econet enum datapoint ID for the thermostat mode (e.g. `STATMODE`).
-* **modes** (Required, map): Mapping of enum integer values to ESPHome climate modes (`heat`, `cool`, `heat_cool`, `fan_only`, `"off"`).
+* **modes** (Required, map): Mapping of enum integer values to ESPHome climate modes (`heat`, `cool`, `heat_cool`, `fan_only`, `"off"`). Mapped mode values must be unique.
 * **zones** (Required, list): List of zone entries. At least 2 zones, exactly one must have `is_primary: true`. Each zone has:
   * **src_address** (Required, uint32): Econet source address of this zone's thermostat.
-  * **request_mod** (Required, int): Request modifier for this zone's polling.
+  * **request_mod** (Required, int 0–15, or `none`): Request modifier for this zone's polling. `none` (case-insensitive) disables the request modifier.
   * **is_primary** (Optional, boolean, default: false): Designates this zone as primary. Exactly one zone must be primary. The primary zone drives the HA state and is the target of all `control()` writes.
 * **automatic_fan_mode** (Required, uint8): Enum value to write when setting a zone to automatic fan control.
-* **fan_modes** (Required, list): Fan mode entries for idle/fan temperature-balancing logic. Each entry has:
+* **fan_modes** (Required, list, min 1 entry): Fan mode entries for idle/fan temperature-balancing logic. Each entry has:
   * **fan_mode** (Required, uint8): Enum value to write to the thermostat for this fan speed.
-  * **minimum_temperature_delta** (Required, Temperature Delta): Minimum spread between the hottest and coldest zone required to activate this speed. During idle/fan action the component finds the hottest and coldest zones, computes their spread, and selects the highest entry whose `minimum_temperature_delta` is still ≤ the spread. That speed is applied only to the hottest and coldest zones; all others are set to `automatic_fan_mode`. While actively heating or cooling all zones are set to `automatic_fan_mode`.
+  * **minimum_temperature_delta** (Required, Temperature Delta): Minimum spread between the hottest and coldest zone required to activate this speed. During idle/fan action the component finds the hottest and coldest zones, computes their spread, and selects the highest entry whose `minimum_temperature_delta` is still ≤ the spread. That speed is applied only to the hottest and coldest zones; all others are set to `automatic_fan_mode`. While actively heating or cooling all zones are set to `automatic_fan_mode`. Once selected, the hottest/coldest zones are locked for 15 minutes before being re-evaluated, and a given fan speed is not re-written for 5 minutes after being applied, even if the computed spread changes sooner.
 * **current_temperature_datapoint** (Optional, string, default: ""): Econet datapoint for current temperature (°F). Averaged across all zones for the HA state.
 * **target_temperature_low_datapoint** (Optional, string, default: ""): Econet datapoint for the heat setpoint (°F).
 * **target_temperature_high_datapoint** (Optional, string, default: ""): Econet datapoint for the cool setpoint (°F).
