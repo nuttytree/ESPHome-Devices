@@ -6,6 +6,10 @@ ci:
   autoupdate_commit_msg: 'pre-commit: autoupdate'
   autoupdate_schedule: off
 
+default_install_hook_types:
+  - pre-commit
+  - post-commit
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
@@ -49,3 +53,12 @@ repos:
     hooks:
       - id: clang-format
         types_or: [c, c++]
+  - repo: local
+    hooks:
+      - id: tag-esphome-version
+        name: Tag commit with confirmed ESPHome version
+        entry: python scripts/tag_esphome_version.py
+        language: system
+        stages: [post-commit]
+        always_run: true
+        pass_filenames: false
