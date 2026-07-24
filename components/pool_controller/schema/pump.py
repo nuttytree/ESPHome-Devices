@@ -3,7 +3,7 @@ import uuid
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
-from esphome.components import binary_sensor, button, output, sensor
+from esphome.components import binary_sensor, button, output, sensor, text_sensor
 from esphome.components import switch as esphome_switch
 from esphome.components import select as esphome_select
 from esphome.const import (
@@ -25,6 +25,7 @@ from ..const import (
     CONF_ANOMALY_DETECTION_SWITCH,
     CONF_ANOMALY_BASELINE_RESET_BUTTON,
     CONF_ANOMALY_STATUS_BINARY_SENSOR,
+    CONF_ANOMALY_REASON_TEXT_SENSOR,
     CONF_ANOMALY_THRESHOLD_PCT,
     CONF_LEARNING_SAMPLES,
     CONF_ON_ANOMALY,
@@ -41,6 +42,7 @@ from .types import (
     AuxiliaryPumpSwitch,
     PumpAnomalySwitch,
     PumpAnomalyStatusBinarySensor,
+    PumpAnomalyReasonTextSensor,
     PumpAnomalyResetButton,
     PumpNoCurrentBinarySensor,
     PumpFlowLossBinarySensor,
@@ -59,6 +61,9 @@ DEFAULT_ANOMALY_DETECTION_SWITCH_PREFIX = (
 )
 DEFAULT_ANOMALY_STATUS_BINARY_SENSOR_PREFIX = (
     "__pool_controller_anomaly_status_binary_sensor_default_name__"
+)
+DEFAULT_ANOMALY_REASON_TEXT_SENSOR_PREFIX = (
+    "__pool_controller_anomaly_reason_text_sensor_default_name__"
 )
 DEFAULT_ANOMALY_BASELINE_RESET_BUTTON_PREFIX = (
     "__pool_controller_anomaly_baseline_reset_button_default_name__"
@@ -126,6 +131,16 @@ PUMP_SCHEMA = {
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         device_class=DEVICE_CLASS_PROBLEM,
         icon="mdi:alert-octagon",
+    ),
+    cv.Optional(
+        CONF_ANOMALY_REASON_TEXT_SENSOR,
+        default=lambda: {
+            CONF_NAME: f"{DEFAULT_ANOMALY_REASON_TEXT_SENSOR_PREFIX}{uuid.uuid4()}"
+        },
+    ): text_sensor.text_sensor_schema(
+        PumpAnomalyReasonTextSensor,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        icon="mdi:text-box-search-outline",
     ),
     cv.Optional(CONF_CURRENT_ON_THRESHOLD, default=0.5): cv.positive_float,
     cv.Optional(
@@ -249,6 +264,16 @@ async def pump_to_code(var, pump_config, delay_ms, disable_sensor):
         await binary_sensor.register_binary_sensor(status_sensor, status_conf)
         await cg.register_component(status_sensor, status_conf)
         cg.add(var.set_anomaly_status_sensor(status_sensor))
+
+        reason_conf = pump_config[CONF_ANOMALY_REASON_TEXT_SENSOR]
+        if reason_conf.get(CONF_NAME, "").startswith(
+            DEFAULT_ANOMALY_REASON_TEXT_SENSOR_PREFIX
+        ):
+            reason_conf[CONF_NAME] = f"{pump_config[CONF_NAME]} Anomaly Reason"
+        reason_sensor = cg.new_Pvariable(reason_conf[CONF_ID])
+        await text_sensor.register_text_sensor(reason_sensor, reason_conf)
+        await cg.register_component(reason_sensor, reason_conf)
+        cg.add(var.set_anomaly_reason_sensor(reason_sensor))
 
         cg.add(var.set_anomaly_threshold_pct(pump_config[CONF_ANOMALY_THRESHOLD_PCT]))
         cg.add(var.set_learning_samples(pump_config[CONF_LEARNING_SAMPLES]))

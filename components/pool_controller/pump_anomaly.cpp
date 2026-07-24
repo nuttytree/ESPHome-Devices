@@ -18,6 +18,13 @@ void PumpSwitch::reset_anomaly_baseline() {
   this->baseline_locked_ = false;
   this->startup_peak_current_ = 0.0f;
   this->startup_processed_ = false;
+  this->oob_streak_ = 0;
+  this->spread_ema_ = 0.0f;
+  // A mid-run reset shouldn't inherit timing from before the reset: clear the cooldown so
+  // the next real anomaly isn't silently suppressed, and clear turned_on_ms_ so a stale
+  // turn-on time (from before the reset) can't be mistaken for this run's start.
+  this->last_anomaly_ms_ = 0;
+  this->turned_on_ms_ = 0;
   this->set_anomaly_detected_(false);
   this->anomaly_pref_.save(&this->anomaly_baseline_);
   ESP_LOGI(TAG, "'%s' anomaly baseline reset; capturing new samples", this->get_name().c_str());
@@ -33,6 +40,12 @@ static constexpr uint32_t ANOMALY_STARTUP_WINDOW_MS = 15000;
 static constexpr uint32_t ANOMALY_COOLDOWN_MS = 5u * 60u * 1000u;  // 5 minutes
 // Minimum startup runs before inrush-peak comparison begins.
 static constexpr uint8_t ANOMALY_MIN_STARTUP_RUNS = 3;
+// Consecutive out-of-band samples required before an anomaly is asserted (debounce).
+static constexpr uint8_t ANOMALY_DEBOUNCE_SAMPLES = 3;
+// Fast EWMA alpha for the live spread estimate (responds within ~10 samples).
+static constexpr float EMA_SPREAD_ALPHA = 0.1f;
+// Live spread must exceed the learned baseline stdev by this factor to trip VARIANCE_SPIKE.
+static constexpr float ANOMALY_VARIANCE_MULTIPLIER = 4.0f;
 // Alpha for steady-state EMA during the learning phase.
 static constexpr float EMA_LEARN_ALPHA = 0.1f;
 // Alpha for the long-term drift EMA (very slow; 1 000-sample memory).
@@ -44,6 +57,8 @@ void PumpSwitch::tick_anomaly_() {
     return;
 
   const uint64_t run_ms = millis_64() - this->turned_on_ms_;
+  ESP_LOGD(TAG, "'%s' tick_anomaly_: run_ms=%" PRIu64 " turned_on_ms_=%" PRIu64, this->get_name().c_str(), run_ms,
+           this->turned_on_ms_);
   const bool in_startup = (run_ms < ANOMALY_STARTUP_WINDOW_MS);
 
   if (in_startup) {
@@ -65,11 +80,17 @@ void PumpSwitch::tick_anomaly_() {
     if (this->sample_count_ == 0) {
       this->anomaly_baseline_.steady_state = current;
       this->anomaly_baseline_.drift_ema = current;
+      this->anomaly_baseline_.var_mean = current;
+      this->anomaly_baseline_.var_m2 = 0.0f;
     } else {
       this->anomaly_baseline_.steady_state =
           EMA_LEARN_ALPHA * current + (1.0f - EMA_LEARN_ALPHA) * this->anomaly_baseline_.steady_state;
       this->anomaly_baseline_.drift_ema =
           EMA_LEARN_ALPHA * current + (1.0f - EMA_LEARN_ALPHA) * this->anomaly_baseline_.drift_ema;
+      // Welford variance over the learning window; n = sample_count_ + 1 (this sample).
+      const float delta = current - this->anomaly_baseline_.var_mean;
+      this->anomaly_baseline_.var_mean += delta / static_cast<float>(this->sample_count_ + 1);
+      this->anomaly_baseline_.var_m2 += delta * (current - this->anomaly_baseline_.var_mean);
     }
     this->anomaly_baseline_.sample_count = ++this->sample_count_;
     if (this->sample_count_ >= this->learning_samples_) {
@@ -89,20 +110,54 @@ void PumpSwitch::tick_anomaly_() {
   if (baseline <= 0.0f)
     return;
 
+  // Trip band: |deviation| beyond this, sustained for ANOMALY_DEBOUNCE_SAMPLES consecutive
+  // samples, asserts the anomaly. Clear band is half that (hysteresis) so the flag doesn't
+  // re-arm right at the trip boundary — current must settle solidly back toward baseline.
   const float band = baseline * (this->anomaly_threshold_pct_ / 100.0f);
-  if (current > baseline + band) {
-    this->set_anomaly_detected_(true);
-    this->fire_anomaly_("CURRENT_HIGH");
-  } else if (current < baseline - band) {
-    this->set_anomaly_detected_(true);
-    this->fire_anomaly_("CURRENT_LOW");
+  const float clear_band = band * 0.5f;
+  const float deviation = current - baseline;
+  const bool out_of_band = std::fabs(deviation) > band;
+
+  // Long-term drift: slow EMA moving more than half the threshold band away from baseline in
+  // either direction — rising suggests bearing wear, falling suggests prime/flow loss.
+  const float drift_band = baseline * (this->anomaly_threshold_pct_ / 200.0f);
+  const bool drifting = std::fabs(this->anomaly_baseline_.drift_ema - baseline) > drift_band;
+
+  // Live spread vs. the learned baseline stdev (Welford, accumulated during learning).
+  // Widening spread is often the earliest sign of trouble, well before the mean moves.
+  const float abs_dev = std::fabs(deviation);
+  this->spread_ema_ = EMA_SPREAD_ALPHA * abs_dev + (1.0f - EMA_SPREAD_ALPHA) * this->spread_ema_;
+  const uint32_t var_n = this->anomaly_baseline_.sample_count;
+  const float baseline_stdev =
+      (var_n > 1) ? std::sqrt(this->anomaly_baseline_.var_m2 / static_cast<float>(var_n - 1)) : 0.0f;
+  const bool variance_spike = baseline_stdev > 0.0f && this->spread_ema_ > baseline_stdev * ANOMALY_VARIANCE_MULTIPLIER;
+
+  if (out_of_band) {
+    if (this->oob_streak_ < 0xFF)
+      this->oob_streak_++;
+    if (this->oob_streak_ >= ANOMALY_DEBOUNCE_SAMPLES && !this->anomaly_detected_) {
+      this->set_anomaly_detected_(true);
+      this->fire_anomaly_(deviation > 0.0f ? "CURRENT_HIGH" : "CURRENT_LOW");
+    }
+  } else {
+    this->oob_streak_ = 0;
   }
 
-  // Long-term drift: slow EMA rising above half the threshold band suggests bearing wear.
-  const float drift_band = baseline * (this->anomaly_threshold_pct_ / 200.0f);
-  if (this->anomaly_baseline_.drift_ema > baseline + drift_band) {
+  if (drifting && !this->anomaly_detected_) {
     this->set_anomaly_detected_(true);
     this->fire_anomaly_("BASELINE_DRIFT");
+  }
+
+  if (variance_spike && !this->anomaly_detected_) {
+    this->set_anomaly_detected_(true);
+    this->fire_anomaly_("VARIANCE_SPIKE");
+  }
+
+  // Explicit clear: only once current is back within the tighter hysteresis band AND
+  // long-term drift and live spread have also subsided. Keeps the binary sensor meaning
+  // "anomalous right now" rather than "was anomalous at some point since turn-on".
+  if (std::fabs(deviation) <= clear_band && !drifting && !variance_spike) {
+    this->set_anomaly_detected_(false);
   }
 }
 
@@ -114,15 +169,19 @@ void PumpSwitch::process_startup_peak_() {
   if (bl.startup_runs == 0 || bl.startup_peak == 0.0f) {
     bl.startup_peak = this->startup_peak_current_;
     bl.startup_runs = 1;
-  } else if (bl.startup_runs < 10) {
-    // Average the first 10 runs to establish a stable inrush reference.
-    bl.startup_peak = (bl.startup_peak * bl.startup_runs + this->startup_peak_current_) / (bl.startup_runs + 1);
-    bl.startup_runs++;
-  } else if (bl.startup_runs >= ANOMALY_MIN_STARTUP_RUNS) {
-    // Established baseline: flag if the inrush peak is less than 50 % of normal.
-    if (this->startup_peak_current_ < bl.startup_peak * 0.5f) {
+  } else {
+    // Compare against the reference as it stood entering this run, before this run's own
+    // sample gets folded in below — otherwise a low peak would dilute the average it's
+    // being checked against.
+    if (bl.startup_runs >= ANOMALY_MIN_STARTUP_RUNS && this->startup_peak_current_ < bl.startup_peak * 0.5f &&
+        !this->anomaly_detected_) {
       this->set_anomaly_detected_(true);
       this->fire_anomaly_("NO_STARTUP_SPIKE");
+    }
+    if (bl.startup_runs < 10) {
+      // Average the first 10 runs to establish a stable inrush reference.
+      bl.startup_peak = (bl.startup_peak * bl.startup_runs + this->startup_peak_current_) / (bl.startup_runs + 1);
+      bl.startup_runs++;
     }
   }
 
@@ -131,6 +190,9 @@ void PumpSwitch::process_startup_peak_() {
 }
 
 void PumpSwitch::fire_anomaly_(const std::string &reason) {
+  if (this->anomaly_reason_sensor_ != nullptr)
+    this->anomaly_reason_sensor_->publish_state(reason);
+
   const uint64_t now = millis_64();
   if (now - this->last_anomaly_ms_ < ANOMALY_COOLDOWN_MS)
     return;
@@ -161,8 +223,18 @@ void PumpAnomalyStatusBinarySensor::setup() {
 }
 
 void PumpAnomalyResetButton::press_action() {
-  if (this->pump_ != nullptr)
-    this->pump_->reset_anomaly_baseline();
+  if (this->pump_ == nullptr)
+    return;
+  if (this->pump_->is_flow_loss_active()) {
+    ESP_LOGW(TAG, "'%s' anomaly baseline reset ignored: flow loss is active", this->pump_->get_name().c_str());
+    return;
+  }
+  this->pump_->reset_anomaly_baseline();
+}
+
+void PumpAnomalyReasonTextSensor::setup() {
+  Component::setup();
+  this->publish_state("");
 }
 
 #endif  // USE_SENSOR
