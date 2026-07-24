@@ -14,7 +14,7 @@ Home Assistant is open source home automation that puts local control and privac
 * `/components` - Custom components
 * `/images` - Pictures of some of my devices
 * `/packages` - Shared packages used by my devices
-* `/scripts` - Couple of PowerShell scripts for managing the repo
+* `/scripts` - Scripts for managing the repo
 
 
 ## Secrets Management
