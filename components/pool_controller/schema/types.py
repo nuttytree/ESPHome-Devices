@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 from esphome import automation
-from esphome.components import binary_sensor, button, water_heater
+from esphome.components import binary_sensor, button, text_sensor, water_heater
 from esphome.components import switch as esphome_switch
 from esphome.components import select as esphome_select
 
@@ -27,6 +27,9 @@ PumpAnomalyStatusBinarySensor = pool_controller_ns.class_(
 )
 PumpAnomalyResetButton = pool_controller_ns.class_(
     "PumpAnomalyResetButton", button.Button, cg.Component
+)
+PumpAnomalyReasonTextSensor = pool_controller_ns.class_(
+    "PumpAnomalyReasonTextSensor", text_sensor.TextSensor, cg.Component
 )
 PumpNoCurrentBinarySensor = pool_controller_ns.class_(
     "PumpNoCurrentBinarySensor", binary_sensor.BinarySensor, cg.Component

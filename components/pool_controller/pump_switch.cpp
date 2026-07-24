@@ -57,12 +57,16 @@ void PumpSwitch::track_runtime(bool new_state) {
     // Reset per-run anomaly state so each pump cycle gets a fresh startup check.
     this->startup_peak_current_ = 0.0f;
     this->startup_processed_ = false;
+    this->oob_streak_ = 0;
   } else if (!new_state && this->runtime_start_ms_ != 0) {
     this->runtime_seconds_ += (millis_64() - this->runtime_start_ms_) / 1000;
     this->runtime_start_ms_ = 0;
     this->runtime_pref_.save(&this->runtime_seconds_);
     this->last_off_ms_ = millis_64();
-    this->set_anomaly_detected_(false);
+    // Deliberately NOT clearing anomaly_detected_ here: turning off is not evidence the
+    // problem is resolved. Once tripped, the flag stays latched across the off period and
+    // into subsequent runs until tick_anomaly_()'s in-spec hysteresis check (current back
+    // within the clear band, drift settled, spread settled) actually confirms recovery.
   }
 }
 

@@ -40,8 +40,11 @@ void PumpSwitch::update_current_sensor_(uint64_t now) {
       }
     }
 
-    // Anomaly detection (only active while pump is considered on).
-    if (this->enable_anomaly_detection_ && this->state)
+    // Anomaly detection: gate on motor_running_ (current-confirmed), not state (commanded).
+    // track_runtime() above only refreshes turned_on_ms_ on a motor_running_ transition, so
+    // ticking on state alone can run tick_anomaly_() before turned_on_ms_ reflects this run,
+    // leaving run_ms computed against the previous run's turn-on time.
+    if (this->enable_anomaly_detection_ && this->motor_running_)
       this->tick_anomaly_();
   }
 }

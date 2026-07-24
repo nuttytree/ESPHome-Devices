@@ -18,7 +18,14 @@ from .schema.pump import (
 )
 from .schema.heater import CONF_POOL_HEATER, POOL_HEATER_SCHEMA, heater_to_code
 
-AUTO_LOAD = ["binary_sensor", "button", "select", "switch", "water_heater"]
+AUTO_LOAD = [
+    "binary_sensor",
+    "button",
+    "select",
+    "switch",
+    "text_sensor",
+    "water_heater",
+]
 DEPENDENCIES = ["time"]
 
 CONFIG_SCHEMA = cv.Schema(

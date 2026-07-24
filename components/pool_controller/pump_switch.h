@@ -7,6 +7,7 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/output/binary_output.h"
 #include "esphome/components/switch/switch.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 #ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
 #endif
@@ -35,10 +36,14 @@ struct Schedule {
 /// needs the complete PumpSwitch type for PumpAnomalyTrigger's constructor).
 struct AnomalyBaseline {
   float steady_state{0.0f};  ///< EMA baseline of steady-state run current (amps).
-  float drift_ema{0.0f};     ///< Slow EMA for long-term bearing-wear detection.
+  float drift_ema{0.0f};     ///< Slow EMA for long-term bearing-wear/prime-loss detection.
   float startup_peak{0.0f};  ///< Average inrush peak measured during the startup window.
-  uint32_t sample_count{0};  ///< Steady-state samples used to build steady_state.
+  uint32_t sample_count{0};  ///< Steady-state samples used to build steady_state; also Welford n for var_*.
   uint8_t startup_runs{0};   ///< Pump-start cycles contributing to startup_peak.
+  // Welford accumulators for steady-state variance, built up during the learning phase only
+  // (frozen once baseline_locked_). Expected stdev = sqrt(var_m2 / (sample_count - 1)).
+  float var_mean{0.0f};
+  float var_m2{0.0f};
 };
 
 class AuxiliaryPumpSwitch;
@@ -96,6 +101,9 @@ class PumpSwitch : public switch_::Switch, public Component {
   /// Called by PumpAnomalyTrigger to register the automation callback.
   void set_anomaly_trigger(Trigger<std::string> *trigger) { this->anomaly_trigger_ = trigger; }
   void set_anomaly_status_sensor(binary_sensor::BinarySensor *sensor) { this->anomaly_status_sensor_ = sensor; }
+  /// Optional text sensor publishing the reason string ("CURRENT_HIGH", "BASELINE_DRIFT", etc.)
+  /// of the most recent anomaly, so a single `on` state can be disambiguated.
+  void set_anomaly_reason_sensor(text_sensor::TextSensor *sensor) { this->anomaly_reason_sensor_ = sensor; }
   /// Reset the stored anomaly baseline and force new sample learning.
   void reset_anomaly_baseline();
 
@@ -129,6 +137,11 @@ class PumpSwitch : public switch_::Switch, public Component {
 
   /// Returns true when the disable-pumps sensor is configured and currently active.
   bool is_disabled() const { return this->disable_pumps_sensor_ != nullptr && this->disable_pumps_sensor_->state; }
+
+  /// Returns true when the flow-loss problem sensor is configured and currently latched.
+  /// Used to refuse an anomaly baseline reset while flow loss is in progress, so the
+  /// captured baseline doesn't get contaminated by abnormal current draw.
+  bool is_flow_loss_active() const { return this->flow_loss_sensor_ != nullptr && this->flow_loss_sensor_->state; }
 
   /// Returns the millis_64() timestamp when the pump last physically turned on.
   /// Used by PoolHeater to decide when 15 s of pump-on time has elapsed.
@@ -185,9 +198,14 @@ class PumpSwitch : public switch_::Switch, public Component {
   uint64_t last_anomaly_ms_{0};       ///< millis_64() of the last anomaly fired; used for 5-min debounce.
   float startup_peak_current_{0.0f};  ///< Highest current seen during the current run's startup window.
   bool startup_processed_{false};     ///< True once the startup peak has been evaluated for this run.
-  bool anomaly_detected_{false};      ///< True while the current run is flagged as anomalous.
+  uint8_t oob_streak_{0};             ///< Consecutive out-of-band samples; debounces the deviation trip.
+  float spread_ema_{0.0f};            ///< Fast EWMA of |current - steady_state|; live spread estimate.
+  bool anomaly_detected_{false};      ///< Latched true once tripped; persists across pump off periods and into
+                                      ///< subsequent runs, only clearing once tick_anomaly_() confirms in-spec
+                                      ///< recovery. Turning the pump off is not, on its own, evidence of recovery.
   ESPPreferenceObject anomaly_pref_;  ///< Persists AnomalyBaseline across reboots.
   binary_sensor::BinarySensor *anomaly_status_sensor_{nullptr};
+  text_sensor::TextSensor *anomaly_reason_sensor_{nullptr};  ///< Last anomaly reason string (diagnostic).
 
   // ── Current-based state fields ─────────────────────────────────────────────
   /// When a current sensor is configured, the published state still reflects the output
