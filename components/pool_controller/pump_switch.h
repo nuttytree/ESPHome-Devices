@@ -5,7 +5,6 @@
 #include "esphome/core/preferences.h"
 #include "esphome/core/string_ref.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
-#include "esphome/components/button/button.h"
 #include "esphome/components/output/binary_output.h"
 #include "esphome/components/switch/switch.h"
 #ifdef USE_SENSOR
@@ -30,6 +29,10 @@ struct Schedule {
 };
 
 /// Persisted baseline data for current-draw anomaly detection.
+/// Kept here (rather than in pump_anomaly.h) because it is a by-value member
+/// of PumpSwitch below, so PumpSwitch needs the complete type — moving it to
+/// pump_anomaly.h would create a circular include (pump_anomaly.h already
+/// needs the complete PumpSwitch type for PumpAnomalyTrigger's constructor).
 struct AnomalyBaseline {
   float steady_state{0.0f};  ///< EMA baseline of steady-state run current (amps).
   float drift_ema{0.0f};     ///< Slow EMA for long-term bearing-wear detection.
@@ -41,7 +44,6 @@ struct AnomalyBaseline {
 class AuxiliaryPumpSwitch;
 class PoolController;
 class PoolHeater;
-class PumpAnomalySwitch;
 
 /// Base class for all pump switch types. Holds shared output and schedule state.
 class PumpSwitch : public switch_::Switch, public Component {
@@ -219,70 +221,23 @@ class PumpSwitch : public switch_::Switch, public Component {
   bool has_flow_sensor() const { return this->flow_sensor_ != nullptr; }
 
 #ifdef USE_SENSOR
-  void tick_anomaly_();                           ///< Called at 1 Hz while the pump is running.
-  void process_startup_peak_();                   ///< Evaluates the inrush peak captured during the startup window.
+  /// Samples the current sensor at 1 Hz: updates motor_running_, runtime tracking, the
+  /// no-current problem sensor, and (if enabled) ticks anomaly detection. Implemented in
+  /// pump_current.cpp. Extracted verbatim from the top of loop().
+  void update_current_sensor_(uint64_t now);
+  void tick_anomaly_();          ///< Called at 1 Hz while the pump is running. Implemented in pump_anomaly.cpp.
+  void process_startup_peak_();  ///< Evaluates the inrush peak captured during the startup window. Implemented in
+                                 ///< pump_anomaly.cpp.
   void fire_anomaly_(const std::string &reason);  ///< Logs + triggers the anomaly automation (5-min debounce).
+                                                  ///< Implemented in pump_anomaly.cpp.
 #endif
-};
 
-class PumpAnomalySwitch : public switch_::Switch, public Component {
- public:
-  void setup() override;
-  void write_state(bool state) override;
-  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
-
- protected:
-  PumpSwitch *pump_{nullptr};
-};
-
-class PumpAnomalyStatusBinarySensor : public binary_sensor::BinarySensor, public Component {
- public:
-  void setup() override;
-  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
-
- protected:
-  PumpSwitch *pump_{nullptr};
-};
-
-class PumpAnomalyResetButton : public button::Button, public Component {
- public:
-  void press_action() override;
-  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
-
- protected:
-  PumpSwitch *pump_{nullptr};
-};
-
-/// Problem sensor: true while the pump is commanded on but no current is detected.
-class PumpNoCurrentBinarySensor : public binary_sensor::BinarySensor, public Component {
- public:
-  void setup() override;
-  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
-
- protected:
-  PumpSwitch *pump_{nullptr};
-};
-
-/// Problem sensor: latches true when the pump is shut down due to lost flow; only clears once
-/// the pump is on, current confirms the motor is running, and flow is detected again.
-class PumpFlowLossBinarySensor : public binary_sensor::BinarySensor, public Component {
- public:
-  void setup() override;
-  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
-
- protected:
-  PumpSwitch *pump_{nullptr};
-};
-
-/// Problem sensor: true when flow is detected while the pump is commanded off, debounced by
-/// flow_timeout to allow for residual flow immediately after shutdown.
-class PumpUnexpectedFlowBinarySensor : public binary_sensor::BinarySensor, public Component {
- public:
-  void setup() override;
-  void set_pump(PumpSwitch *pump) { this->pump_ = pump; }
-
- protected:
-  PumpSwitch *pump_{nullptr};
+  /// Flow-based runtime tracking used only when no current sensor is configured.
+  /// Implemented in pump_flow.cpp. Extracted verbatim from loop().
+  void update_flow_based_runtime_(uint64_t now);
+  /// Flow-loss and unexpected-flow watchdogs. Implemented in pump_flow.cpp.
+  /// Extracted verbatim from loop().
+  void update_flow_watchdogs_(uint64_t now);
 };
 
 class PrimaryPumpSwitch : public PumpSwitch {
@@ -307,17 +262,6 @@ class AuxiliaryPumpSwitch : public PumpSwitch {
   void write_state(bool state) override;
 
   PrimaryPumpSwitch *primary_pump_ = nullptr;
-};
-
-/// Automation trigger fired when a current-draw anomaly is detected.
-/// The trigger argument `x` is one of:
-///   "CURRENT_HIGH"     – steady-state current exceeds baseline by threshold_pct
-///   "CURRENT_LOW"      – steady-state current is below baseline by threshold_pct
-///   "NO_STARTUP_SPIKE" – inrush peak absent on start (possible capacitor fault)
-///   "BASELINE_DRIFT"   – slow upward drift detected, suggesting bearing wear
-class PumpAnomalyTrigger : public Trigger<std::string> {
- public:
-  explicit PumpAnomalyTrigger(PumpSwitch *parent) { parent->set_anomaly_trigger(this); }
 };
 
 }  // namespace pool_controller

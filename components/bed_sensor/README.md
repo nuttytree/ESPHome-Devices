@@ -55,11 +55,11 @@ bed_sensor:
 * **side_one** (Required): Configuration for side one of the bed.
   * **status_name** (Required, string): The name used in the status text sensor for this side (e.g. "Alice").
   * **output** (Required, id): The ID of a binary output used to power the pressure sensor on this side.
-  * **name** / other binary sensor options: Standard binary sensor configuration for the occupancy sensor.
-  * **value_sensor**: Sub-sensor reporting the raw ADC value for this side. Supports standard sensor options.
+  * **name** / other binary sensor options: Standard binary sensor configuration for the occupancy sensor. Defaults to `device_class: occupancy` and `icon: mdi:bed`.
+  * **value_sensor** (Required): Sub-sensor reporting the raw ADC value for this side. Supports standard sensor options. Defaults to `icon: mdi:numeric`, `accuracy_decimals: 0`, and `entity_category: diagnostic`.
 * **side_two** (Required): Configuration for side two of the bed. Same options as `side_one`.
 * **someone_sensor** (Required): Binary sensor that is `true` when someone is in the bed but in the middle not one side or the other.
   * **status_name** (Required, string): The name used in the status text sensor for this state.
-  * Other standard binary sensor options.
-* **count_sensor** (Required): Numeric sensor reporting the total number of occupants detected (0–2).
-* **status_sensor** (Required): Text sensor reporting a human-readable occupancy status (e.g. "Empty", "Alice", "Alice and Bob").
+  * Other standard binary sensor options. Defaults to `device_class: occupancy` and `icon: mdi:bed`.
+* **count_sensor** (Required): Numeric sensor reporting the total number of occupants detected (0–2). Defaults to `icon: mdi:counter` and `accuracy_decimals: 0`.
+* **status_sensor** (Required): Text sensor reporting a human-readable occupancy status (e.g. "Empty", "Alice", "Alice and Bob"). Defaults to `icon: mdi:bed`.

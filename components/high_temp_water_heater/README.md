@@ -29,9 +29,9 @@ water_heater:
 ## Configuration Variables (In addition to the standard variables)
 * **source_water_heater** (Required, WaterHeater): The ID of the physical water heater
 * **temperature_sensor** (Optional, Sensor): The temperature sensor to use instead of the temperature reported by the source_water_heater
-* **temperature_sensor_offset** (Optiona, Temperature Delta): Degrees below the target temperature to target getting the temperature_sensor to (required if temperature_sensor is provided)
-* **dead_band** (Required, Temperature Delta): Degrees below the target at which the water heater is turned on
-* **over_run** (Required, Temperature Delta): Degrees above the target at which the water heater is turned off
-* **min_temperature** (Optional, Temperature, default: 110 °F): The minimum temperature the water heater can get set to
-* **max_temperature** (Optional, Temperature, default: 150 °F): The maximum temperature the water heater can get set to
-* **target_temperature_step** (Optional, float, default: 1.0): The temperature steps shown in the frontend
+* **temperature_sensor_offset** (Optional, Temperature Delta, 0–36 °F): Degrees below the target temperature to target getting the temperature_sensor to (required if temperature_sensor is provided)
+* **dead_band** (Required, Temperature Delta, 0–36 °F): Degrees below the target at which the water heater is turned on
+* **over_run** (Required, Temperature Delta, 0–36 °F): Degrees above the target at which the water heater is turned off. `dead_band` + `over_run` must sum to at least 0.9 °F.
+* **min_temperature** (Optional, Temperature, 86–122 °F, default: 110 °F): The minimum temperature the water heater can get set to
+* **max_temperature** (Optional, Temperature, 113–167 °F, default: 150 °F): The maximum temperature the water heater can get set to. Must be at least 9 °F above `min_temperature`.
+* **target_temperature_step** (Optional, float, 0.5–2.0, default: 1.0): The temperature steps shown in the frontend

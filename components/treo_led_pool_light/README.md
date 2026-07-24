@@ -21,6 +21,7 @@ light:
 
 ## Configuration Variables (In addition to the standard variables)
 * output (Required, ID) The id of the binary Output Component to use for this light.
+* effects (Not allowed) The effects list is fixed and auto-populated with the 8 built-in colors (`Slow Change`, `White`, `Blue`, `Green`, `Red`, `Amber`, `Magenta`, `Fast Change`). Setting an `effects:` key in YAML raises a config validation error.
 
 ## Operation
 It is possible for the color of the lights to get out of sync with each other and/or this component. To resolve this issue this component adds a service named esphome.{device_name}_color_reset that goes through the series of power cycles defined in the lights user guide that will reset all lights and this component back to the slow color change "effect".
