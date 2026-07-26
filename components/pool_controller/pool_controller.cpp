@@ -25,7 +25,7 @@ void PoolController::setup() {
 }
 
 void PoolController::reset_all_pump_runtimes_() {
-  ESP_LOGD(TAG, "Half-hour boundary – resetting pump runtime counters (%02d:%02d)", this->last_check_->hour,
+  ESP_LOGD(TAG, "Hourly boundary – resetting pump runtime counters (%02d:%02d)", this->last_check_->hour,
            this->last_check_->minute);
   if (this->primary_pump_ != nullptr)
     this->primary_pump_->reset_runtime();
@@ -68,13 +68,13 @@ void PoolController::tick_pump_schedule_(PumpSwitch *pump, const ESPTime &now) {
     return;
   }
 
-  const uint16_t slot_start = static_cast<uint16_t>(now.hour) * 60 + (now.minute >= 30 ? 30 : 0);
+  const uint16_t slot_start = static_cast<uint16_t>(now.hour) * 60;
   uint32_t target_seconds = 0;
 
   if (pump->is_builtin_last_schedule()) {
     if (pump == this->primary_pump_) {
-      // "Always": run the full 30-minute window.
-      target_seconds = 60u * 30u;  // 1800 s
+      // "Always": run the full 1-hour window.
+      target_seconds = 60u * 60u;  // 3600 s
     } else {
       // "When X is Running": mirror the primary pump's state.
       if (this->primary_pump_ != nullptr && this->primary_pump_->state) {
@@ -94,19 +94,19 @@ void PoolController::tick_pump_schedule_(PumpSwitch *pump, const ESPTime &now) {
         pump->turn_off();
       return;
     }
-    // Target on-time for this 30-minute window:
-    //   minutes_per_hour / 2 converted to seconds  =  minutes_per_hour * 30
+    // Target on-time for this 1-hour window:
+    //   minutes_per_hour converted to seconds  =  minutes_per_hour * 60
     const ScheduleRuntime *rt = pump->find_active_runtime(slot_start, now.day_of_week);
     if (rt != nullptr && rt->minutes_per_hour > 0)
-      target_seconds = static_cast<uint32_t>(rt->minutes_per_hour) * 30;
+      target_seconds = static_cast<uint32_t>(rt->minutes_per_hour) * 60;
   }
 
   const uint32_t current_runtime = pump->get_runtime_seconds();
 
-  // A full-window target (60 min/hr = 1800 s) means run continuously for the entire
-  // 30-minute slot.  Never turn the pump off because the runtime counter caught up to
-  // the target — the half-hour reset will clear the counter without stopping the pump.
-  const bool full_window = (target_seconds == 60u * 30u);
+  // A full-window target (60 min/hr = 3600 s) means run continuously for the entire
+  // 1-hour slot.  Never turn the pump off because the runtime counter caught up to
+  // the target — the hourly reset will clear the counter without stopping the pump.
+  const bool full_window = (target_seconds == 60u * 60u);
 
   if (!full_window && (target_seconds == 0 || current_runtime >= target_seconds)) {
     // Own schedule says stop — but keep the primary alive if an auxiliary still needs it.
@@ -170,9 +170,9 @@ bool PoolController::any_auxiliary_needs_primary_(uint16_t slot_start, uint8_t d
     const ScheduleRuntime *rt = aux->find_active_runtime(slot_start, day_of_week);
     if (rt == nullptr || rt->minutes_per_hour == 0)
       continue;
-    const uint32_t target = static_cast<uint32_t>(rt->minutes_per_hour) * 30;
+    const uint32_t target = static_cast<uint32_t>(rt->minutes_per_hour) * 60;
     // A full-window auxiliary (60 min/hr) always needs the primary for the entire slot.
-    if (target == 60u * 30u)
+    if (target == 60u * 60u)
       return true;
     if (aux->get_runtime_seconds() < target)
       return true;
@@ -207,12 +207,12 @@ void PoolController::loop() {
       return;
     }
 
-    // Walk second-by-second so no :00/:30 boundary is ever missed.
+    // Walk second-by-second so no :00 boundary is ever missed.
     while (true) {
       this->last_check_->increment_second();
       if (*this->last_check_ >= now)
         break;
-      if (this->last_check_->second == 0 && this->last_check_->minute % 30 == 0)
+      if (this->last_check_->second == 0 && this->last_check_->minute == 0)
         this->reset_all_pump_runtimes_();
       this->tick_all_pump_schedules_(*this->last_check_);
     }
@@ -220,7 +220,7 @@ void PoolController::loop() {
 
   this->last_check_ = now;
 
-  if (now.second == 0 && now.minute % 30 == 0)
+  if (now.second == 0 && now.minute == 0)
     this->reset_all_pump_runtimes_();
   this->tick_all_pump_schedules_(now);
 }

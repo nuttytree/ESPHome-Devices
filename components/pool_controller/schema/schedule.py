@@ -25,29 +25,29 @@ def _time_to_str(time_val):
     return f"{time_val[CONF_HOUR]}:{time_val[CONF_MINUTE]:02d}"
 
 
-def _validate_half_hour(time_val):
-    """Validate that a time_of_day value falls on the hour or half-hour."""
-    if time_val[CONF_MINUTE] not in (0, 30):
+def _validate_on_hour(time_val):
+    """Validate that a time_of_day value falls on the hour."""
+    if time_val[CONF_MINUTE] != 0:
         raise cv.Invalid(
-            f"Minutes must be 00 or 30 (on the hour or half-hour), got {time_val[CONF_MINUTE]:02d}"
+            f"Minutes must be 00 (on the hour), got {time_val[CONF_MINUTE]:02d}"
         )
     return time_val
 
 
-HALF_HOUR_TIME = cv.All(cv.time_of_day, _validate_half_hour)
+ON_HOUR_TIME = cv.All(cv.time_of_day, _validate_on_hour)
 
 _MIDNIGHT_END = {CONF_HOUR: 24, CONF_MINUTE: 0, CONF_SECOND: 0}
 
 
-def _validate_half_hour_end_time(value):
-    """Like HALF_HOUR_TIME but also accepts 24:00 to mean end of day."""
+def _validate_on_hour_end_time(value):
+    """Like ON_HOUR_TIME but also accepts 24:00 to mean end of day."""
     value = cv.string(value)
     if value in ("24:00", "24:0"):
         return _MIDNIGHT_END
-    return _validate_half_hour(cv.time_of_day(value))
+    return _validate_on_hour(cv.time_of_day(value))
 
 
-HALF_HOUR_END_TIME = _validate_half_hour_end_time
+ON_HOUR_END_TIME = _validate_on_hour_end_time
 
 ALL_DAYS = set(range(1, 8))
 
@@ -105,8 +105,8 @@ def _validate_no_runtime_overlaps(schedule):
 RUNTIME_SCHEMA = cv.All(
     cv.Schema(
         {
-            cv.Required(CONF_START_TIME): HALF_HOUR_TIME,
-            cv.Required(CONF_END_TIME): HALF_HOUR_END_TIME,
+            cv.Required(CONF_START_TIME): ON_HOUR_TIME,
+            cv.Required(CONF_END_TIME): ON_HOUR_END_TIME,
             cv.Required(CONF_MINUTES_PER_HOUR): cv.All(
                 cv.int_, cv.Range(min=1, max=60)
             ),

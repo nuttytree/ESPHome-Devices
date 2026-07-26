@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is an [ESPHome](https://esphome.io) configuration repository: YAML device configs plus custom external components (Python codegen + C++) for a collection of home-automation devices (pool controller, HVAC zone control, energy monitors, smart plugs, etc.) that integrate with Home Assistant. It is not an application with a build/test pipeline in the traditional sense — the "build" is ESPHome compiling a device's YAML into firmware, and the "tests" are lint/format checks plus ESPHome's own YAML config validation.
 
-There is no local `esphome` CLI installed in this environment. Compiling and flashing devices happens through the ESPHome Dashboard/Device Builder that owns this config directory (its state files are described below) — don't assume `esphome compile`/`esphome config` are runnable from a shell here.
+Compiling and flashing devices normally happens through the ESPHome Dashboard/Device Builder that owns this config directory (its state files are described below). A local `esphome` CLI is also installed on this Windows machine via `pipx` (isolated from system Python) — useful for `esphome config <file>.yaml` to validate a device's full resolved config without going through Device Builder; see the "ESPHome CLI" section below for details, gotchas, and update instructions.
 
 ## Commands
 
@@ -22,6 +22,18 @@ Individual hooks, if you need to invoke a tool directly instead of via pre-commi
 - `flake8` — additional docstring/style checks, scoped to `components/**/*.py` only (`.flake8`).
 - `yamllint` — all YAML files except `.clang-format`/`.clang-tidy` (`.yamllint`: 2-space indent, no line-length limit, `document-start` disabled).
 - `clang-format` — C/C++ files in `components/**` (`.clang-format`).
+
+### ESPHome CLI
+
+Installed via `pipx install esphome`, which creates its own isolated virtualenv rather than touching system Python packages.
+
+- **Must be installed under Python 3.12+**, not this machine's default Python 3.11 (`C:\Program Files\Python311`). ESPHome 2026.7.0+ requires Python `>=3.12,<3.15`; installing under 3.11 doesn't error, it silently resolves to the newest 3.11-compatible release instead (e.g. 2026.6.5 when 2026.7.2 was current), which can surface as spurious "Platform not found" errors for components added in newer releases. Use the `py -3.12` launcher (or the full interpreter path) when installing/upgrading:
+  ```
+  pipx install --python "C:\Users\<user>\AppData\Local\Programs\Python\Python312\python.exe" esphome
+  ```
+- The `esphome.exe` shim lands in the pipx bin dir (`%USERPROFILE%\.local\bin`), which `pipx ensurepath` adds to the persistent user PATH — new terminals/sessions should resolve `esphome` directly. A shell that was already running before the PATH update won't see it until restarted; fall back to the full venv path (`...\pipx\venvs\esphome\Scripts\esphome.exe` — check `pipx list` for the exact location, it can be nested as `pipx\pipx\venvs\...` depending on how pipx itself was installed) if `esphome` isn't found.
+- To check/upgrade: `pipx upgrade esphome`, or reinstall with the `--python` flag above if it's drifted onto the wrong interpreter.
+- `esphome config <file>.yaml` validates and fully resolves a device config (schema + substitutions + packages) without needing a compile toolchain — much faster than a full `esphome compile` and doesn't require platformio.
 
 ## Git workflow
 
@@ -50,6 +62,8 @@ Components are consumed either from disk (`external_components: - source: {type:
 **Version compatibility tags**: git tags like `2026.7.0` mark commits confirmed compatible with that ESPHome version. `scripts/tag_esphome_version.py` runs as a `post-commit` pre-commit hook (see `default_install_hook_types` / the `tag-esphome-version` local hook in `.pre-commit-config.yaml`) and automates this: it reads the local, gitignored `.esphome/.device-builder-devices.json` (Device Builder state), and if every root-level device yaml has a `deployed_version` whose `deployed_config_hash` matches `expected_config_hash`, it tags HEAD with the lowest such version — unless a tag at or above it already exists. It never pushes the tag; push explicitly (`git push origin <tag>`) or rely on `git config push.followTags true` so a normal `git push` carries it along. Because it's a post-commit hook it can't block a commit — if devices aren't fully represented/up to date yet, it just prints why it skipped.
 
 **Sibling `dev_esphome/` directory** (outside this repo, listed as an additional working directory) is a full checkout of upstream ESPHome core, wired in purely for editor IntelliSense (`python.analysis.extraPaths` / `C_Cpp.default.includePath` in `.vscode/settings.json`, `PYTHONPATH` in `.env`). It is not part of this project — don't make changes there as part of tasks against this repo.
+
+**Sibling `esphome.io/` directory** (outside this repo, also listed as an additional working directory) is a clone of the [esphome/esphome.io](https://github.com/esphome/esphome.io) documentation site (the Astro-based source for the public esphome.io docs), with a `fork` remote at `nuttytree/esphome.io` alongside `origin`. Like `dev_esphome/`, it's a separate project checked out here for reference/IntelliSense — not part of this repo, so don't make changes there as part of tasks against this repo unless explicitly asked to work on the docs site itself.
 
 **Device Builder state files** at the repo root (`.device-builder.json`, `.device-builder-preferences.json`, `.device-builder-peer-link-key.bin`) are machine-generated local state for the ESPHome dashboard/device-builder tool (device MAC addresses, firmware job history, UI prefs) — not meant to be hand-edited.
 
