@@ -1,7 +1,7 @@
 # Pool Controller
 
 ## Overview
-Note: This component is a work in progress. I created this component to automate my pool equipment — a primary circulation pump, an auxiliary cleaner pump, and an optional pool heater. The core idea is schedule-based pump control with a fractional runtime model: instead of running a pump continuously for a long window, you configure a `minutes_per_hour` value so the pump cycles on and off proportionally within each half-hour slot. The primary and auxiliary pumps are sequenced so the primary always starts first and stops last, protecting the heater and cleaner from running without water flow. An optional current sensor enables anomaly detection that can fire automations when the pump draws significantly more or less current than its learned baseline.
+Note: This component is a work in progress. I created this component to automate my pool equipment — a primary circulation pump, an auxiliary cleaner pump, and an optional pool heater. The core idea is schedule-based pump control with a fractional runtime model: instead of running a pump continuously for a long window, you configure a `minutes_per_hour` value so the pump cycles on and off proportionally within each hour-long slot. The primary and auxiliary pumps are sequenced so the primary always starts first and stops last, protecting the heater and cleaner from running without water flow. An optional current sensor enables anomaly detection that can fire automations when the pump draws significantly more or less current than its learned baseline.
 
 ## Setup
 Using the [External Components](https://esphome.io/components/external_components.html) feature in ESPHome you can add this component to your devices directly from my GitHub repo.
@@ -73,8 +73,8 @@ Accepts all standard [ESPHome Switch options](https://esphome.io/components/swit
 * **schedules** (Optional, list): Named schedules available for selection. Each schedule has:
   * **name** (Required, string): Unique display name shown in the schedule select entity.
   * **runtimes** (Required, list): One or more time windows. Each runtime has:
-    * **start_time** (Required, time): Window start on the hour or half-hour (e.g. `'6:00'`, `'6:30'`).
-    * **end_time** (Required, time): Window end on the hour or half-hour; use `'24:00'` for midnight end-of-day.
+    * **start_time** (Required, time): Window start on the hour (e.g. `'6:00'`).
+    * **end_time** (Required, time): Window end on the hour; use `'24:00'` for midnight end-of-day.
     * **minutes_per_hour** (Required, int, 1–60): How many minutes out of each 60 the pump should run within this window.
     * **days_of_week** (Optional): Days this runtime applies to (e.g. `MON-FRI`, `SAT,SUN`). Defaults to every day.
 * **current_sensor** (Optional, id): ID of a sensor reporting current draw in amps. Required when `on_anomaly` is configured. When set, turning the switch on always publishes an on state and energizes the output, but the pump's runtime is only accumulated while current confirms the motor is actually running.
@@ -105,7 +105,7 @@ Accepts all standard [ESPHome Water Heater options](https://esphome.io/component
 ## Operation
 
 ### Schedule-based Fractional Runtime
-Each half-hour slot is evaluated independently. Within a slot the pump runs for `minutes_per_hour / 2` minutes (since each slot is 30 minutes), evenly distributed. This lets you approximate variable-speed pump behavior with a single-speed pump by reducing run time during lower-demand periods.
+Each hour-long slot is evaluated independently. Within a slot the pump runs for `minutes_per_hour` minutes, evenly distributed. This lets you approximate variable-speed pump behavior with a single-speed pump by reducing run time during lower-demand periods.
 
 ### Sequenced Startup and Shutdown
 When starting, the primary pump turns on first and auxiliary pumps wait for `sequence_delay` before turning on. When stopping, auxiliary pumps turn off immediately and the primary pump follows after `sequence_delay`. If a pool heater is configured it is turned off before the primary pump during shutdown to avoid running the heater without water flow.

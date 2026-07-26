@@ -17,8 +17,8 @@ namespace pool_controller {
 
 /// A single time window within a schedule.
 struct ScheduleRuntime {
-  uint16_t start_minute;     ///< Minutes since midnight (0-1410)
-  uint16_t end_minute;       ///< Minutes since midnight (30-1440, 1440 = 24:00)
+  uint16_t start_minute;     ///< Minutes since midnight (0-1380)
+  uint16_t end_minute;       ///< Minutes since midnight (60-1440, 1440 = 24:00)
   uint8_t minutes_per_hour;  ///< Minutes to run per hour within this window
   uint8_t days_of_week;      ///< Bitmask: bit0=Sun, bit1=Mon, ..., bit6=Sat; 0x7F = every day
 };
@@ -65,7 +65,7 @@ class PumpSwitch : public switch_::Switch, public Component {
     schedules_.back().runtimes.push_back({start_minute, end_minute, minutes_per_hour, days_of_week});
   }
 
-  /// Returns total pump runtime in seconds since the last half-hour reset.
+  /// Returns total pump runtime in seconds since the last hourly reset.
   uint32_t get_runtime_seconds() const {
     if (this->runtime_start_ms_ != 0) {
       return this->runtime_seconds_ + (millis_64() - this->runtime_start_ms_) / 1000;
@@ -150,7 +150,7 @@ class PumpSwitch : public switch_::Switch, public Component {
  protected:
   friend class PoolController;
 
-  /// Resets accumulated runtime to zero. Called by PoolController at :00 and :30.
+  /// Resets accumulated runtime to zero. Called by PoolController at :00.
   void reset_runtime();
 
   /// Call this in write_state() before setting the output so runtime is tracked correctly.
@@ -165,7 +165,7 @@ class PumpSwitch : public switch_::Switch, public Component {
   void set_unexpected_flow_(bool detected);
 
   /// Returns the ScheduleRuntime from the active user-defined schedule that covers
-  /// [slot_start_minute, slot_start_minute+30), for the given day_of_week (1=Sun..7=Sat).
+  /// [slot_start_minute, slot_start_minute+60), for the given day_of_week (1=Sun..7=Sat).
   /// Returns nullptr if no matching runtime exists or the active schedule is not a user schedule.
   const ScheduleRuntime *find_active_runtime(uint16_t slot_start_minute, uint8_t day_of_week) const;
 
@@ -173,7 +173,7 @@ class PumpSwitch : public switch_::Switch, public Component {
   std::vector<Schedule> schedules_;
 
   size_t active_schedule_idx_{0};  ///< Index into schedules_ for the currently active schedule.
-  uint32_t runtime_seconds_ = 0;   ///< Accumulated runtime (seconds) since last half-hour reset.
+  uint32_t runtime_seconds_ = 0;   ///< Accumulated runtime (seconds) since last hourly reset.
   uint64_t runtime_start_ms_ = 0;  ///< millis_64() when pump last turned on; 0 when off.
   uint64_t last_off_ms_ = 0;       ///< millis_64() when pump last turned off; used for 5-min cooldown.
   uint64_t turned_on_ms_ = 0;      ///< millis_64() when pump last physically turned on; used for turn-on sequencing.

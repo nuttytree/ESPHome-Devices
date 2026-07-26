@@ -40,7 +40,7 @@ class PoolController : public Component {
   PoolHeater *pool_heater_{
       nullptr};  ///< Optional pool heater — turned off before the primary pump during sequenced shutdown.
 
-  /// Mirrors CronTrigger::last_check_ — used for time-drift-safe :00/:30 detection.
+  /// Mirrors CronTrigger::last_check_ — used for time-drift-safe :00 detection.
   optional<ESPTime> last_check_;
 
   /// Sequenced shutdown state: auxiliaries off immediately, primary off after sequence_delay_ms_.
@@ -53,7 +53,7 @@ class PoolController : public Component {
   void tick_pump_schedule_(PumpSwitch *pump, const ESPTime &now);
 
   /// Returns true if any auxiliary pump has a user-defined schedule with remaining
-  /// runtime in the given half-hour slot — used to keep the primary pump running
+  /// runtime in the given hour-long slot — used to keep the primary pump running
   /// even when its own schedule would otherwise turn it off.
   bool any_auxiliary_needs_primary_(uint16_t slot_start, uint8_t day_of_week) const;
 
