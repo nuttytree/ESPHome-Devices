@@ -24,6 +24,25 @@ void PoolController::setup() {
   }
 }
 
+void PoolController::restore_pump_states_(const ESPTime &now) {
+  if (this->primary_pump_ != nullptr)
+    this->primary_pump_->restore_run_state(now, this->max_resume_age_s_);
+  for (auto *aux : this->auxiliary_pumps_)
+    aux->restore_run_state(now, this->max_resume_age_s_);
+  this->next_state_save_ms_ = millis_64() + this->state_save_interval_ms_;
+}
+
+void PoolController::save_pump_states_if_due_() {
+  const uint64_t now_ms = millis_64();
+  if (now_ms < this->next_state_save_ms_)
+    return;
+  this->next_state_save_ms_ = now_ms + this->state_save_interval_ms_;
+  if (this->primary_pump_ != nullptr)
+    this->primary_pump_->save_run_state();
+  for (auto *aux : this->auxiliary_pumps_)
+    aux->save_run_state();
+}
+
 void PoolController::reset_all_pump_runtimes_() {
   ESP_LOGD(TAG, "Hourly boundary – resetting pump runtime counters (%02d:%02d)", this->last_check_->hour,
            this->last_check_->minute);
@@ -157,7 +176,7 @@ bool PoolController::primary_is_ready_for_aux_() const {
   if (this->primary_pump_ == nullptr || !this->primary_pump_->state)
     return false;
   // Auxiliaries may start only after the primary has been running for sequence_delay_ms_.
-  return (millis_64() - this->primary_pump_->turned_on_ms_) >= this->sequence_delay_ms_;
+  return this->primary_pump_->get_running_for_ms() >= this->sequence_delay_ms_;
 }
 
 bool PoolController::any_auxiliary_needs_primary_(uint16_t slot_start, uint8_t day_of_week) const {
@@ -187,6 +206,14 @@ void PoolController::loop() {
   ESPTime now = this->rtc_->now();
   if (!now.is_valid())
     return;
+
+  // First valid time since boot: resume from the last saved state before any schedule decision
+  // is made, so runtime counters and minimum off-times reflect what was happening before the
+  // restart rather than a cold start.
+  if (!this->state_restored_) {
+    this->state_restored_ = true;
+    this->restore_pump_states_(now);
+  }
 
   // Mirrors the CronTrigger::loop() pattern to handle NTP time jumps correctly.
   static constexpr int MAX_TIMESTAMP_DRIFT = 900;  // seconds
@@ -223,6 +250,10 @@ void PoolController::loop() {
   if (now.second == 0 && now.minute == 0)
     this->reset_all_pump_runtimes_();
   this->tick_all_pump_schedules_(now);
+
+  // Snapshot last, so a save landing on an hour boundary records the post-reset counters
+  // against the new slot rather than the old count against the new slot number.
+  this->save_pump_states_if_due_();
 }
 
 }  // namespace pool_controller

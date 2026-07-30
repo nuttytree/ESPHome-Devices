@@ -4,10 +4,12 @@
 #include "esphome/core/component.h"
 #include "esphome/core/preferences.h"
 #include "esphome/core/string_ref.h"
+#include "esphome/core/time.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/output/binary_output.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/text_sensor/text_sensor.h"
+#include "esphome/components/time/real_time_clock.h"
 #ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
 #endif
@@ -27,6 +29,17 @@ struct ScheduleRuntime {
 struct Schedule {
   StringRef name;
   std::vector<ScheduleRuntime> runtimes;
+};
+
+/// Snapshot of a pump's operating state, persisted periodically and on every state change so
+/// that a restart can resume mid-slot instead of starting over. Everything here is wall-clock
+/// based: millis_64() restarts at zero on boot and says nothing about how long the device was
+/// down, which is exactly what the restore decision needs to know.
+struct PumpRunState {
+  uint32_t saved_utc{0};        ///< Unix time this snapshot was taken. 0 = never saved.
+  uint32_t slot_hour{0};        ///< Hours since the Unix epoch, naming the 1-hour slot runtime_seconds belongs to.
+  uint32_t runtime_seconds{0};  ///< Runtime accumulated within that slot, including the then-in-flight portion.
+  uint32_t off_since_utc{0};    ///< Unix time the pump last stopped; 0 if it was still running when saved.
 };
 
 /// Persisted baseline data for current-draw anomaly detection.
@@ -58,6 +71,9 @@ class PumpSwitch : public switch_::Switch, public Component {
   void dump_config() override;
 
   void set_output(output::BinaryOutput *output) { output_ = output; }
+
+  /// Wall clock, used to timestamp persisted state so a restart can tell how long it was down.
+  void set_rtc(time::RealTimeClock *rtc) { this->rtc_ = rtc; }
 
   void add_schedule(const char *name) { schedules_.push_back({StringRef(name), {}}); }
   void add_runtime_to_last_schedule(uint16_t start_minute, uint16_t end_minute, uint8_t minutes_per_hour,
@@ -104,7 +120,10 @@ class PumpSwitch : public switch_::Switch, public Component {
   /// Optional text sensor publishing the reason string ("CURRENT_HIGH", "BASELINE_DRIFT", etc.)
   /// of the most recent anomaly, so a single `on` state can be disambiguated.
   void set_anomaly_reason_sensor(text_sensor::TextSensor *sensor) { this->anomaly_reason_sensor_ = sensor; }
-  /// Reset the stored anomaly baseline and force new sample learning.
+  /// Discards the stored anomaly baseline and arms capture of a brand new one. Learning does
+  /// not resume immediately: the next *complete* pump run — full startup window followed by
+  /// steady state — is what gets captured, so the new baseline never inherits a partial view
+  /// of a run that was already underway when the reset happened. Safe to call at any time.
   void reset_anomaly_baseline();
 
   // ── Current-based state ────────────────────────────────────────────────────
@@ -132,20 +151,19 @@ class PumpSwitch : public switch_::Switch, public Component {
   /// ("Always" for PrimaryPumpSwitch, "When X is Running" for AuxiliaryPumpSwitch).
   bool is_builtin_last_schedule() const { return this->active_schedule_idx_ == this->schedules_.size() + 1; }
 
-  /// Returns true when the pump has been off for at least 5 minutes (minimum off-time before restart).
-  bool can_turn_on() const { return (millis_64() - this->last_off_ms_) >= (5u * 60u * 1000u); }
+  /// Returns true when the pump's minimum off-time has elapsed and it may be started.
+  /// Expressed as a deadline rather than "time since last off" so that boot, where millis_64()
+  /// starts near zero and there is no meaningful "last off", is representable.
+  bool can_turn_on() const { return millis_64() >= this->can_turn_on_at_ms_; }
 
   /// Returns true when the disable-pumps sensor is configured and currently active.
   bool is_disabled() const { return this->disable_pumps_sensor_ != nullptr && this->disable_pumps_sensor_->state; }
 
-  /// Returns true when the flow-loss problem sensor is configured and currently latched.
-  /// Used to refuse an anomaly baseline reset while flow loss is in progress, so the
-  /// captured baseline doesn't get contaminated by abnormal current draw.
-  bool is_flow_loss_active() const { return this->flow_loss_sensor_ != nullptr && this->flow_loss_sensor_->state; }
-
-  /// Returns the millis_64() timestamp when the pump last physically turned on.
-  /// Used by PoolHeater to decide when 15 s of pump-on time has elapsed.
-  uint64_t get_turned_on_ms() const { return this->turned_on_ms_; }
+  /// Returns how long the pump has been physically running, or 0 if it has not been confirmed
+  /// running since boot. Callers must not compute this from turned_on_ms_ themselves: that field
+  /// is 0 until the first confirmed turn-on, and `millis_64() - 0` reads as "running forever",
+  /// which would satisfy every elapsed-time gate on the first start after a restart.
+  uint64_t get_running_for_ms() const { return this->turned_on_ms_ == 0 ? 0 : millis_64() - this->turned_on_ms_; }
 
  protected:
   friend class PoolController;
@@ -156,6 +174,18 @@ class PumpSwitch : public switch_::Switch, public Component {
   /// Call this in write_state() before setting the output so runtime is tracked correctly.
   void track_runtime(bool new_state);
   void set_anomaly_detected_(bool detected);
+
+  /// Persists the current operating state with a wall-clock timestamp. No-op until the clock is
+  /// valid: an untimestamped snapshot cannot be aged on restore, which makes it worse than none.
+  /// Called on every start/stop and periodically by PoolController.
+  void save_run_state();
+
+  /// Applies the snapshot loaded in setup(), if it is still worth trusting. Called once by
+  /// PoolController as soon as the clock is valid and before the first schedule tick, so a
+  /// resumed runtime is in place before anything decides whether the pump should be running.
+  /// `max_age_s` is the outage length beyond which the snapshot is discarded and the pump
+  /// starts cold.
+  void restore_run_state(const ESPTime &now, uint32_t max_age_s);
 
   /// Re-evaluates the no-current problem sensor from current `state`/`motor_running_`.
   void update_no_current_();
@@ -171,16 +201,19 @@ class PumpSwitch : public switch_::Switch, public Component {
 
   output::BinaryOutput *output_ = nullptr;
   std::vector<Schedule> schedules_;
+  time::RealTimeClock *rtc_{nullptr};  ///< Wall clock; timestamps persisted state.
 
-  size_t active_schedule_idx_{0};  ///< Index into schedules_ for the currently active schedule.
-  uint32_t runtime_seconds_ = 0;   ///< Accumulated runtime (seconds) since last hourly reset.
-  uint64_t runtime_start_ms_ = 0;  ///< millis_64() when pump last turned on; 0 when off.
-  uint64_t last_off_ms_ = 0;       ///< millis_64() when pump last turned off; used for 5-min cooldown.
-  uint64_t turned_on_ms_ = 0;      ///< millis_64() when pump last physically turned on; used for turn-on sequencing.
+  size_t active_schedule_idx_{0};   ///< Index into schedules_ for the currently active schedule.
+  uint32_t runtime_seconds_ = 0;    ///< Accumulated runtime (seconds) since last hourly reset.
+  uint64_t runtime_start_ms_ = 0;   ///< millis_64() when pump last turned on; 0 when off.
+  uint64_t can_turn_on_at_ms_ = 0;  ///< millis_64() deadline before which the pump may not be started.
+  uint32_t last_off_utc_ = 0;       ///< Unix time the pump last stopped; 0 while running. Persisted.
+  uint64_t turned_on_ms_ = 0;       ///< millis_64() when pump last physically turned on; used for turn-on sequencing.
   uint32_t sequence_delay_ms_ = 2000;  ///< Delay (ms) between primary and auxiliary pump state changes.
   binary_sensor::BinarySensor *disable_pumps_sensor_{
-      nullptr};                       ///< Optional sensor that turns off pumps and blocks turn-ons when active.
-  ESPPreferenceObject runtime_pref_;  ///< Persists runtime_seconds_ across reboots.
+      nullptr};                         ///< Optional sensor that turns off pumps and blocks turn-ons when active.
+  ESPPreferenceObject run_state_pref_;  ///< Persists PumpRunState across reboots.
+  PumpRunState saved_run_state_{};      ///< Snapshot read in setup(), applied later by restore_run_state().
 
   // ── Anomaly detection state ────────────────────────────────────────────────
   bool enable_anomaly_detection_{false};
@@ -203,6 +236,11 @@ class PumpSwitch : public switch_::Switch, public Component {
   bool anomaly_detected_{false};      ///< Latched true once tripped; persists across pump off periods and into
                                       ///< subsequent runs, only clearing once tick_anomaly_() confirms in-spec
                                       ///< recovery. Turning the pump off is not, on its own, evidence of recovery.
+  bool awaiting_fresh_start_{false};  ///< Set by reset_anomaly_baseline(); suppresses all capture until the next
+                                      ///< pump start, so learning always begins from a complete run rather than
+                                      ///< from the middle of whatever run was in progress at reset time.
+  bool run_flow_confirmed_{false};    ///< True once flow has been observed during this run's startup window;
+                                      ///< only meaningful when a flow sensor is configured.
   ESPPreferenceObject anomaly_pref_;  ///< Persists AnomalyBaseline across reboots.
   binary_sensor::BinarySensor *anomaly_status_sensor_{nullptr};
   text_sensor::TextSensor *anomaly_reason_sensor_{nullptr};  ///< Last anomaly reason string (diagnostic).
@@ -237,6 +275,18 @@ class PumpSwitch : public switch_::Switch, public Component {
 
   /// Returns true when a flow sensor is configured for this pump.
   bool has_flow_sensor() const { return this->flow_sensor_ != nullptr; }
+
+  /// Whether anomaly statistics may be captured at this instant.
+  /// With a flow sensor, current draw alone isn't enough — a pump that is spinning but moving
+  /// no water draws an atypical current that must not be folded into the baseline, so capture
+  /// requires water actually moving. Without one, current is the only evidence available and
+  /// the caller has already confirmed the motor is drawing it (motor_running_).
+  bool stats_capture_allowed_() const { return !this->has_flow_sensor() || this->flow_sensor_->state; }
+
+  /// Whether this run's inrush peak is worth folding into the startup reference. With a flow
+  /// sensor, only a start that actually got water moving counts; a motor that spun up against
+  /// a closed valve or lost prime produces a peak that would poison the reference.
+  bool startup_capture_valid_() const { return !this->has_flow_sensor() || this->run_flow_confirmed_; }
 
 #ifdef USE_SENSOR
   /// Samples the current sensor at 1 Hz: updates motor_running_, runtime tracking, the

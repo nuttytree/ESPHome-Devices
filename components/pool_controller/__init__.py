@@ -8,6 +8,8 @@ from .const import (
     CONF_AUXILIARY_PUMPS,
     CONF_SEQUENCE_DELAY,
     CONF_DISABLE_PUMPS_SENSOR,
+    CONF_STATE_SAVE_INTERVAL,
+    CONF_MAX_RESUME_AGE,
 )
 from .schema.types import PoolController
 from .schema.pump import (
@@ -38,6 +40,13 @@ CONFIG_SCHEMA = cv.Schema(
             CONF_SEQUENCE_DELAY, default="2s"
         ): cv.positive_time_period_milliseconds,
         cv.Optional(CONF_DISABLE_PUMPS_SENSOR): cv.use_id(binary_sensor.BinarySensor),
+        cv.Optional(
+            CONF_STATE_SAVE_INTERVAL, default="5min"
+        ): cv.positive_time_period_milliseconds,
+        cv.Optional(CONF_MAX_RESUME_AGE, default="15min"): cv.All(
+            cv.positive_time_period_seconds,
+            cv.Range(min=cv.TimePeriod(seconds=1)),
+        ),
         cv.Optional(CONF_POOL_HEATER): POOL_HEATER_SCHEMA,
     }
 ).extend(cv.COMPONENT_SCHEMA)
@@ -52,6 +61,8 @@ async def to_code(config):
 
     delay_ms = config[CONF_SEQUENCE_DELAY]
     cg.add(var.set_sequence_delay(delay_ms))
+    cg.add(var.set_state_save_interval(config[CONF_STATE_SAVE_INTERVAL]))
+    cg.add(var.set_max_resume_age(config[CONF_MAX_RESUME_AGE]))
 
     disable_sensor = None
     if CONF_DISABLE_PUMPS_SENSOR in config:
@@ -61,7 +72,7 @@ async def to_code(config):
     # Primary pump
     primary_config = config[CONF_PRIMARY_PUMP]
     primary = cg.new_Pvariable(primary_config[CONF_ID])
-    await pump_to_code(primary, primary_config, delay_ms, disable_sensor)
+    await pump_to_code(primary, primary_config, delay_ms, disable_sensor, rtc)
     cg.add(var.set_primary_pump(primary))
     await schedule_select_to_code(primary, primary_config, "Always")
 
@@ -70,7 +81,7 @@ async def to_code(config):
     aux_pumps = []
     for aux_config in config.get(CONF_AUXILIARY_PUMPS, []):
         aux = cg.new_Pvariable(aux_config[CONF_ID])
-        await pump_to_code(aux, aux_config, delay_ms, disable_sensor)
+        await pump_to_code(aux, aux_config, delay_ms, disable_sensor, rtc)
         cg.add(aux.set_primary_pump(primary))
         await schedule_select_to_code(
             aux, aux_config, f"When {primary_name} is Running"

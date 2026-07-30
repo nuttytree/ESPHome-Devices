@@ -20,14 +20,18 @@ void PumpSwitch::reset_anomaly_baseline() {
   this->startup_processed_ = false;
   this->oob_streak_ = 0;
   this->spread_ema_ = 0.0f;
-  // A mid-run reset shouldn't inherit timing from before the reset: clear the cooldown so
-  // the next real anomaly isn't silently suppressed, and clear turned_on_ms_ so a stale
-  // turn-on time (from before the reset) can't be mistaken for this run's start.
+  this->run_flow_confirmed_ = false;
+  // Clear the cooldown so the next real anomaly isn't silently suppressed by an alert that
+  // fired against the baseline we just discarded.
   this->last_anomaly_ms_ = 0;
-  this->turned_on_ms_ = 0;
   this->set_anomaly_detected_(false);
+  // Capture is armed, not started. A run already in progress has no startup window left to
+  // observe, and its inrush peak (if any) belongs to the discarded baseline — so nothing is
+  // sampled until the pump next turns on and a complete run is available. turned_on_ms_ is
+  // deliberately left alone; it is shared with heater and auxiliary-pump sequencing.
+  this->awaiting_fresh_start_ = true;
   this->anomaly_pref_.save(&this->anomaly_baseline_);
-  ESP_LOGI(TAG, "'%s' anomaly baseline reset; capturing new samples", this->get_name().c_str());
+  ESP_LOGI(TAG, "'%s' anomaly baseline reset; capture begins at the next pump start", this->get_name().c_str());
 #endif
 }
 
@@ -52,6 +56,11 @@ static constexpr float EMA_LEARN_ALPHA = 0.1f;
 static constexpr float EMA_DRIFT_ALPHA = 0.001f;
 
 void PumpSwitch::tick_anomaly_() {
+  // A baseline reset arms capture but doesn't start it: wait for the next turn-on so the new
+  // baseline is built from a whole run, startup window included. track_runtime() clears this.
+  if (this->awaiting_fresh_start_)
+    return;
+
   const float current = this->current_sensor_->state;
   if (std::isnan(current) || current < 0.0f)
     return;
@@ -62,19 +71,36 @@ void PumpSwitch::tick_anomaly_() {
   const bool in_startup = (run_ms < ANOMALY_STARTUP_WINDOW_MS);
 
   if (in_startup) {
-    // Track the inrush peak; do not update the steady-state EMA yet.
+    // Track the inrush peak; do not update the steady-state EMA yet. Flow is only noted here,
+    // never required — a pump takes a moment to prime, so the whole window is allowed for it.
     if (current > this->startup_peak_current_)
       this->startup_peak_current_ = current;
+    if (this->has_flow_sensor() && this->flow_sensor_->state)
+      this->run_flow_confirmed_ = true;
     return;
   }
 
   // Startup window just finished — evaluate the captured inrush peak once.
   if (!this->startup_processed_) {
     this->startup_processed_ = true;
-    this->process_startup_peak_();
+    if (this->startup_capture_valid_()) {
+      this->process_startup_peak_();
+    } else {
+      // The motor drew its inrush but never moved water, so this peak says nothing about a
+      // healthy start. Discard it rather than averaging it into the startup reference.
+      ESP_LOGW(TAG, "'%s' startup peak %.3fA discarded: no flow established during startup", this->get_name().c_str(),
+               this->startup_peak_current_);
+    }
   }
 
   // ── Steady-state phase ──────────────────────────────────────────
+  // Flow gate: with a flow sensor present, statistics are only meaningful while water is
+  // actually moving. Drop the debounce streak so a no-flow gap can't count toward a trip.
+  if (!this->stats_capture_allowed_()) {
+    this->oob_streak_ = 0;
+    return;
+  }
+
   if (!this->baseline_locked_) {
     // Learning phase: build EMA baseline toward lock.
     if (this->sample_count_ == 0) {
@@ -222,13 +248,12 @@ void PumpAnomalyStatusBinarySensor::setup() {
   this->publish_initial_state(false);
 }
 
+/// Always resets — the press is never refused. Contamination of the new baseline is prevented
+/// by the capture rules themselves (a complete run is required, and with a flow sensor, flow
+/// must be present), not by second-guessing when the button may be pressed.
 void PumpAnomalyResetButton::press_action() {
   if (this->pump_ == nullptr)
     return;
-  if (this->pump_->is_flow_loss_active()) {
-    ESP_LOGW(TAG, "'%s' anomaly baseline reset ignored: flow loss is active", this->pump_->get_name().c_str());
-    return;
-  }
   this->pump_->reset_anomaly_baseline();
 }
 
