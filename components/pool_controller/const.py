@@ -10,6 +10,8 @@ CONF_MINUTES_PER_HOUR = "minutes_per_hour"
 CONF_SCHEDULE_SELECT = "schedule_select"
 CONF_SEQUENCE_DELAY = "sequence_delay"
 CONF_DISABLE_PUMPS_SENSOR = "disable_pumps_sensor"
+CONF_STATE_SAVE_INTERVAL = "state_save_interval"
+CONF_MAX_RESUME_AGE = "max_resume_age"
 
 CONF_CURRENT_SENSOR = "current_sensor"
 CONF_ANOMALY_DETECTION_SWITCH = "anomaly_detection_switch"

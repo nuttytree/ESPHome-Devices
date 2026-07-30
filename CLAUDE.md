@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is an [ESPHome](https://esphome.io) configuration repository: YAML device configs plus custom external components (Python codegen + C++) for a collection of home-automation devices (pool controller, HVAC zone control, energy monitors, smart plugs, etc.) that integrate with Home Assistant. It is not an application with a build/test pipeline in the traditional sense — the "build" is ESPHome compiling a device's YAML into firmware, and the "tests" are lint/format checks plus ESPHome's own YAML config validation.
 
-Compiling and flashing devices normally happens through the ESPHome Dashboard/Device Builder that owns this config directory (its state files are described below). A local `esphome` CLI is also installed on this Windows machine via `pipx` (isolated from system Python) — useful for `esphome config <file>.yaml` to validate a device's full resolved config without going through Device Builder; see the "ESPHome CLI" section below for details, gotchas, and update instructions.
+Compiling and flashing devices normally happens through the ESPHome Dashboard/Device Builder that owns this config directory (its state files are described below). A local `esphome` CLI is also installed on this Windows machine via `pipx` (isolated from system Python) — useful for `esphome config <file>.yaml` to validate a device's full resolved config without going through Device Builder; see the "ESPHome CLI" section below for details, gotchas, and update instructions. Full local compiles are possible too, but need one-time machine setup — see "Compiling locally".
 
 ## Commands
 
@@ -34,6 +34,26 @@ Installed via `pipx install esphome`, which creates its own isolated virtualenv 
 - The `esphome.exe` shim lands in the pipx bin dir (`%USERPROFILE%\.local\bin`), which `pipx ensurepath` adds to the persistent user PATH — new terminals/sessions should resolve `esphome` directly. A shell that was already running before the PATH update won't see it until restarted; fall back to the full venv path (`...\pipx\venvs\esphome\Scripts\esphome.exe` — check `pipx list` for the exact location, it can be nested as `pipx\pipx\venvs\...` depending on how pipx itself was installed) if `esphome` isn't found.
 - To check/upgrade: `pipx upgrade esphome`, or reinstall with the `--python` flag above if it's drifted onto the wrong interpreter.
 - `esphome config <file>.yaml` validates and fully resolves a device config (schema + substitutions + packages) without needing a compile toolchain — much faster than a full `esphome compile` and doesn't require platformio.
+
+### Compiling locally (ESP-IDF toolchain)
+
+`esphome config` needs none of this; `esphome compile` needs all of it. Compiling normally happens inside the Device Builder/Docker container, and the `.esphome/build/<device>` directories in this repo were produced *there* (paths rooted at `/config/...`), so a Windows build can't reuse them — it fails with `The current CMakeCache.txt directory ... is different than the directory ... where CMakeCache.txt was created`. A host compile therefore always starts from a fresh build directory, and needs the two setup steps below.
+
+**1. Put the ESP-IDF toolchain on a short path.** Windows' default `MAX_PATH` is 260 characters and the IDF toolchain nests ~245 characters below its tools directory, so the default location (`%LOCALAPPDATA%\esphome\Cache\idf`) overflows it. The failure is cryptic — `fatal error: bits/c++config.h: No such file or directory`, or `cannot execute 'as'` — though ESPHome does print a warning naming the problem first. Either fix works:
+
+- Enable long path support (needs elevation, then a reboot):
+  ```
+  Set-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' LongPathsEnabled 1
+  ```
+- Or point ESPHome at a short prefix, which it maps straight to `IDF_TOOLS_PATH`. This is what the current machine does (`LongPathsEnabled` is `0` there, and the prefix is `C:\eh`):
+  ```
+  [Environment]::SetEnvironmentVariable('ESPHOME_ESP_IDF_PREFIX','C:\eh','User')
+  ```
+  On a fresh machine ESPHome downloads roughly 6 GB into that prefix on the first compile. To migrate an existing install instead of re-downloading, move `%LOCALAPPDATA%\esphome\Cache\idf` to the new prefix, then delete `tools\`, `penvs\` and `idf-env.json` inside it — those re-extract from the `dist\` archive cache that moves along with them.
+
+**2. Build to a local drive, not the UNC share.** This repo lives on `\\nas\docker\esphome\config`, and `packages/device_base.yaml` sets `build_path: ./build/${device_id}`, which resolves onto that share. `cmd.exe` cannot use a UNC path as a working directory, so ninja's *link* step runs from `C:\Windows` and fails with `ld.exe: cannot open output file ...: Permission denied`. The compile steps succeed first, which makes this read as a linker bug rather than a path problem. Override `build_path` to a local path (e.g. `C:/eh/bld/<name>`) when compiling from Windows. Source files can stay on the share — gcc handles UNC paths fine; only the working directory is the problem.
+
+To compile-check a component without disturbing the container's build caches, copy the device YAML to a throwaway `device_id` with a local `build_path`, compile that copy, then delete both the scratch YAML and its build directory. A full IDF build takes roughly 10–15 minutes.
 
 ## Git workflow
 

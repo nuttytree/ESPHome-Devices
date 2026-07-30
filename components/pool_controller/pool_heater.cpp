@@ -120,8 +120,7 @@ void PoolHeater::update_temperature_() {
   if (this->primary_pump_ == nullptr || !this->primary_pump_->state)
     return;
 
-  const uint64_t on_ms = millis_64() - this->primary_pump_->get_turned_on_ms();
-  if (on_ms < 15000u)
+  if (this->primary_pump_->get_running_for_ms() < 15000u)
     return;
 
   const float raw = this->temperature_sensor_->state;

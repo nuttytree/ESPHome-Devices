@@ -203,13 +203,14 @@ AUX_PUMP_SCHEMA = cv.All(
 # ── Codegen helpers ────────────────────────────────────────────────────────────
 
 
-async def pump_to_code(var, pump_config, delay_ms, disable_sensor):
+async def pump_to_code(var, pump_config, delay_ms, disable_sensor, rtc):
     """Register a pump switch and emit all its configuration calls."""
     await esphome_switch.register_switch(var, pump_config)
     await cg.register_component(var, pump_config)
 
     out = await cg.get_variable(pump_config[CONF_OUTPUT])
     cg.add(var.set_output(out))
+    cg.add(var.set_rtc(rtc))
     cg.add(var.set_sequence_delay(delay_ms))
 
     if disable_sensor is not None:

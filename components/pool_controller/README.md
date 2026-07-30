@@ -64,6 +64,8 @@ pool_controller:
 * **auxiliary_pumps** (Optional, list): Zero or more auxiliary pumps (e.g. cleaner, fill valve). See [Auxiliary Pump](#auxiliary-pump) below.
 * **sequence_delay** (Optional, Time, default: `2s`): How long to wait between primary and auxiliary pump state changes during sequenced startup and shutdown.
 * **disable_pumps_sensor** (Optional, id): ID of a binary sensor that, when active, immediately shuts all pumps off and prevents any pump from turning on.
+* **state_save_interval** (Optional, Time, default: `5min`): How often each pump's operating state is written to flash so a restart can resume where it left off. This bounds how much accumulated runtime a sudden power loss can lose. See [Restart Recovery](#restart-recovery).
+* **max_resume_age** (Optional, Time, default: `15min`): How stale a saved state may be and still be resumed. Beyond this the outage is treated as extended, the saved state is discarded, and pumps start cold. See [Restart Recovery](#restart-recovery).
 * **pool_heater** (Optional): Configuration for an optional pool heater. See [Pool Heater](#pool-heater) below.
 
 ### Primary Pump
@@ -82,12 +84,12 @@ Accepts all standard [ESPHome Switch options](https://esphome.io/components/swit
 * **no_current_binary_sensor** (Optional): Problem binary sensor, automatically added whenever `current_sensor` is configured. Turns on whenever the switch is commanded on but no current is detected (e.g. a manual override switch has the pump physically off). Supports all standard [ESPHome Binary Sensor options](https://esphome.io/components/binary_sensor/index.html); defaults to `<pump name> No Current`.
 * **anomaly_detection_switch** (Optional): A Switch entity, created whenever `current_sensor` is configured, that enables or disables anomaly detection at runtime. Supports all standard [ESPHome Switch options](https://esphome.io/components/switch/index.html); restores to on by default and defaults to `<pump name> Anomaly Detection`.
 * **anomaly_status_binary_sensor** (Optional): Problem binary sensor, created whenever `current_sensor` is configured, that turns on when a current-draw anomaly is currently active. Supports all standard [ESPHome Binary Sensor options](https://esphome.io/components/binary_sensor/index.html); defaults to `<pump name> Anomaly Status`.
-* **anomaly_baseline_reset_button** (Optional): A Button entity, created whenever `current_sensor` is configured, that discards the learned current baseline and begins relearning when pressed. Ignored (with a warning logged) while `flow_loss_binary_sensor` is active, so a reset can't lock in a baseline contaminated by an in-progress flow-loss fault. Supports all standard [ESPHome Button options](https://esphome.io/components/button/index.html); defaults to `<pump name> Reset Anomaly Baseline`.
+* **anomaly_baseline_reset_button** (Optional): A Button entity, created whenever `current_sensor` is configured, that discards the learned current baseline (steady state, drift, variance, startup inrush) and clears any latched anomaly. The press is never refused and can be made at any time; relearning does not start immediately but at the pump's next turn-on, so the new baseline is always built from a complete run — see [Baseline Reset](#baseline-reset). Supports all standard [ESPHome Button options](https://esphome.io/components/button/index.html); defaults to `<pump name> Reset Anomaly Baseline`.
 * **anomaly_reason_text_sensor** (Optional): Text sensor, created whenever `current_sensor` is configured, publishing the reason string of the most recent anomaly — lets a single `anomaly_status_binary_sensor` on-state be disambiguated in the UI/history. Supports all standard [ESPHome Text Sensor options](https://esphome.io/components/text_sensor/index.html); defaults to `<pump name> Anomaly Reason`.
 * **anomaly_threshold_pct** (Optional, int 1–100, default: `10`): Percentage deviation from baseline required to trigger an anomaly event.
 * **learning_samples** (Optional, int 10–10000, default: `200`): Number of steady-state current samples to collect before the baseline is locked.
 * **on_anomaly** (Optional, automation): Automation triggered when an anomaly is detected. The trigger variable `x` is a string describing the anomaly: `CURRENT_HIGH`, `CURRENT_LOW`, `NO_STARTUP_SPIKE`, `BASELINE_DRIFT` (either direction — rising suggests bearing wear, falling suggests prime/flow loss), or `VARIANCE_SPIKE` (current spread has grown well beyond its learned baseline, often the earliest sign of trouble).
-* **flow_sensor** (Optional, id): ID of a binary sensor that detects water flow. If no `current_sensor` is configured, the pump's runtime is only accumulated while flow is actually detected. If a `current_sensor` is configured, runtime is controlled by current instead (see above), and the pump is additionally shut down if current confirms the motor is running but flow is lost for longer than `flow_timeout`. Without a `current_sensor`, no-flow alone never shuts the pump down — a manual override switch physically holding the pump off would otherwise look identical to a real no-flow fault.
+* **flow_sensor** (Optional, id): ID of a binary sensor that detects water flow. If no `current_sensor` is configured, the pump's runtime is only accumulated while flow is actually detected. If a `current_sensor` is configured, runtime is controlled by current instead (see above), and the pump is additionally shut down if current confirms the motor is running but flow is lost for longer than `flow_timeout`. Without a `current_sensor`, no-flow alone never shuts the pump down — a manual override switch physically holding the pump off would otherwise look identical to a real no-flow fault. When both sensors are configured, flow also gates anomaly statistics — see [Current-based Anomaly Detection](#current-based-anomaly-detection).
 * **flow_timeout** (Optional, Time, default: `2s`): How long flow must be absent (while a current sensor confirms the motor is running) before the pump is shut down.
 * **flow_loss_binary_sensor** (Optional): Problem binary sensor, automatically added whenever both `current_sensor` and `flow_sensor` are configured. Latches on when the pump is shut down due to lost flow, and only clears once the pump is on, current confirms the motor is running, and flow is detected again. Supports all standard [ESPHome Binary Sensor options](https://esphome.io/components/binary_sensor/index.html); defaults to `<pump name> Flow Loss`.
 * **unexpected_flow_binary_sensor** (Optional): Problem binary sensor, automatically added whenever `flow_sensor` is configured. Turns on when flow is detected while the pump is commanded off for longer than `flow_timeout` (e.g. a stuck valve, a neighboring pump pushing water through this branch, or a manual override running the pump), and clears as soon as flow stops or the pump turns on. Supports all standard [ESPHome Binary Sensor options](https://esphome.io/components/binary_sensor/index.html); defaults to `<pump name> Unexpected Flow`.
@@ -110,11 +112,42 @@ Each hour-long slot is evaluated independently. Within a slot the pump runs for 
 ### Sequenced Startup and Shutdown
 When starting, the primary pump turns on first and auxiliary pumps wait for `sequence_delay` before turning on. When stopping, auxiliary pumps turn off immediately and the primary pump follows after `sequence_delay`. If a pool heater is configured it is turned off before the primary pump during shutdown to avoid running the heater without water flow.
 
+### Restart Recovery
+`millis()` restarts at zero on boot and says nothing about how long the device was down, so without persisted state a restart looks identical to a cold first start. Each pump therefore writes a small timestamped snapshot — accumulated runtime, the hour slot that runtime belongs to, and when it last stopped — every `state_save_interval` and on every start and stop.
+
+On the first tick after the clock is valid, and before any schedule decision is made, each pump applies its snapshot:
+
+* **Snapshot older than `max_resume_age`** — treated as an extended outage. It is discarded and the pump starts cold: zero runtime and a full minimum off-time from boot.
+* **Runtime** carries over only when the snapshot belongs to the hour slot we are now in. If a slot boundary passed while the device was down, the runtime resets to zero — that is the hourly reset nobody was running to perform. Without it, a stale count would be measured against the new slot's target and could suppress the run for that whole hour.
+* **Minimum off-time.** If the pump was running when the snapshot was taken, the stop was the restart itself rather than the end of a duty cycle, so there is nothing to protect against and the schedule may bring it straight back up. If it was already off, the off-time it has served — including the outage, which the wall clock covers — is credited against the minimum, and only the remainder is waited out.
+
+The snapshot always includes the in-flight portion of a run in progress, so an unexpected restart loses at most `state_save_interval` worth of runtime rather than the entire run.
+
+#### Flash Wear
+Snapshots are committed to flash immediately rather than being left to the global `preferences: flash_write_interval`. That interval is meant for chatty components; leaving these writes to it would let an unrelated global setting decide how much runtime a restart can recover. Writes are instead bounded by `state_save_interval` plus pump start/stop events — at the 5-minute default, under 300 writes a day, which is comfortably within the endurance of the wear-levelled NVS partition. Raise `state_save_interval` to trade resume accuracy for fewer writes.
+
 ### Pump Disable Sensor
 When `disable_pumps_sensor` is active (on), all pumps are turned off immediately and no pump is allowed to turn on until the sensor clears. This is useful for wiring in an external interlock (e.g. a cover sensor or maintenance switch).
 
 ### Current-based Anomaly Detection
 When enabled, the component learns the pump's normal steady-state current draw over `learning_samples` samples. After learning is complete, any reading that deviates by more than `anomaly_threshold_pct` percent triggers the `on_anomaly` automation with a string describing the event. A separate startup-inrush baseline is maintained to avoid false positives during the motor startup window.
+
+Each run is split into a 15 s startup window, during which the inrush peak is captured, and a steady-state phase, which feeds the baseline while learning and is compared against it afterwards.
+
+#### What Counts as a Valid Sample
+Current confirms the motor is energized, but not that the pump is doing useful work, so a `flow_sensor` — when configured — decides whether a sample means anything:
+
+* **Steady-state samples** are only taken while flow is present. A pump that is spinning but moving no water draws an atypical current that would otherwise be learned as normal or misread as a current anomaly; the flow-loss watchdog is what reports that condition. The out-of-band debounce streak is dropped across a no-flow gap so it can never span one.
+* **The startup inrush peak** is only folded into the startup reference if flow was established at some point during the startup window. Flow is never required *at* the moment of inrush — a pump needs a moment to prime — but a start that never moved water is discarded (logged as a warning) rather than averaged in, and cannot raise `NO_STARTUP_SPIKE` either.
+
+With no `flow_sensor` configured there is nothing better to go on, so current alone gates capture, exactly as before.
+
+#### Baseline Reset
+Pressing `anomaly_baseline_reset_button` discards everything learned — steady-state EMA, drift EMA, variance accumulators, startup inrush reference and run count — clears the latched anomaly status and the alert cooldown, and persists the cleared baseline immediately.
+
+Capture is then *armed rather than started*. Nothing is sampled until the pump next turns on, at which point learning begins with the startup window still ahead of it. This holds no matter when the button is pressed: a run already in progress has no startup window left to observe, and sampling it would produce a baseline with no inrush reference and a steady-state figure taken from a partially-observed run. The cost is that a pump running continuously (the `Always` schedule, with nothing to cycle it off) relearns nothing until its next off/on cycle.
+
+Relearning then follows the normal path: the first run seeds the startup reference, `NO_STARTUP_SPIKE` checks resume once three starts have accumulated, and the steady-state baseline locks after `learning_samples` valid samples.
 
 ### Flow Sensor Protection
 If a `flow_sensor` is configured and reports no flow for longer than `flow_timeout` while the pump output is commanded on, the pump is shut down to protect against dry-running or blockage.
