@@ -43,7 +43,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(
             CONF_STATE_SAVE_INTERVAL, default="5min"
         ): cv.positive_time_period_milliseconds,
-        cv.Optional(CONF_MAX_RESUME_AGE, default="15min"): cv.All(
+        cv.Optional(CONF_MAX_RESUME_AGE, default="10min"): cv.All(
             cv.positive_time_period_seconds,
             cv.Range(min=cv.TimePeriod(seconds=1)),
         ),

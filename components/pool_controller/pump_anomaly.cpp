@@ -61,6 +61,12 @@ void PumpSwitch::tick_anomaly_() {
   if (this->awaiting_fresh_start_)
     return;
 
+  // No confirmed turn-on for this run yet, so there is no startup window to measure against.
+  // Guards run_ms below, where a 0 timestamp would read as "running since boot" and skip
+  // straight past the inrush window.
+  if (this->turned_on_ms_ == 0)
+    return;
+
   const float current = this->current_sensor_->state;
   if (std::isnan(current) || current < 0.0f)
     return;
@@ -86,10 +92,12 @@ void PumpSwitch::tick_anomaly_() {
     if (this->startup_capture_valid_()) {
       this->process_startup_peak_();
     } else {
-      // The motor drew its inrush but never moved water, so this peak says nothing about a
-      // healthy start. Discard it rather than averaging it into the startup reference.
-      ESP_LOGW(TAG, "'%s' startup peak %.3fA discarded: no flow established during startup", this->get_name().c_str(),
-               this->startup_peak_current_);
+      // The peak says nothing about a healthy start — either the motor drew its inrush without
+      // ever moving water, or the readings gapped and the window went partly unobserved.
+      // Discard it rather than averaging it into the startup reference.
+      ESP_LOGW(
+          TAG, "'%s' startup peak %.3fA discarded: %s", this->get_name().c_str(), this->startup_peak_current_,
+          this->run_current_gap_ ? "current readings went stale during startup" : "no flow established during startup");
     }
   }
 

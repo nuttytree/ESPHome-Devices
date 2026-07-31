@@ -131,6 +131,14 @@ class PumpSwitch : public switch_::Switch, public Component {
   void set_current_on_threshold(float threshold) { this->current_on_threshold_ = threshold; }
   /// Problem sensor: true while the pump is commanded on but no current is detected.
   void set_no_current_sensor(binary_sensor::BinarySensor *sensor) { this->no_current_sensor_ = sensor; }
+  /// How long the current sensor may go without publishing before its last value stops being
+  /// treated as evidence. Default: 30 s.
+  void set_current_timeout_ms(uint32_t ms) { this->current_timeout_ms_ = ms; }
+  /// Problem sensor: true while the current sensor has stopped publishing.
+  void set_current_stale_sensor(binary_sensor::BinarySensor *sensor) { this->current_stale_sensor_ = sensor; }
+
+  /// Returns true while the current sensor's last value is too old to be trusted.
+  bool is_current_stale() const { return this->current_stale_; }
 
   // ── Flow sensor ────────────────────────────────────────────────────────────
   /// Optional binary sensor that detects water flow.
@@ -171,8 +179,21 @@ class PumpSwitch : public switch_::Switch, public Component {
   /// Resets accumulated runtime to zero. Called by PoolController at :00.
   void reset_runtime();
 
-  /// Call this in write_state() before setting the output so runtime is tracked correctly.
+  /// Accumulates runtime. Driven by the best available evidence that the pump is doing work:
+  /// flow when a flow sensor is configured, otherwise current, otherwise the output command.
+  /// Flow wins because moving water is what the schedule is actually buying, and because it
+  /// stays valid through a current-sensor outage — see [Stale Current Readings] in the README.
   void track_runtime(bool new_state);
+
+  /// Marks the start of a new run, at the moment the output is commanded on. Clears the per-run
+  /// anomaly state and sets turned_on_ms_ to 0, meaning "commanded on, not yet confirmed
+  /// running"; whichever sensor first confirms the motor stamps the real timestamp.
+  ///
+  /// Separate from track_runtime() because the two answer different questions. Runtime asks how
+  /// long the pump did useful work, which flow answers best. The anomaly startup window asks
+  /// when the motor was energised, which only current answers — flow lags the motor by a second
+  /// or more, easily long enough to miss the inrush peak entirely.
+  void arm_new_run_();
   void set_anomaly_detected_(bool detected);
 
   /// Persists the current operating state with a wall-clock timestamp. No-op until the clock is
@@ -241,6 +262,8 @@ class PumpSwitch : public switch_::Switch, public Component {
                                       ///< from the middle of whatever run was in progress at reset time.
   bool run_flow_confirmed_{false};    ///< True once flow has been observed during this run's startup window;
                                       ///< only meaningful when a flow sensor is configured.
+  bool run_current_gap_{false};       ///< True if the current sensor went stale at any point during this run,
+                                      ///< meaning its startup window was not fully observed.
   ESPPreferenceObject anomaly_pref_;  ///< Persists AnomalyBaseline across reboots.
   binary_sensor::BinarySensor *anomaly_status_sensor_{nullptr};
   text_sensor::TextSensor *anomaly_reason_sensor_{nullptr};  ///< Last anomaly reason string (diagnostic).
@@ -252,6 +275,18 @@ class PumpSwitch : public switch_::Switch, public Component {
   bool motor_running_{false};         ///< True while current confirms the motor is actually drawing current.
   binary_sensor::BinarySensor *no_current_sensor_{nullptr};  ///< Problem sensor: on but no current detected.
   bool no_current_detected_{false};                          ///< Last published state of no_current_sensor_.
+
+  /// Staleness watchdog. An ESPHome sensor holds its last value indefinitely when its source
+  /// stops responding, so "0 A" from a dead meter is byte-identical to a pump that genuinely
+  /// isn't drawing current. Tracking when the sensor last published is the only way to tell
+  /// them apart, so every consumer of current can stop acting on a value that is no longer real.
+  uint32_t current_timeout_ms_{30000};  ///< Silence after which the current reading is distrusted.
+  uint64_t last_current_update_ms_{0};  ///< millis_64() of the last publish from the current sensor.
+  bool current_stale_{false};           ///< Last published state of current_stale_sensor_.
+  binary_sensor::BinarySensor *current_stale_sensor_{nullptr};  ///< Problem sensor: current sensor gone quiet.
+
+  /// Sets (or clears) the stale-current problem sensor and re-evaluates what depends on it.
+  void set_current_stale_(bool stale);
 
   /// Returns true when a current sensor is configured for this pump.
 #ifdef USE_SENSOR
@@ -283,16 +318,23 @@ class PumpSwitch : public switch_::Switch, public Component {
   /// the caller has already confirmed the motor is drawing it (motor_running_).
   bool stats_capture_allowed_() const { return !this->has_flow_sensor() || this->flow_sensor_->state; }
 
-  /// Whether this run's inrush peak is worth folding into the startup reference. With a flow
-  /// sensor, only a start that actually got water moving counts; a motor that spun up against
-  /// a closed valve or lost prime produces a peak that would poison the reference.
-  bool startup_capture_valid_() const { return !this->has_flow_sensor() || this->run_flow_confirmed_; }
+  /// Whether this run's inrush peak is worth folding into the startup reference. A gap in the
+  /// current readings means the window was only partly observed, so the "peak" is whatever
+  /// happened to be sampled either side of it. With a flow sensor, only a start that actually
+  /// got water moving counts either; a motor that spun up against a closed valve or lost prime
+  /// produces a peak that would poison the reference.
+  bool startup_capture_valid_() const {
+    return !this->run_current_gap_ && (!this->has_flow_sensor() || this->run_flow_confirmed_);
+  }
 
 #ifdef USE_SENSOR
   /// Samples the current sensor at 1 Hz: updates motor_running_, runtime tracking, the
   /// no-current problem sensor, and (if enabled) ticks anomaly detection. Implemented in
   /// pump_current.cpp. Extracted verbatim from the top of loop().
   void update_current_sensor_(uint64_t now);
+  /// Re-evaluates staleness at the 1 Hz sample tick. Returns true when the reading may not be
+  /// used, in which case the caller must leave motor_running_ and runtime tracking untouched.
+  bool update_current_stale_(uint64_t now);
   void tick_anomaly_();          ///< Called at 1 Hz while the pump is running. Implemented in pump_anomaly.cpp.
   void process_startup_peak_();  ///< Evaluates the inrush peak captured during the startup window. Implemented in
                                  ///< pump_anomaly.cpp.
