@@ -31,6 +31,8 @@ from ..const import (
     CONF_ON_ANOMALY,
     CONF_CURRENT_ON_THRESHOLD,
     CONF_NO_CURRENT_BINARY_SENSOR,
+    CONF_CURRENT_TIMEOUT,
+    CONF_CURRENT_STALE_BINARY_SENSOR,
     CONF_FLOW_SENSOR,
     CONF_FLOW_TIMEOUT,
     CONF_FLOW_LOSS_BINARY_SENSOR,
@@ -45,6 +47,7 @@ from .types import (
     PumpAnomalyReasonTextSensor,
     PumpAnomalyResetButton,
     PumpNoCurrentBinarySensor,
+    PumpCurrentStaleBinarySensor,
     PumpFlowLossBinarySensor,
     PumpUnexpectedFlowBinarySensor,
     PumpAnomalyTrigger,
@@ -70,6 +73,9 @@ DEFAULT_ANOMALY_BASELINE_RESET_BUTTON_PREFIX = (
 )
 DEFAULT_NO_CURRENT_BINARY_SENSOR_PREFIX = (
     "__pool_controller_no_current_binary_sensor_default_name__"
+)
+DEFAULT_CURRENT_STALE_BINARY_SENSOR_PREFIX = (
+    "__pool_controller_current_stale_binary_sensor_default_name__"
 )
 DEFAULT_FLOW_LOSS_BINARY_SENSOR_PREFIX = (
     "__pool_controller_flow_loss_binary_sensor_default_name__"
@@ -153,6 +159,21 @@ PUMP_SCHEMA = {
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         device_class=DEVICE_CLASS_PROBLEM,
         icon="mdi:flash-off",
+    ),
+    cv.Optional(CONF_CURRENT_TIMEOUT, default="30s"): cv.All(
+        cv.positive_time_period_milliseconds,
+        cv.Range(min=cv.TimePeriod(seconds=1)),
+    ),
+    cv.Optional(
+        CONF_CURRENT_STALE_BINARY_SENSOR,
+        default=lambda: {
+            CONF_NAME: f"{DEFAULT_CURRENT_STALE_BINARY_SENSOR_PREFIX}{uuid.uuid4()}"
+        },
+    ): binary_sensor.binary_sensor_schema(
+        PumpCurrentStaleBinarySensor,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        device_class=DEVICE_CLASS_PROBLEM,
+        icon="mdi:help-network-outline",
     ),
     cv.Optional(CONF_ANOMALY_THRESHOLD_PCT, default=10): cv.int_range(min=1, max=100),
     cv.Optional(CONF_LEARNING_SAMPLES, default=200): cv.int_range(min=10, max=10000),
@@ -291,6 +312,18 @@ async def pump_to_code(var, pump_config, delay_ms, disable_sensor, rtc):
         await binary_sensor.register_binary_sensor(no_current_sensor, no_current_conf)
         await cg.register_component(no_current_sensor, no_current_conf)
         cg.add(var.set_no_current_sensor(no_current_sensor))
+
+        cg.add(var.set_current_timeout_ms(pump_config[CONF_CURRENT_TIMEOUT]))
+
+        stale_conf = pump_config[CONF_CURRENT_STALE_BINARY_SENSOR]
+        if stale_conf.get(CONF_NAME, "").startswith(
+            DEFAULT_CURRENT_STALE_BINARY_SENSOR_PREFIX
+        ):
+            stale_conf[CONF_NAME] = f"{pump_config[CONF_NAME]} Current Sensor Stale"
+        stale_sensor = cg.new_Pvariable(stale_conf[CONF_ID])
+        await binary_sensor.register_binary_sensor(stale_sensor, stale_conf)
+        await cg.register_component(stale_sensor, stale_conf)
+        cg.add(var.set_current_stale_sensor(stale_sensor))
 
     if CONF_FLOW_SENSOR in pump_config:
         flow_sens = await cg.get_variable(pump_config[CONF_FLOW_SENSOR])

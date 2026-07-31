@@ -26,17 +26,24 @@ void PumpSwitch::set_unexpected_flow_(bool detected) {
     this->unexpected_flow_sensor_->publish_state(detected);
 }
 
-// Only used when a flow sensor is configured without a current sensor — in that case
-// runtime is only accumulated while the output is on AND flow is actually detected.
-// When a current sensor is also present, runtime is controlled by current instead.
+// Whenever a flow sensor is configured it owns runtime accounting, current sensor or not.
+// Moving water is what a pool schedule is actually buying, and unlike current it stays valid
+// through a current-sensor outage — a stalled meter reading 0 A would otherwise silently stop
+// the clock on a pump that is running perfectly well.
 void PumpSwitch::update_flow_based_runtime_(uint64_t now) {
   const bool flow_running = this->state && this->flow_sensor_->state;
-  if (flow_running != this->flow_running_) {
-    ESP_LOGD(TAG, "'%s' flow running state: %s (output=%s)", this->get_name().c_str(), flow_running ? "YES" : "NO",
-             this->state ? "ON" : "OFF");
-    this->flow_running_ = flow_running;
-    this->track_runtime(flow_running);
-  }
+  if (flow_running == this->flow_running_)
+    return;
+
+  ESP_LOGD(TAG, "'%s' flow running state: %s (output=%s)", this->get_name().c_str(), flow_running ? "YES" : "NO",
+           this->state ? "ON" : "OFF");
+  this->flow_running_ = flow_running;
+  // With no current sensor, flow is also the only evidence the motor is turning, so it has to
+  // anchor the turn-on timestamp as well. When current is available it does that job instead,
+  // because it sees the motor a second or more earlier.
+  if (!this->has_current_sensor() && flow_running && this->turned_on_ms_ == 0)
+    this->turned_on_ms_ = millis_64();
+  this->track_runtime(flow_running);
 }
 
 void PumpSwitch::update_flow_watchdogs_(uint64_t now) {

@@ -24,6 +24,8 @@ CONF_ON_ANOMALY = "on_anomaly"
 
 CONF_CURRENT_ON_THRESHOLD = "current_on_threshold"
 CONF_NO_CURRENT_BINARY_SENSOR = "no_current_binary_sensor"
+CONF_CURRENT_TIMEOUT = "current_timeout"
+CONF_CURRENT_STALE_BINARY_SENSOR = "current_stale_binary_sensor"
 
 CONF_FLOW_SENSOR = "flow_sensor"
 CONF_FLOW_TIMEOUT = "flow_timeout"

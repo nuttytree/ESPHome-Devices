@@ -35,6 +35,12 @@ void PumpSwitch::setup() {
 
 #ifdef USE_SENSOR
   if (this->current_sensor_ != nullptr) {
+    // Stamp every publish. A sensor whose source has died keeps serving its last value with no
+    // outward sign, so the arrival time of a reading is the only thing separating a live
+    // measurement from a frozen one. Start the clock now so boot gets a full grace period.
+    this->last_current_update_ms_ = millis_64();
+    this->current_sensor_->add_on_state_callback([this](float value) { this->last_current_update_ms_ = millis_64(); });
+
     this->anomaly_pref_ = this->make_entity_preference<AnomalyBaseline>(ANOMALY_PREF_VERSION);
     if (this->anomaly_pref_.load(&this->anomaly_baseline_)) {
       this->sample_count_ = this->anomaly_baseline_.sample_count;
@@ -144,18 +150,24 @@ void PumpSwitch::restore_run_state(const ESPTime &now, uint32_t max_age_s) {
            (slot_hour == state.slot_hour) ? "" : " (new slot, reset)", remaining_ms / 1000);
 }
 
+void PumpSwitch::arm_new_run_() {
+  // 0 means "commanded on, not yet confirmed running". Whichever sensor first sees the motor
+  // stamps the real timestamp; until then get_running_for_ms() correctly reports no run time.
+  this->turned_on_ms_ = 0;
+  // Reset per-run anomaly state so each pump cycle gets a fresh startup check.
+  this->startup_peak_current_ = 0.0f;
+  this->startup_processed_ = false;
+  this->oob_streak_ = 0;
+  this->run_flow_confirmed_ = false;
+  this->run_current_gap_ = false;
+  // This is the clean start a pending baseline reset was waiting for: capture may resume,
+  // and it now begins at a real turn-on with the startup window still ahead of it.
+  this->awaiting_fresh_start_ = false;
+}
+
 void PumpSwitch::track_runtime(bool new_state) {
   if (new_state && this->runtime_start_ms_ == 0) {
     this->runtime_start_ms_ = millis_64();
-    this->turned_on_ms_ = millis_64();
-    // Reset per-run anomaly state so each pump cycle gets a fresh startup check.
-    this->startup_peak_current_ = 0.0f;
-    this->startup_processed_ = false;
-    this->oob_streak_ = 0;
-    this->run_flow_confirmed_ = false;
-    // This is the clean start a pending baseline reset was waiting for: capture may resume,
-    // and it now begins at a real turn-on with the startup window still ahead of it.
-    this->awaiting_fresh_start_ = false;
     this->last_off_utc_ = 0;
     // Snapshot the start immediately: a restart moments from now needs to know the pump was
     // mid-run, which is what lets it resume without waiting out the minimum off-time.
@@ -212,8 +224,7 @@ void PumpSwitch::loop() {
 #endif
 
   if (this->flow_sensor_ != nullptr) {
-    if (!this->has_current_sensor())
-      this->update_flow_based_runtime_(now);
+    this->update_flow_based_runtime_(now);
     this->update_flow_watchdogs_(now);
   }
 }

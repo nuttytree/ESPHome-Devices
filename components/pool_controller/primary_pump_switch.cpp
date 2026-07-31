@@ -52,9 +52,14 @@ void PrimaryPumpSwitch::write_state(bool state) {
     }
   }
 
+  if (state)
+    this->arm_new_run_();
   this->output_->set_state(state);
   this->publish_state(state);
   if (!this->has_current_sensor() && !this->has_flow_sensor()) {
+    // No sensors at all — the command is the only evidence available for either job.
+    if (state)
+      this->turned_on_ms_ = millis_64();
     this->track_runtime(state);
   } else if (!state) {
     // Output commanded off — stop runtime counting immediately regardless of sensor confirmation.

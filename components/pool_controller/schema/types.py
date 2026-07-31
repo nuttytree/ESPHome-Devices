@@ -34,6 +34,9 @@ PumpAnomalyReasonTextSensor = pool_controller_ns.class_(
 PumpNoCurrentBinarySensor = pool_controller_ns.class_(
     "PumpNoCurrentBinarySensor", binary_sensor.BinarySensor, cg.Component
 )
+PumpCurrentStaleBinarySensor = pool_controller_ns.class_(
+    "PumpCurrentStaleBinarySensor", binary_sensor.BinarySensor, cg.Component
+)
 PumpFlowLossBinarySensor = pool_controller_ns.class_(
     "PumpFlowLossBinarySensor", binary_sensor.BinarySensor, cg.Component
 )
