@@ -13,7 +13,7 @@ packages:
 external_components:
   - source:
       type: local
-      path: ./components
+      path: ../components
     components: [pool_controller, pzem6l24]
 
 esphome:

@@ -4,7 +4,7 @@
 Work in progress — this device is actively being expanded. The sections marked `TODO` below are placeholders waiting on details, photos, and schematics.
 
 ## Overview
-The pool is controlled by a [Waveshare ESP32-S3 7" Touch LCD B](https://www.waveshare.com/product/esp32-s3-lcd-7b.htm) running a touchscreen UI (LVGL) plus the custom [Pool Controller](../../components/pool_controller/README.md) and [PZEM-6L24](../../components/pzem6l24/README.md) components. Configuration lives in [pool.yaml](../../pool.yaml).
+The pool is controlled by a [Waveshare ESP32-S3 7" Touch LCD B](https://www.waveshare.com/product/esp32-s3-lcd-7b.htm) running a touchscreen UI (LVGL) plus the custom [Pool Controller](../../components/pool_controller/README.md) and [PZEM-6L24](../../components/pzem6l24/README.md) components. Configuration lives in [pool.yaml](../../devices/pool.yaml).
 
 ## Hardware
 - Controller board: Waveshare ESP32-S3 7" Touch LCD B (`esp32s3`), MIPI RGB display + GT911 touch

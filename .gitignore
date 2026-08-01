@@ -5,9 +5,11 @@
 **/.piolibdeps/
 **/lib/
 **/src/
-/build/
+/devices/build/
 **/platformio.ini
-/secrets.yaml
+/devices/secrets.yaml
+# ESPHome rewrites this on every compile if it's missing; its rules are covered above
+/devices/.gitignore
 __pycache__/
 *.py[cod]
 *$py.class

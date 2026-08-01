@@ -1,7 +1,7 @@
 # HVAC
 
 ## Overview
-The house HVAC (a Rheem furnace + air conditioner) is a 3-zone system (Main Floor, Upstairs, Basement) integrated with Home Assistant via the [ESPHome Econet](https://github.com/esphome-econet/esphome-econet) component, plus a custom [Econet Zone Control](../../components/econet_zone_control/README.md) component. Configuration lives in [hvac.yaml](../../hvac.yaml).
+The house HVAC (a Rheem furnace + air conditioner) is a 3-zone system (Main Floor, Upstairs, Basement) integrated with Home Assistant via the [ESPHome Econet](https://github.com/esphome-econet/esphome-econet) component, plus a custom [Econet Zone Control](../../components/econet_zone_control/README.md) component. Configuration lives in [hvac.yaml](../../devices/hvac.yaml).
 
 ## Why a Custom Component
 Rather than 3 independent thermostats, the goals were:
