@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Tag the current commit with the lowest ESPHome version every device is confirmed running.
 
-Reads .esphome/.device-builder-devices.json (local Device Builder state) and, once every
-device yaml at the repo root reports a deployed_version with a deployed_config_hash matching
+Reads devices/.esphome/.device-builder-devices.json (local Device Builder state) and, once
+every device yaml in devices/ reports a deployed_version with a deployed_config_hash matching
 its expected_config_hash, tags the current commit with the lowest of those versions -- unless
 a tag at or above that version already exists. Intended to run as a post-commit hook so HEAD
 is the commit being tagged. Never pushes; run `git push --follow-tags` (or push the tag
@@ -16,8 +16,9 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEVICES_JSON = REPO_ROOT / ".esphome" / ".device-builder-devices.json"
-EXCLUDED_ROOT_YAML = {"secrets.yaml"}
+DEVICES_DIR = REPO_ROOT / "devices"
+DEVICES_JSON = DEVICES_DIR / ".esphome" / ".device-builder-devices.json"
+EXCLUDED_DEVICE_YAML = {"secrets.yaml"}
 
 VERSION_RE = re.compile(r"^\d+(?:\.\d+)*")
 
@@ -32,8 +33,8 @@ def version_key(version):
 def device_yaml_files():
     return sorted(
         p.name
-        for p in REPO_ROOT.glob("*.yaml")
-        if p.name not in EXCLUDED_ROOT_YAML and not p.name.startswith(".")
+        for p in DEVICES_DIR.glob("*.yaml")
+        if p.name not in EXCLUDED_DEVICE_YAML and not p.name.startswith(".")
     )
 
 
