@@ -1,5 +1,5 @@
-import esphome.config_validation as cv
 from esphome.components.time import validate_cron_days_of_week
+import esphome.config_validation as cv
 from esphome.const import (
     CONF_DAYS_OF_WEEK,
     CONF_HOUR,
@@ -7,12 +7,8 @@ from esphome.const import (
     CONF_NAME,
     CONF_SECOND,
 )
-from ..const import (
-    CONF_END_TIME,
-    CONF_MINUTES_PER_HOUR,
-    CONF_RUNTIMES,
-    CONF_START_TIME,
-)
+
+from ..const import CONF_END_TIME, CONF_MINUTES_PER_HOUR, CONF_RUNTIMES, CONF_START_TIME
 
 
 def _time_to_minutes(time_val):
@@ -84,21 +80,24 @@ def _validate_runtime(runtime):
 def _validate_no_runtime_overlaps(schedule):
     """Validate that no two runtimes in the same schedule overlap on the same days."""
     runtimes = schedule[CONF_RUNTIMES]
-    for i in range(len(runtimes)):
+    for i, a in enumerate(runtimes):
         for j in range(i + 1, len(runtimes)):
-            a, b = runtimes[i], runtimes[j]
+            b = runtimes[j]
             a_start = _time_to_minutes(a[CONF_START_TIME])
             a_end = _time_to_minutes(a[CONF_END_TIME])
             b_start = _time_to_minutes(b[CONF_START_TIME])
             b_end = _time_to_minutes(b[CONF_END_TIME])
-            if a_start < b_end and b_start < a_end:
-                if _runtime_days(a) & _runtime_days(b):
-                    raise cv.Invalid(
-                        f"Runtime {i} ({_time_to_str(a[CONF_START_TIME])}-"
-                        f"{_time_to_str(a[CONF_END_TIME])}) overlaps with "
-                        f"runtime {j} ({_time_to_str(b[CONF_START_TIME])}-"
-                        f"{_time_to_str(b[CONF_END_TIME])}) on shared days"
-                    )
+            if (
+                a_start < b_end
+                and b_start < a_end
+                and _runtime_days(a) & _runtime_days(b)
+            ):
+                raise cv.Invalid(
+                    f"Runtime {i} ({_time_to_str(a[CONF_START_TIME])}-"
+                    f"{_time_to_str(a[CONF_END_TIME])}) overlaps with "
+                    f"runtime {j} ({_time_to_str(b[CONF_START_TIME])}-"
+                    f"{_time_to_str(b[CONF_END_TIME])}) on shared days"
+                )
     return schedule
 
 

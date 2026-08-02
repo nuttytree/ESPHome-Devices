@@ -4,8 +4,8 @@ import esphome.codegen as cg
 from esphome.components import modbus, sensor
 import esphome.config_validation as cv
 from esphome.const import (
-    CONF_ID,
     CONF_FREQUENCY,
+    CONF_ID,
     DEVICE_CLASS_APPARENT_POWER,
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_ENERGY,
@@ -20,9 +20,9 @@ from esphome.const import (
     STATE_CLASS_TOTAL_INCREASING,
     UNIT_AMPERE,
     UNIT_HERTZ,
-    UNIT_KILOWATT_HOURS,
     UNIT_KILOVOLT_AMPS_HOURS,
     UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
+    UNIT_KILOWATT_HOURS,
     UNIT_VOLT,
     UNIT_VOLT_AMPS,
     UNIT_VOLT_AMPS_REACTIVE,

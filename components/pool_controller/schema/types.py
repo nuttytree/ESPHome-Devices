@@ -1,8 +1,13 @@
-import esphome.codegen as cg
 from esphome import automation
-from esphome.components import binary_sensor, button, text_sensor, water_heater
-from esphome.components import switch as esphome_switch
-from esphome.components import select as esphome_select
+import esphome.codegen as cg
+from esphome.components import (
+    binary_sensor,
+    button,
+    select as esphome_select,
+    switch as esphome_switch,
+    text_sensor,
+    water_heater,
+)
 
 pool_controller_ns = cg.esphome_ns.namespace("pool_controller")
 

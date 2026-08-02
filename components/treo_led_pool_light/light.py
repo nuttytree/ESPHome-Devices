@@ -9,7 +9,6 @@ from esphome.components.light.types import LightEffect
 import esphome.config_validation as cv
 from esphome.const import CONF_EFFECTS, CONF_NAME, CONF_OUTPUT, CONF_OUTPUT_ID
 
-
 treo_light_ns = cg.esphome_ns.namespace("treo_light")
 TreoPoolLightOutput = treo_light_ns.class_(
     "TreoPoolLightOutput", light.LightOutput, cg.Component

@@ -1,0 +1,105 @@
+---
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: pre-commit/action@v3.0.1
+        env:
+          # Local-only guardrail; being on master is expected in CI.
+          SKIP: no-commit-to-branch
+
+  esphome-config:
+    name: esphome config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Deliberately unpinned: the point of this job is to catch configs that
+      # break against the current ESPHome release. Pin here if you need to hold
+      # the repo at a specific version.
+      - name: Install ESPHome
+        run: pip install esphome
+      - name: Report ESPHome version
+        run: esphome version
+      # devices/secrets.yaml is gitignored, so CI generates a placeholder one.
+      - name: Generate placeholder secrets
+        run: python scripts/generate_ci_secrets.py
+      - name: Validate device configs
+        run: |
+          status=0
+          for config in devices/*.yaml; do
+            if [ "$(basename "$config")" = "secrets.yaml" ]; then
+              continue
+            fi
+            echo "::group::$config"
+            if ! esphome config "$config" > /dev/null; then
+              echo "::error file=$config::esphome config failed"
+              status=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $status
+
+  # Compiling proves the custom C++ components in components/ still build. The
+  # matrix is the smallest set of devices that covers every custom component,
+  # across both platforms -- the components are compiled per-platform, so an
+  # esp32 build says nothing about the esp8266 ones.
+  esphome-compile:
+    name: compile ${{ matrix.device }}
+    runs-on: ubuntu-latest
+    # Compiles are slow, so skip them on feature-branch pushes; the pull request
+    # and the post-merge master push both still get a full build.
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
+    env:
+      # Cache the ESP-IDF install rather than re-downloading it every run.
+      ESPHOME_ESP_IDF_PREFIX: ~/.esphome-idf
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: pool             # esp32s3 / esp-idf: pool_controller, pzem6l24
+            platform: esp32
+          - device: water-heater     # esp32 / esp-idf: high_temp_water_heater
+            platform: esp32
+          - device: hvac             # esp32 / esp-idf: econet_zone_control
+            platform: esp32
+          - device: pool-lights      # esp8266: treo_led_pool_light
+            platform: esp8266
+          - device: master-bed       # esp8266: bed_sensor
+            platform: esp8266
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cache PlatformIO and ESP-IDF
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            ~/.esphome-idf
+          key: build-${{ matrix.platform }}-${{ hashFiles('devices/packages/device_base*.yaml') }}
+          restore-keys: build-${{ matrix.platform }}-
+      - name: Install ESPHome
+        run: pip install esphome
+      - name: Generate placeholder secrets
+        run: python scripts/generate_ci_secrets.py
+      - name: Compile ${{ matrix.device }}
+        run: esphome compile devices/${{ matrix.device }}.yaml
