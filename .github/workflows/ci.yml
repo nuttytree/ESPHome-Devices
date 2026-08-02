@@ -2,7 +2,12 @@
 name: CI
 
 on:
+  # Feature branches are covered by the pull_request trigger. Running on their
+  # pushes as well would duplicate every job on any branch with an open PR, and
+  # publish a check for the skipped compile job under its unsubstituted matrix
+  # name. The trade-off is no CI on a branch until its PR is opened.
   push:
+    branches: [master]
   pull_request:
 
 concurrency:
