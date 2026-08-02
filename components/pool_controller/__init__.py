@@ -1,24 +1,24 @@
 import esphome.codegen as cg
-import esphome.config_validation as cv
 from esphome.components import binary_sensor, time
+import esphome.config_validation as cv
 from esphome.const import CONF_ID, CONF_NAME, CONF_TIME_ID
 
 from .const import (
-    CONF_PRIMARY_PUMP,
     CONF_AUXILIARY_PUMPS,
-    CONF_SEQUENCE_DELAY,
     CONF_DISABLE_PUMPS_SENSOR,
-    CONF_STATE_SAVE_INTERVAL,
     CONF_MAX_RESUME_AGE,
+    CONF_PRIMARY_PUMP,
+    CONF_SEQUENCE_DELAY,
+    CONF_STATE_SAVE_INTERVAL,
 )
-from .schema.types import PoolController
+from .schema.heater import CONF_POOL_HEATER, POOL_HEATER_SCHEMA, heater_to_code
 from .schema.pump import (
-    PRIMARY_PUMP_SCHEMA,
     AUX_PUMP_SCHEMA,
+    PRIMARY_PUMP_SCHEMA,
     pump_to_code,
     schedule_select_to_code,
 )
-from .schema.heater import CONF_POOL_HEATER, POOL_HEATER_SCHEMA, heater_to_code
+from .schema.types import PoolController
 
 AUTO_LOAD = [
     "binary_sensor",

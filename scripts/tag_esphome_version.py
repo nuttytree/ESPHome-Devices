@@ -10,10 +10,10 @@ explicitly) when you're ready to publish it.
 """
 
 import json
+from pathlib import Path
 import re
 import subprocess
 import sys
-from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEVICES_DIR = REPO_ROOT / "devices"

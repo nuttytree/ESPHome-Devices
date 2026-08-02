@@ -1,62 +1,69 @@
 import uuid
 
-import esphome.codegen as cg
-import esphome.config_validation as cv
 from esphome import automation
-from esphome.components import binary_sensor, button, output, sensor, text_sensor
-from esphome.components import switch as esphome_switch
-from esphome.components import select as esphome_select
+import esphome.codegen as cg
+from esphome.components import (
+    binary_sensor,
+    button,
+    output,
+    select as esphome_select,
+    sensor,
+    switch as esphome_switch,
+    text_sensor,
+)
+import esphome.config_validation as cv
 from esphome.const import (
     CONF_ID,
     CONF_NAME,
     CONF_OUTPUT,
-    DEVICE_CLASS_PROBLEM,
     CONF_TRIGGER_ID,
+    DEVICE_CLASS_PROBLEM,
     ENTITY_CATEGORY_DIAGNOSTIC,
 )
+
 from ..const import (
-    CONF_SCHEDULES,
-    CONF_RUNTIMES,
-    CONF_START_TIME,
-    CONF_END_TIME,
-    CONF_MINUTES_PER_HOUR,
-    CONF_SCHEDULE_SELECT,
-    CONF_CURRENT_SENSOR,
-    CONF_ANOMALY_DETECTION_SWITCH,
     CONF_ANOMALY_BASELINE_RESET_BUTTON,
-    CONF_ANOMALY_STATUS_BINARY_SENSOR,
+    CONF_ANOMALY_DETECTION_SWITCH,
     CONF_ANOMALY_REASON_TEXT_SENSOR,
+    CONF_ANOMALY_STATUS_BINARY_SENSOR,
     CONF_ANOMALY_THRESHOLD_PCT,
-    CONF_LEARNING_SAMPLES,
-    CONF_ON_ANOMALY,
     CONF_CURRENT_ON_THRESHOLD,
-    CONF_NO_CURRENT_BINARY_SENSOR,
-    CONF_CURRENT_TIMEOUT,
+    CONF_CURRENT_SENSOR,
     CONF_CURRENT_STALE_BINARY_SENSOR,
+    CONF_CURRENT_TIMEOUT,
+    CONF_END_TIME,
+    CONF_FLOW_LOSS_BINARY_SENSOR,
     CONF_FLOW_SENSOR,
     CONF_FLOW_TIMEOUT,
-    CONF_FLOW_LOSS_BINARY_SENSOR,
+    CONF_LEARNING_SAMPLES,
+    CONF_MINUTES_PER_HOUR,
+    CONF_NO_CURRENT_BINARY_SENSOR,
+    CONF_ON_ANOMALY,
+    CONF_RUNTIMES,
+    CONF_SCHEDULE_SELECT,
+    CONF_SCHEDULES,
+    CONF_START_TIME,
     CONF_UNEXPECTED_FLOW_BINARY_SENSOR,
-)
-from .types import (
-    ScheduleSelect,
-    PrimaryPumpSwitch,
-    AuxiliaryPumpSwitch,
-    PumpAnomalySwitch,
-    PumpAnomalyStatusBinarySensor,
-    PumpAnomalyReasonTextSensor,
-    PumpAnomalyResetButton,
-    PumpNoCurrentBinarySensor,
-    PumpCurrentStaleBinarySensor,
-    PumpFlowLossBinarySensor,
-    PumpUnexpectedFlowBinarySensor,
-    PumpAnomalyTrigger,
 )
 from .schedule import (
     SCHEDULE_SCHEMA,
-    _validate_unique_schedule_names,
-    _time_to_minutes,
     _days_to_mask,
+    _time_to_minutes,
+    _validate_unique_schedule_names,
+)
+from .types import (
+    AuxiliaryPumpSwitch,
+    PrimaryPumpSwitch,
+    PumpAnomalyReasonTextSensor,
+    PumpAnomalyResetButton,
+    PumpAnomalyStatusBinarySensor,
+    PumpAnomalySwitch,
+    PumpAnomalyTrigger,
+    PumpCurrentStaleBinarySensor,
+    PumpFlowLossBinarySensor,
+    PumpNoCurrentBinarySensor,
+    PumpUnexpectedFlowBinarySensor,
+    ScheduleSelect,
 )
 
 DEFAULT_ANOMALY_DETECTION_SWITCH_PREFIX = (

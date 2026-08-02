@@ -1,9 +1,6 @@
 import esphome.codegen as cg
+from esphome.components import binary_sensor, output, sensor, text_sensor
 import esphome.config_validation as cv
-from esphome.components import binary_sensor
-from esphome.components import output
-from esphome.components import sensor
-from esphome.components import text_sensor
 from esphome.const import (
     CONF_ID,
     CONF_OUTPUT,

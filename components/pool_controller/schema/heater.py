@@ -1,7 +1,8 @@
 import esphome.codegen as cg
-import esphome.config_validation as cv
 from esphome.components import output, sensor, water_heater
+import esphome.config_validation as cv
 from esphome.const import CONF_OUTPUT
+
 from .types import PoolHeater
 
 # Constants are defined inline here because they are only used for the pool heater.
