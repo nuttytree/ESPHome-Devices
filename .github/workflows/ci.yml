@@ -85,7 +85,7 @@ jobs:
             platform: esp32
           - device: hvac             # esp32 / esp-idf: econet_zone_control
             platform: esp32
-          - device: pool-lights      # esp8266: treo_led_pool_light
+          - device: pool-lights      # esp8266: power_cycle_pool_light
             platform: esp8266
           - device: master-bed       # esp8266: bed_sensor
             platform: esp8266

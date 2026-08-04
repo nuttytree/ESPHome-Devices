@@ -12,9 +12,9 @@ external_components:
   - source:
       type: local
       path: ../components
-    components: [ treo_led_pool_light ]
+    components: [ power_cycle_pool_light ]
 
-# Required to allow the Treo light to register the color reset service
+# Required to allow the light to register the color reset service
 api:
   custom_services: True
 
@@ -45,10 +45,37 @@ binary_sensor:
         - light.turn_off: pool_lights
 
 light:
-  - platform: treo_led_pool_light
+  # SR Smith TREO LED pool lights: 8 colors, and the reset sequence from their user guide
+  - platform: power_cycle_pool_light
     id: pool_lights
     name: "Pool Lights"
     output: relay_2
+    colors:
+      - "Slow Change"
+      - "White"
+      - "Blue"
+      - "Green"
+      - "Red"
+      - "Amber"
+      - "Magenta"
+      - "Fast Change"
+    min_off_time: 5.5s
+    color_change_time: 200ms
+    reset_sequence:
+      - state: "off"
+        duration: 5.5s
+      - state: "on"
+        duration: 250ms
+      - state: "off"
+        duration: 250ms
+      - state: "on"
+        duration: 250ms
+      - state: "off"
+        duration: 250ms
+      - state: "on"
+        duration: 250ms
+      - state: "off"
+        duration: 5.5s
     on_turn_on:
       - component.update: power
     on_turn_off:
