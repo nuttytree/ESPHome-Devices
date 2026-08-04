@@ -31,8 +31,8 @@ I have been working on updating most of my custom code into components that can 
 ### Pool Controller
 Schedule-based control for a pool's primary circulation pump, an auxiliary cleaner pump, and an optional heater, with current-sensed anomaly detection. Runs on the ESP32-S3 in my [Pool](./docs/pool/README.md) controller. Details: [components/pool_controller/README.md](./components/pool_controller/README.md).
 
-### TREO LED Pool Light
-A light component for [TREO LED Pool Lights](https://www.srsmith.com/en-us/products/pool-lighting/treo-led-pool-light/) that exposes each color as a selectable "effect" in Home Assistant. Details: [components/treo_led_pool_light/README.md](./components/treo_led_pool_light/README.md).
+### Power Cycle Pool Light
+A light component for LED pool lights that advance to the next color each time power is briefly cut, exposing each color as a selectable "effect" in Home Assistant. Built for my [TREO LED Pool Lights](https://www.srsmith.com/en-us/products/pool-lighting/treo-led-pool-light/), but the colors, reset sequence, and timings are configurable so it should work with Moov, Pentair IntelliBrite/GloBrite/MicroBrite, J&J ColorSplash, Jandy WaterColors, and similar lights. Details: [components/power_cycle_pool_light/README.md](./components/power_cycle_pool_light/README.md).
 
 ### PZEM-6L24 Three-Phase Energy Monitor
 A native ESPHome component for the PZEM-6L24 three-phase AC energy meter (voltage/current/power/energy per phase over Modbus RTU). Used by my [Pool](./docs/pool/README.md) controller to monitor the pump and cleaner. Details: [components/pzem6l24/README.md](./components/pzem6l24/README.md).
@@ -93,7 +93,7 @@ My basement bathroom has a single gang box (and not enough room to swith to dual
 * [Basement Bathroom Shower Light and Heater](./devices/basement-bath-shower-light-heat.yaml)
 
 ### [SANA Triple Switch](https://www.amazon.com/gp/product/B07Q5XPRKD)
-This is installed in place of the switch that controled my [TREO LED Pool Lights](https://www.srsmith.com/en-us/products/pool-lighting/treo-led-pool-light/).  These lights have the option to select different colors by briefly turning them off and back on again and they do remember the last color when turned on again.  The custom [Treo Led Pool Lights](./components/treo_led_pool_light/README.md) component handles tracking the current color and exposes custom "effects" for each of the colors to [Home Assistant](https://www.home-assistant.io/).  I have this configured to turn the lights on/off with the top/bottum buttons and use the middle button to change colors.
+This is installed in place of the switch that controled my [TREO LED Pool Lights](https://www.srsmith.com/en-us/products/pool-lighting/treo-led-pool-light/).  These lights have the option to select different colors by briefly turning them off and back on again and they do remember the last color when turned on again.  The custom [Power Cycle Pool Light](./components/power_cycle_pool_light/README.md) component handles tracking the current color and exposes custom "effects" for each of the colors to [Home Assistant](https://www.home-assistant.io/).  I have this configured to turn the lights on/off with the top/bottum buttons and use the middle button to change colors.
 * [Pool Lights](./devices/pool-lights.yaml)
 
 ### [Shelly 1L](https://shelly.cloud/products/shelly-1l-single-wire-smart-home-automation-relay/)
