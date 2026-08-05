@@ -143,9 +143,10 @@ void EcoNetZoneControl::dump_config() {
   auto dp = [](const char *id) -> const char * { return (id != nullptr && *id) ? id : "(none)"; };
   LOG_CLIMATE("", "EcoNet Zone Control", this);
   ESP_LOGCONFIG(TAG, "  Zones: %zu", this->zones_.size());
-  for (const auto &zone : this->zones_)
+  for (const auto &zone : this->zones_) {
     ESP_LOGCONFIG(TAG, "    src_adr=0x%08X request_mod=%d %s", zone.src_adr, zone.request_mod,
                   zone.is_primary ? "[PRIMARY]" : "");
+  }
   ESP_LOGCONFIG(TAG, "  Mode Datapoint: %s", dp(this->mode_id_));
   ESP_LOGCONFIG(TAG, "  Operating Mode Datapoint: %s", dp(this->operating_mode_id_));
   ESP_LOGCONFIG(TAG, "  Automatic Fan Mode: %u", this->automatic_fan_mode_);
@@ -318,16 +319,19 @@ void EcoNetZoneControl::update_current_action_() {
     new_action = climate::CLIMATE_ACTION_IDLE;
   } else {
     const std::string &state = this->operating_mode_state_;
-    if (state.find("Off") != std::string::npos)
+    // "Off" is matched first and deliberately shares the fallback's body: it must win over a
+    // state string that also contains another keyword, so it cannot be folded into the else.
+    if (state.find("Off") != std::string::npos) {  // NOLINT(bugprone-branch-clone)
       new_action = climate::CLIMATE_ACTION_IDLE;
-    else if (state.find("Heat") != std::string::npos)
+    } else if (state.find("Heat") != std::string::npos) {
       new_action = climate::CLIMATE_ACTION_HEATING;
-    else if (state.find("Cool") != std::string::npos)
+    } else if (state.find("Cool") != std::string::npos) {
       new_action = climate::CLIMATE_ACTION_COOLING;
-    else if (state.find("Fan") != std::string::npos)
+    } else if (state.find("Fan") != std::string::npos) {
       new_action = climate::CLIMATE_ACTION_FAN;
-    else
+    } else {
       new_action = climate::CLIMATE_ACTION_IDLE;
+    }
   }
   if (new_action == this->action)
     return;
@@ -396,6 +400,10 @@ void EcoNetZoneControl::update_zone_fan_mode_() {
         if (max_zone == nullptr || zone.cached_temperature > max_zone->cached_temperature)
           max_zone = &zone;
       }
+      // The schema requires at least two zones, so the scan always assigns both; bail out
+      // rather than dereference null on the empty-zone path.
+      if (min_zone == nullptr || max_zone == nullptr)
+        return;
       if (this->locked_min_zone_ != min_zone || this->locked_max_zone_ != max_zone) {
         ESP_LOGD(TAG, "Fan zone lock set: min=0x%08X max=0x%08X for 15 minutes", min_zone->src_adr, max_zone->src_adr);
       }

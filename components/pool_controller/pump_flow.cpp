@@ -5,8 +5,7 @@
 
 #include <cinttypes>
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 static const char *const TAG = "pool_controller.switch";
 
@@ -41,9 +40,9 @@ void PumpSwitch::update_flow_based_runtime_(uint64_t now) {
   // With no current sensor, flow is also the only evidence the motor is turning, so it has to
   // anchor the turn-on timestamp as well. When current is available it does that job instead,
   // because it sees the motor a second or more earlier.
-  if (!this->has_current_sensor() && flow_running && this->turned_on_ms_ == 0)
+  if (!this->has_current_sensor_() && flow_running && this->turned_on_ms_ == 0)
     this->turned_on_ms_ = millis_64();
-  this->track_runtime(flow_running);
+  this->track_runtime_(flow_running);
 }
 
 void PumpSwitch::update_flow_watchdogs_(uint64_t now) {
@@ -51,7 +50,7 @@ void PumpSwitch::update_flow_watchdogs_(uint64_t now) {
   // Only shuts the pump down when a current sensor confirms the motor is actually running.
   // Without that confirmation, "commanded on but no flow" is indistinguishable from a manual
   // override switch physically holding the pump off, so no-flow alone must not trigger a shutdown.
-  if (this->has_current_sensor()) {
+  if (this->has_current_sensor_()) {
     const bool should_have_flow = this->motor_running_;
 
     if (should_have_flow && !this->flow_sensor_->state) {
@@ -109,5 +108,4 @@ void PumpFlowLossBinarySensor::setup() {
 }
 #endif  // USE_SENSOR
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

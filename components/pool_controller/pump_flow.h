@@ -5,8 +5,7 @@
 #include "esphome/core/component.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 /// Problem sensor: latches true when the pump is shut down due to lost flow; only clears once
 /// the pump is on, current confirms the motor is running, and flow is detected again.
@@ -30,5 +29,4 @@ class PumpUnexpectedFlowBinarySensor : public binary_sensor::BinarySensor, publi
   PumpSwitch *pump_{nullptr};
 };
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

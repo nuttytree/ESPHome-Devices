@@ -2,8 +2,7 @@
 
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 static const char *const TAG = "pool_controller.select";
 
@@ -32,5 +31,4 @@ void ScheduleSelect::control(size_t index) {
   this->publish_state(index);
 }
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

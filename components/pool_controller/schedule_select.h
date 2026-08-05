@@ -6,8 +6,7 @@
 #include "esphome/core/preferences.h"
 #include "esphome/components/select/select.h"
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 /// A Select entity whose options are the named schedules of a PumpSwitch.
 /// Selecting an option sets the pump's active schedule index.
@@ -26,5 +25,4 @@ class ScheduleSelect : public select::Select, public Component {
   ESPPreferenceObject pref_;
 };
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

@@ -5,8 +5,7 @@
 #include "esphome/components/output/binary_output.h"
 #include "esphome/components/water_heater/water_heater.h"
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 // Forward declaration — full type visible via pump_switch.h in pool_heater.cpp.
 class PrimaryPumpSwitch;
@@ -73,5 +72,4 @@ class PoolHeater : public water_heater::WaterHeater, public Component {
   /// so it doubles as the "have I ever received a valid reading?" guard.
 };
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

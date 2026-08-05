@@ -9,8 +9,7 @@
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 class PumpAnomalySwitch : public switch_::Switch, public Component {
  public:
@@ -64,5 +63,4 @@ class PumpAnomalyTrigger : public Trigger<std::string> {
   explicit PumpAnomalyTrigger(PumpSwitch *parent) { parent->set_anomaly_trigger(this); }
 };
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

@@ -5,8 +5,7 @@
 
 #include <cinttypes>
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 static const char *const TAG = "pool_controller.switch";
 
@@ -31,7 +30,7 @@ void PumpSwitch::setup() {
     this->saved_run_state_ = PumpRunState();
     // The snapshot is deliberately not applied here. Deciding whether it is still worth trusting
     // needs a valid wall clock, which isn't available this early in boot, so PoolController calls
-    // restore_run_state() once time is valid. Until then the pump behaves as if starting cold.
+    // restore_run_state_() once time is valid. Until then the pump behaves as if starting cold.
 
 #ifdef USE_SENSOR
   if (this->current_sensor_ != nullptr) {
@@ -55,22 +54,22 @@ void PumpSwitch::setup() {
 
   this->set_anomaly_detected_(false);
   this->turn_off();
-  // Hold the full minimum off-time from boot. restore_run_state() relaxes this if the saved
+  // Hold the full minimum off-time from boot. restore_run_state_() relaxes this if the saved
   // snapshot shows the pump was mid-run, or credits off-time already served.
   this->can_turn_on_at_ms_ = millis_64() + MIN_OFF_TIME_MS;
 }
 
-void PumpSwitch::reset_runtime() {
+void PumpSwitch::reset_runtime_() {
   if (this->runtime_start_ms_ != 0) {
     // Pump is still running; restart the window so elapsed time in the new period is accurate.
     this->runtime_start_ms_ = millis_64();
   }
   this->runtime_seconds_ = 0;
-  this->save_run_state();
+  this->save_run_state_();
   ESP_LOGD(TAG, "Runtime counter reset");
 }
 
-void PumpSwitch::save_run_state() {
+void PumpSwitch::save_run_state_() {
   if (this->rtc_ == nullptr)
     return;
   const ESPTime now = this->rtc_->now();
@@ -106,7 +105,7 @@ void PumpSwitch::save_run_state() {
   global_preferences->sync();
 }
 
-void PumpSwitch::restore_run_state(const ESPTime &now, uint32_t max_age_s) {
+void PumpSwitch::restore_run_state_(const ESPTime &now, uint32_t max_age_s) {
   const PumpRunState &state = this->saved_run_state_;
   if (state.saved_utc == 0) {
     ESP_LOGD(TAG, "'%s' no saved state to resume from", this->get_name().c_str());
@@ -165,13 +164,13 @@ void PumpSwitch::arm_new_run_() {
   this->awaiting_fresh_start_ = false;
 }
 
-void PumpSwitch::track_runtime(bool new_state) {
+void PumpSwitch::track_runtime_(bool new_state) {
   if (new_state && this->runtime_start_ms_ == 0) {
     this->runtime_start_ms_ = millis_64();
     this->last_off_utc_ = 0;
     // Snapshot the start immediately: a restart moments from now needs to know the pump was
     // mid-run, which is what lets it resume without waiting out the minimum off-time.
-    this->save_run_state();
+    this->save_run_state_();
   } else if (!new_state && this->runtime_start_ms_ != 0) {
     this->runtime_seconds_ += (millis_64() - this->runtime_start_ms_) / 1000;
     this->runtime_start_ms_ = 0;
@@ -181,7 +180,7 @@ void PumpSwitch::track_runtime(bool new_state) {
       if (off_at.is_valid())
         this->last_off_utc_ = static_cast<uint32_t>(off_at.timestamp);
     }
-    this->save_run_state();
+    this->save_run_state_();
     // Deliberately NOT clearing anomaly_detected_ here: turning off is not evidence the
     // problem is resolved. Once tripped, the flag stays latched across the off period and
     // into subsequent runs until tick_anomaly_()'s in-spec hysteresis check (current back
@@ -197,7 +196,7 @@ void PumpSwitch::set_anomaly_detected_(bool detected) {
     this->anomaly_status_sensor_->publish_state(detected);
 }
 
-const ScheduleRuntime *PumpSwitch::find_active_runtime(uint16_t slot_start_minute, uint8_t day_of_week) const {
+const ScheduleRuntime *PumpSwitch::find_active_runtime_(uint16_t slot_start_minute, uint8_t day_of_week) const {
   // active_schedule_idx_ 0 = Off, 1..N = user schedules (1-based), N+1 = builtin last.
   if (this->active_schedule_idx_ == 0 || this->active_schedule_idx_ > this->schedules_.size())
     return nullptr;
@@ -229,5 +228,4 @@ void PumpSwitch::loop() {
   }
 }
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

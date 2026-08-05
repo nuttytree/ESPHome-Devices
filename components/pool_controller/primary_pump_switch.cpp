@@ -5,12 +5,11 @@
 
 #include <cinttypes>
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 static const char *const TAG = "pool_controller.switch";
 
-void PrimaryPumpSwitch::add_auxiliary_pump(AuxiliaryPumpSwitch *aux_switch) {
+void PrimaryPumpSwitch::add_auxiliary_pump_(AuxiliaryPumpSwitch *aux_switch) {
   if (aux_switch != nullptr) {
     this->auxiliary_pumps_.push_back(aux_switch);
   }
@@ -45,7 +44,7 @@ void PrimaryPumpSwitch::write_state(bool state) {
         this->publish_state(false);
         this->motor_running_ = false;
         this->flow_running_ = false;
-        this->track_runtime(false);
+        this->track_runtime_(false);
         this->update_no_current_();
       });
       return;
@@ -56,21 +55,20 @@ void PrimaryPumpSwitch::write_state(bool state) {
     this->arm_new_run_();
   this->output_->set_state(state);
   this->publish_state(state);
-  if (!this->has_current_sensor() && !this->has_flow_sensor()) {
+  if (!this->has_current_sensor_() && !this->has_flow_sensor_()) {
     // No sensors at all — the command is the only evidence available for either job.
     if (state)
       this->turned_on_ms_ = millis_64();
-    this->track_runtime(state);
+    this->track_runtime_(state);
   } else if (!state) {
     // Output commanded off — stop runtime counting immediately regardless of sensor confirmation.
     this->motor_running_ = false;
     this->flow_running_ = false;
-    this->track_runtime(false);
+    this->track_runtime_(false);
   }
   // When a current or flow sensor is configured and state==true: runtime starts in loop() once the
   // sensor confirms the pump is actually running.
   this->update_no_current_();
 }
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller
