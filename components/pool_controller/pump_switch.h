@@ -14,8 +14,7 @@
 #include "esphome/components/sensor/sensor.h"
 #endif
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 /// A single time window within a schedule.
 struct ScheduleRuntime {
@@ -177,19 +176,19 @@ class PumpSwitch : public switch_::Switch, public Component {
   friend class PoolController;
 
   /// Resets accumulated runtime to zero. Called by PoolController at :00.
-  void reset_runtime();
+  void reset_runtime_();
 
   /// Accumulates runtime. Driven by the best available evidence that the pump is doing work:
   /// flow when a flow sensor is configured, otherwise current, otherwise the output command.
   /// Flow wins because moving water is what the schedule is actually buying, and because it
   /// stays valid through a current-sensor outage — see [Stale Current Readings] in the README.
-  void track_runtime(bool new_state);
+  void track_runtime_(bool new_state);
 
   /// Marks the start of a new run, at the moment the output is commanded on. Clears the per-run
   /// anomaly state and sets turned_on_ms_ to 0, meaning "commanded on, not yet confirmed
   /// running"; whichever sensor first confirms the motor stamps the real timestamp.
   ///
-  /// Separate from track_runtime() because the two answer different questions. Runtime asks how
+  /// Separate from track_runtime_() because the two answer different questions. Runtime asks how
   /// long the pump did useful work, which flow answers best. The anomaly startup window asks
   /// when the motor was energised, which only current answers — flow lags the motor by a second
   /// or more, easily long enough to miss the inrush peak entirely.
@@ -199,14 +198,14 @@ class PumpSwitch : public switch_::Switch, public Component {
   /// Persists the current operating state with a wall-clock timestamp. No-op until the clock is
   /// valid: an untimestamped snapshot cannot be aged on restore, which makes it worse than none.
   /// Called on every start/stop and periodically by PoolController.
-  void save_run_state();
+  void save_run_state_();
 
   /// Applies the snapshot loaded in setup(), if it is still worth trusting. Called once by
   /// PoolController as soon as the clock is valid and before the first schedule tick, so a
   /// resumed runtime is in place before anything decides whether the pump should be running.
   /// `max_age_s` is the outage length beyond which the snapshot is discarded and the pump
   /// starts cold.
-  void restore_run_state(const ESPTime &now, uint32_t max_age_s);
+  void restore_run_state_(const ESPTime &now, uint32_t max_age_s);
 
   /// Re-evaluates the no-current problem sensor from current `state`/`motor_running_`.
   void update_no_current_();
@@ -218,7 +217,7 @@ class PumpSwitch : public switch_::Switch, public Component {
   /// Returns the ScheduleRuntime from the active user-defined schedule that covers
   /// [slot_start_minute, slot_start_minute+60), for the given day_of_week (1=Sun..7=Sat).
   /// Returns nullptr if no matching runtime exists or the active schedule is not a user schedule.
-  const ScheduleRuntime *find_active_runtime(uint16_t slot_start_minute, uint8_t day_of_week) const;
+  const ScheduleRuntime *find_active_runtime_(uint16_t slot_start_minute, uint8_t day_of_week) const;
 
   output::BinaryOutput *output_ = nullptr;
   std::vector<Schedule> schedules_;
@@ -234,7 +233,7 @@ class PumpSwitch : public switch_::Switch, public Component {
   binary_sensor::BinarySensor *disable_pumps_sensor_{
       nullptr};                         ///< Optional sensor that turns off pumps and blocks turn-ons when active.
   ESPPreferenceObject run_state_pref_;  ///< Persists PumpRunState across reboots.
-  PumpRunState saved_run_state_{};      ///< Snapshot read in setup(), applied later by restore_run_state().
+  PumpRunState saved_run_state_{};      ///< Snapshot read in setup(), applied later by restore_run_state_().
 
   // ── Anomaly detection state ────────────────────────────────────────────────
   bool enable_anomaly_detection_{false};
@@ -290,9 +289,9 @@ class PumpSwitch : public switch_::Switch, public Component {
 
   /// Returns true when a current sensor is configured for this pump.
 #ifdef USE_SENSOR
-  bool has_current_sensor() const { return this->current_sensor_ != nullptr; }
+  bool has_current_sensor_() const { return this->current_sensor_ != nullptr; }
 #else
-  bool has_current_sensor() const { return false; }
+  bool has_current_sensor_() const { return false; }
 #endif
 
   // ── Flow sensor state ──────────────────────────────────────────────────────
@@ -309,14 +308,14 @@ class PumpSwitch : public switch_::Switch, public Component {
   uint64_t unexpected_flow_check_start_ms_{0};  ///< millis_64() when unexpected flow first detected; 0 if clear.
 
   /// Returns true when a flow sensor is configured for this pump.
-  bool has_flow_sensor() const { return this->flow_sensor_ != nullptr; }
+  bool has_flow_sensor_() const { return this->flow_sensor_ != nullptr; }
 
   /// Whether anomaly statistics may be captured at this instant.
   /// With a flow sensor, current draw alone isn't enough — a pump that is spinning but moving
   /// no water draws an atypical current that must not be folded into the baseline, so capture
   /// requires water actually moving. Without one, current is the only evidence available and
   /// the caller has already confirmed the motor is drawing it (motor_running_).
-  bool stats_capture_allowed_() const { return !this->has_flow_sensor() || this->flow_sensor_->state; }
+  bool stats_capture_allowed_() const { return !this->has_flow_sensor_() || this->flow_sensor_->state; }
 
   /// Whether this run's inrush peak is worth folding into the startup reference. A gap in the
   /// current readings means the window was only partly observed, so the "peak" is whatever
@@ -324,7 +323,7 @@ class PumpSwitch : public switch_::Switch, public Component {
   /// got water moving counts either; a motor that spun up against a closed valve or lost prime
   /// produces a peak that would poison the reference.
   bool startup_capture_valid_() const {
-    return !this->run_current_gap_ && (!this->has_flow_sensor() || this->run_flow_confirmed_);
+    return !this->run_current_gap_ && (!this->has_flow_sensor_() || this->run_flow_confirmed_);
   }
 
 #ifdef USE_SENSOR
@@ -357,7 +356,7 @@ class PrimaryPumpSwitch : public PumpSwitch {
 
  protected:
   friend class AuxiliaryPumpSwitch;
-  void add_auxiliary_pump(AuxiliaryPumpSwitch *aux_switch);
+  void add_auxiliary_pump_(AuxiliaryPumpSwitch *aux_switch);
   void write_state(bool state) override;
 
   std::vector<AuxiliaryPumpSwitch *> auxiliary_pumps_;
@@ -374,5 +373,4 @@ class AuxiliaryPumpSwitch : public PumpSwitch {
   PrimaryPumpSwitch *primary_pump_ = nullptr;
 };
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

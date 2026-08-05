@@ -7,8 +7,7 @@
 
 #include <cinttypes>
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 static const char *const TAG = "pool_controller";
 
@@ -26,9 +25,9 @@ void PoolController::setup() {
 
 void PoolController::restore_pump_states_(const ESPTime &now) {
   if (this->primary_pump_ != nullptr)
-    this->primary_pump_->restore_run_state(now, this->max_resume_age_s_);
+    this->primary_pump_->restore_run_state_(now, this->max_resume_age_s_);
   for (auto *aux : this->auxiliary_pumps_)
-    aux->restore_run_state(now, this->max_resume_age_s_);
+    aux->restore_run_state_(now, this->max_resume_age_s_);
   this->next_state_save_ms_ = millis_64() + this->state_save_interval_ms_;
 }
 
@@ -38,18 +37,17 @@ void PoolController::save_pump_states_if_due_() {
     return;
   this->next_state_save_ms_ = now_ms + this->state_save_interval_ms_;
   if (this->primary_pump_ != nullptr)
-    this->primary_pump_->save_run_state();
+    this->primary_pump_->save_run_state_();
   for (auto *aux : this->auxiliary_pumps_)
-    aux->save_run_state();
+    aux->save_run_state_();
 }
 
-void PoolController::reset_all_pump_runtimes_() {
-  ESP_LOGD(TAG, "Hourly boundary – resetting pump runtime counters (%02d:%02d)", this->last_check_->hour,
-           this->last_check_->minute);
+void PoolController::reset_all_pump_runtimes_(const ESPTime &now) {
+  ESP_LOGD(TAG, "Hourly boundary – resetting pump runtime counters (%02d:%02d)", now.hour, now.minute);
   if (this->primary_pump_ != nullptr)
-    this->primary_pump_->reset_runtime();
+    this->primary_pump_->reset_runtime_();
   for (auto *aux : this->auxiliary_pumps_)
-    aux->reset_runtime();
+    aux->reset_runtime_();
 }
 
 void PoolController::tick_all_pump_schedules_(const ESPTime &now) {
@@ -115,7 +113,7 @@ void PoolController::tick_pump_schedule_(PumpSwitch *pump, const ESPTime &now) {
     }
     // Target on-time for this 1-hour window:
     //   minutes_per_hour converted to seconds  =  minutes_per_hour * 60
-    const ScheduleRuntime *rt = pump->find_active_runtime(slot_start, now.day_of_week);
+    const ScheduleRuntime *rt = pump->find_active_runtime_(slot_start, now.day_of_week);
     if (rt != nullptr && rt->minutes_per_hour > 0)
       target_seconds = static_cast<uint32_t>(rt->minutes_per_hour) * 60;
   }
@@ -159,9 +157,10 @@ void PoolController::request_primary_turn_off_() {
     this->pool_heater_->request_heater_off();
 
   // Turn off all auxiliary pumps immediately.
-  for (auto *aux : this->auxiliary_pumps_)
+  for (auto *aux : this->auxiliary_pumps_) {
     if (aux->state)
       aux->turn_off();
+  }
 
   // Queue the primary pump turn-off after sequence_delay_ms_ (if not already pending).
   if (this->primary_pump_ != nullptr && this->primary_pump_->state && !this->primary_turn_off_pending_) {
@@ -186,7 +185,7 @@ bool PoolController::any_auxiliary_needs_primary_(uint16_t slot_start, uint8_t d
       continue;
     if (aux->is_disabled())
       continue;
-    const ScheduleRuntime *rt = aux->find_active_runtime(slot_start, day_of_week);
+    const ScheduleRuntime *rt = aux->find_active_runtime_(slot_start, day_of_week);
     if (rt == nullptr || rt->minutes_per_hour == 0)
       continue;
     const uint32_t target = static_cast<uint32_t>(rt->minutes_per_hour) * 60;
@@ -219,15 +218,18 @@ void PoolController::loop() {
   static constexpr int MAX_TIMESTAMP_DRIFT = 900;  // seconds
 
   if (this->last_check_.has_value()) {
-    if (*this->last_check_ > now && this->last_check_->timestamp - now.timestamp > MAX_TIMESTAMP_DRIFT) {
+    // Bind the contained value once, under the has_value() guard: every use below is then
+    // plainly checked, including the ones after a call that clang-tidy cannot see into.
+    ESPTime &last_check = *this->last_check_;
+    if (last_check > now && last_check.timestamp - now.timestamp > MAX_TIMESTAMP_DRIFT) {
       // Clock jumped backwards (e.g. NTP correction) — reset tracking.
       ESP_LOGW(TAG, "Time has jumped back — resetting runtime counter tracking");
       this->last_check_ = now;
       return;
-    } else if (*this->last_check_ >= now) {
+    } else if (last_check >= now) {
       // Already handled this second.
       return;
-    } else if (now > *this->last_check_ && now.timestamp - this->last_check_->timestamp > MAX_TIMESTAMP_DRIFT) {
+    } else if (now > last_check && now.timestamp - last_check.timestamp > MAX_TIMESTAMP_DRIFT) {
       // Clock jumped forward — skip ahead without firing missed resets.
       ESP_LOGW(TAG, "Time has jumped forward — skipping missed runtime resets");
       this->last_check_ = now;
@@ -236,19 +238,19 @@ void PoolController::loop() {
 
     // Walk second-by-second so no :00 boundary is ever missed.
     while (true) {
-      this->last_check_->increment_second();
-      if (*this->last_check_ >= now)
+      last_check.increment_second();
+      if (last_check >= now)
         break;
-      if (this->last_check_->second == 0 && this->last_check_->minute == 0)
-        this->reset_all_pump_runtimes_();
-      this->tick_all_pump_schedules_(*this->last_check_);
+      if (last_check.second == 0 && last_check.minute == 0)
+        this->reset_all_pump_runtimes_(last_check);
+      this->tick_all_pump_schedules_(last_check);
     }
   }
 
   this->last_check_ = now;
 
   if (now.second == 0 && now.minute == 0)
-    this->reset_all_pump_runtimes_();
+    this->reset_all_pump_runtimes_(now);
   this->tick_all_pump_schedules_(now);
 
   // Snapshot last, so a save landing on an hour boundary records the post-reset counters
@@ -256,5 +258,4 @@ void PoolController::loop() {
   this->save_pump_states_if_due_();
 }
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

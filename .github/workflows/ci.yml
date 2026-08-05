@@ -62,10 +62,12 @@ jobs:
           done
           exit $status
 
-  # Compiling proves the custom C++ components in components/ still build. The
-  # matrix is the smallest set of devices that covers every custom component,
-  # across both platforms -- the components are compiled per-platform, so an
-  # esp32 build says nothing about the esp8266 ones.
+  # Compiling proves the custom C++ components in components/ still build, and
+  # the build then feeds clang-tidy (see scripts/clang_tidy.py -- it needs a
+  # compiled build's flags and generated defines.h). The matrix is the smallest
+  # set of devices that covers every custom component, across both platforms --
+  # the components are compiled per-platform, so an esp32 build says nothing
+  # about the esp8266 ones.
   esphome-compile:
     name: compile ${{ matrix.device }}
     runs-on: ubuntu-latest
@@ -108,3 +110,12 @@ jobs:
         run: python scripts/generate_ci_secrets.py
       - name: Compile ${{ matrix.device }}
         run: esphome compile devices/${{ matrix.device }}.yaml
+      # Same clang-tidy version and .clang-tidy check list as upstream ESPHome,
+      # so the components here are held to the same C++ rules. Pinned because a
+      # new clang-tidy adds checks, which would fail unrelated PRs.
+      - name: Install clang-tidy
+        run: pip install clang-tidy==22.1.8
+      - name: Register clang-tidy problem matcher
+        run: echo "::add-matcher::.github/workflows/matchers/clang-tidy.json"
+      - name: Run clang-tidy on the components ${{ matrix.device }} builds
+        run: python scripts/clang_tidy.py ${{ matrix.device }}

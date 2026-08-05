@@ -6,8 +6,7 @@
 #include <cmath>
 #include <cinttypes>
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 static const char *const TAG = "pool_controller.switch";
 
@@ -57,7 +56,7 @@ static constexpr float EMA_DRIFT_ALPHA = 0.001f;
 
 void PumpSwitch::tick_anomaly_() {
   // A baseline reset arms capture but doesn't start it: wait for the next turn-on so the new
-  // baseline is built from a whole run, startup window included. track_runtime() clears this.
+  // baseline is built from a whole run, startup window included. track_runtime_() clears this.
   if (this->awaiting_fresh_start_)
     return;
 
@@ -81,7 +80,7 @@ void PumpSwitch::tick_anomaly_() {
     // never required — a pump takes a moment to prime, so the whole window is allowed for it.
     if (current > this->startup_peak_current_)
       this->startup_peak_current_ = current;
-    if (this->has_flow_sensor() && this->flow_sensor_->state)
+    if (this->has_flow_sensor_() && this->flow_sensor_->state)
       this->run_flow_confirmed_ = true;
     return;
   }
@@ -272,5 +271,4 @@ void PumpAnomalyReasonTextSensor::setup() {
 
 #endif  // USE_SENSOR
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

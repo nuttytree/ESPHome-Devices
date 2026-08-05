@@ -7,8 +7,7 @@
 #include <cinttypes>
 #include <cmath>
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 static const char *const TAG = "pool_controller.heater";
 
@@ -190,5 +189,4 @@ void PoolHeater::apply_control_() {
   }
 }
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

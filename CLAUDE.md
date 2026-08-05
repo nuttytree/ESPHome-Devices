@@ -10,7 +10,7 @@ Compiling and flashing devices normally happens through the ESPHome Dashboard/De
 
 ## Commands
 
-Linting/formatting is enforced via pre-commit (see `.pre-commit-config.yaml`) and run in CI on every push/PR (`.github/workflows/lint.yml`):
+Linting/formatting is enforced via pre-commit (see `.pre-commit-config.yaml`) and run in CI on every push/PR (`.github/workflows/ci.yml`):
 
 ```
 pre-commit run --all-files       # run every hook against the whole repo
@@ -22,6 +22,34 @@ Individual hooks, if you need to invoke a tool directly instead of via pre-commi
 - `flake8` — additional docstring/style checks, scoped to `components/**/*.py` only (`.flake8`).
 - `yamllint` — all YAML files except `.clang-format`/`.clang-tidy` (`.yamllint`: 2-space indent, no line-length limit, `document-start` disabled).
 - `clang-format` — C/C++ files in `components/**` (`.clang-format`).
+
+### clang-tidy
+
+`.clang-tidy` is a copy of upstream ESPHome's, so the C++ in `components/` is held to the same
+checks as ESPHome core. It is **not** a pre-commit hook: clang-tidy needs a device's real
+compiler flags and its generated `esphome/core/defines.h`, which only exist after a compile. CI
+therefore runs it inside the compile matrix, right after each `esphome compile`.
+
+`scripts/clang_tidy.py` is a slimmed-down port of upstream's `script/clang-tidy` (same flag
+surgery — clang can't consume the xtensa/riscv GCC command line, so the flags are rebuilt from
+the build's idedata). It takes the name of a *compiled* device config and checks only the
+components that device built, with that device's defines:
+
+```
+pip install clang-tidy==22.1.8       # the version CI pins
+python scripts/clang_tidy.py pool             # every component in that build
+python scripts/clang_tidy.py pool pump_flow   # only files matching a regex
+python scripts/clang_tidy.py pool --fix       # apply fix-its (runs serially)
+```
+
+A component that runs on both platforms needs a run per platform, same as the compile itself.
+Locally that means compiling a scratch copy of the device first (see "Compiling locally") and
+passing that copy's name.
+
+Review what `--fix` writes before keeping it: it only sees the preprocessor branch the current
+build compiles, so a rename inside `#ifdef USE_SENSOR` lands while the matching `#else`
+definition keeps the old name — which builds fine here and breaks a device without that
+feature. It also re-wraps what it touches in Google style; run clang-format afterwards.
 
 ### ESPHome CLI
 

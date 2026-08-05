@@ -6,8 +6,7 @@
 #include <cinttypes>
 #include <cmath>
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 static const char *const TAG = "pool_controller.switch";
 
@@ -15,7 +14,7 @@ void PumpSwitch::update_no_current_() {
   // Suppressed while the reading is stale: "commanded on but no current" is a claim about the
   // pump, and a sensor that stopped publishing supports no such claim. The stale sensor carries
   // the alarm instead, so the two faults stay distinguishable in the UI and in history.
-  const bool fault = this->has_current_sensor() && this->state && !this->motor_running_ && !this->current_stale_;
+  const bool fault = this->has_current_sensor_() && this->state && !this->motor_running_ && !this->current_stale_;
   if (fault == this->no_current_detected_)
     return;
   this->no_current_detected_ = fault;
@@ -91,14 +90,14 @@ void PumpSwitch::update_current_sensor_(uint64_t now) {
         if (motor_running && this->turned_on_ms_ == 0)
           this->turned_on_ms_ = millis_64();
         // Runtime follows flow whenever a flow sensor is configured; see update_flow_based_runtime_().
-        if (!this->has_flow_sensor())
-          this->track_runtime(motor_running);
+        if (!this->has_flow_sensor_())
+          this->track_runtime_(motor_running);
         this->update_no_current_();
       }
     }
 
     // Anomaly detection: gate on motor_running_ (current-confirmed), not state (commanded).
-    // track_runtime() above only refreshes turned_on_ms_ on a motor_running_ transition, so
+    // track_runtime_() above only refreshes turned_on_ms_ on a motor_running_ transition, so
     // ticking on state alone can run tick_anomaly_() before turned_on_ms_ reflects this run,
     // leaving run_ms computed against the previous run's turn-on time.
     if (this->enable_anomaly_detection_ && this->motor_running_)
@@ -117,5 +116,4 @@ void PumpCurrentStaleBinarySensor::setup() {
 }
 #endif  // USE_SENSOR
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller

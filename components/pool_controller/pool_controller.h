@@ -11,8 +11,7 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/time/real_time_clock.h"
 
-namespace esphome {
-namespace pool_controller {
+namespace esphome::pool_controller {
 
 class PoolHeater;  // forward declaration — full type in pool_heater.h
 
@@ -64,7 +63,9 @@ class PoolController : public Component {
   /// Writes every pump's state if the snapshot interval has elapsed.
   void save_pump_states_if_due_();
 
-  void reset_all_pump_runtimes_();
+  /// `now` is the boundary being handled -- the walked time while catching up, not
+  /// necessarily the current clock.
+  void reset_all_pump_runtimes_(const ESPTime &now);
   void tick_all_pump_schedules_(const ESPTime &now);
   void tick_pump_schedule_(PumpSwitch *pump, const ESPTime &now);
 
@@ -82,5 +83,4 @@ class PoolController : public Component {
   bool primary_is_ready_for_aux_() const;
 };
 
-}  // namespace pool_controller
-}  // namespace esphome
+}  // namespace esphome::pool_controller
