@@ -20,7 +20,11 @@ enum ResetPhase : uint8_t {
   RESET_PHASE_ALL = 0x0F,       // Reset all energy counters
 };
 
-class PZEM6L24 final : public PollingComponent, public modbus::ModbusClientDevice {
+// Temporary: 2026.8.0 moved the legacy on_modbus_data()/on_modbus_error() hooks off
+// ModbusClientDevice onto the deprecated ModbusDevice shim (removal 2027.2.0). This component is
+// superseded by the rewrite in esphome/esphome#17849; the base class is only pinned here so it still
+// builds while that PR is in review.
+class PZEM6L24 final : public PollingComponent, public modbus::ModbusDevice {
  public:
   // Per-phase voltage setters
   void set_voltage_sensor_a(sensor::Sensor *voltage_a) { this->voltage_a_ = voltage_a; }
