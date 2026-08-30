@@ -6,6 +6,7 @@ substitutions:
   api_key: !secret pool_key
   pwd: !secret pool_pwd
   esp32_variant: esp32s3
+  log_level: DEBUG
 
 packages:
   device_base: !include ./packages/device_base_esp32.yaml
@@ -14,17 +15,18 @@ external_components:
   - source:
       type: local
       path: ../components
-    components: [pool_controller, pzem6l24]
+    components: [pool_controller]
+  - source: github://pr#17849
+    components: [pzem6l24]
+    refresh: 1h
 
-esphome:
-  on_boot:
-    then:
-      - light.turn_off: lcd_backlight
-      - output.set_level:
-          id: backlight_pwm_output
-          level: 0%
-      # - lambda: |-
-      #     id(return_temp).set_address(101);
+# esphome:
+#   on_boot:
+#     then:
+#       - light.turn_off: lcd_backlight
+#       - output.set_level:
+#           id: backlight_pwm_output
+#           level: 0%
 
 binary_sensor:
   - platform: gpio
@@ -37,6 +39,8 @@ binary_sensor:
       mode:
         input: true
       inverted: true
+    filters:
+      - delayed_on: 50ms
   - platform: gpio
     id: flow_aux
     name: "Auxiliary Pump Flow"
@@ -47,6 +51,8 @@ binary_sensor:
       mode:
         input: true
       inverted: true
+    filters:
+      - delayed_on: 50ms
 
 button:
   - platform: template
@@ -58,132 +64,132 @@ button:
           id: pzem
           phase: all
 
-display:
-  - platform: mipi_rgb
-    id: pool_display
-    model: RPI
-    update_interval: never
-    auto_clear_enabled: false
-    color_order: RGB
-    pclk_frequency: 18MHz
-    pclk_inverted: true
-    dimensions:
-      width: 1024
-      height: 600
-    de_pin:
-      number: 5
-    hsync_pin:
-      number: 46
-      ignore_strapping_warning: true
-    vsync_pin:
-      number: 3
-      ignore_strapping_warning: true
-    pclk_pin: 7
-    reset_pin:
-      waveshare_io_ch32v003: wave_io
-      number: 3
-    hsync_back_porch: 152
-    hsync_front_porch: 48
-    hsync_pulse_width: 162
-    vsync_back_porch: 13
-    vsync_front_porch: 3
-    vsync_pulse_width: 45
-    data_pins:
-      red:
-        - 1  # r3
-        - 2  # r4
-        - 42  # r5
-        - 41  # r6
-        - 40  # r7
-      green:
-        - 39  # g2
-        - 0  # g3
-        - 45  # g4
-        - 48  # g5
-        - 47  # g6
-        - 21  # g7
-      blue:
-        - 14  # b3
-        - 38  # b4
-        - 18  # b5
-        - 17  # b6
-        - 10  # b7
+# display:
+#   - platform: mipi_rgb
+#     id: pool_display
+#     model: RPI
+#     update_interval: never
+#     auto_clear_enabled: false
+#     color_order: RGB
+#     pclk_frequency: 18MHz
+#     pclk_inverted: true
+#     dimensions:
+#       width: 1024
+#       height: 600
+#     de_pin:
+#       number: 5
+#     hsync_pin:
+#       number: 46
+#       ignore_strapping_warning: true
+#     vsync_pin:
+#       number: 3
+#       ignore_strapping_warning: true
+#     pclk_pin: 7
+#     reset_pin:
+#       waveshare_io_ch32v003: wave_io
+#       number: 3
+#     hsync_back_porch: 152
+#     hsync_front_porch: 48
+#     hsync_pulse_width: 162
+#     vsync_back_porch: 13
+#     vsync_front_porch: 3
+#     vsync_pulse_width: 45
+#     data_pins:
+#       red:
+#         - 1  # r3
+#         - 2  # r4
+#         - 42  # r5
+#         - 41  # r6
+#         - 40  # r7
+#       green:
+#         - 39  # g2
+#         - 0  # g3
+#         - 45  # g4
+#         - 48  # g5
+#         - 47  # g6
+#         - 21  # g7
+#       blue:
+#         - 14  # b3
+#         - 38  # b4
+#         - 18  # b5
+#         - 17  # b6
+#         - 10  # b7
 
-font:
-  - file: "gfonts://Roboto"
-    id: font_roboto_24
-    size: 24
-  - file: "gfonts://Roboto"
-    id: font_roboto_16
-    size: 16
-  - file: "https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf"
-    id: font_mdi_wifi
-    size: 28
-    glyphs:
-      - "\U000F092B"  # wifi-strength-outline (no signal)
-      - "\U000F091F"  # wifi-strength-1
-      - "\U000F0922"  # wifi-strength-2
-      - "\U000F0925"  # wifi-strength-3
-      - "\U000F0928"  # wifi-strength-4 (full)
+# font:
+#   - file: "gfonts://Roboto"
+#     id: font_roboto_24
+#     size: 24
+#   - file: "gfonts://Roboto"
+#     id: font_roboto_16
+#     size: 16
+#   - file: "https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf"
+#     id: font_mdi_wifi
+#     size: 28
+#     glyphs:
+#       - "\U000F092B"  # wifi-strength-outline (no signal)
+#       - "\U000F091F"  # wifi-strength-1
+#       - "\U000F0922"  # wifi-strength-2
+#       - "\U000F0925"  # wifi-strength-3
+#       - "\U000F0928"  # wifi-strength-4 (full)
 
 i2c:
   id: i2c_bus
   sda: GPIO8
   scl: GPIO9
 
-light:
-  - platform: monochromatic
-    id: lcd_backlight
-    output: backlight_pwm_output
-    default_transition_length: 0ms
-    restore_mode: ALWAYS_OFF
+# light:
+#   - platform: monochromatic
+#     id: lcd_backlight
+#     output: backlight_pwm_output
+#     default_transition_length: 0ms
+#     restore_mode: ALWAYS_OFF
 
-lvgl:
-  displays:
-    - pool_display
-  touchscreens:
-    - touchscreen_id: pool_touchscreen
-  on_idle:
-    timeout: 15sec
-    then:
-      - light.turn_off: lcd_backlight
-      - lvgl.pause:
-  bg_color: 0x1a1a2e
-  default_font: font_roboto_24
-  pages:
-    - id: main_page
-      widgets:
-        - label:
-            id: lbl_title
-            text: "Pool Controller"
-            align: CENTER
-            text_color: 0xffffff
-            text_font: font_roboto_24
-        - label:
-            id: lbl_wifi
-            text: "\U000F092B"
-            align: TOP_RIGHT
-            x: -10
-            y: 10
-            text_color: 0xaaaaaa
-            text_font: font_mdi_wifi
-        - label:
-            id: lbl_datetime
-            text: "--- --- --  --:-- --"
-            align: TOP_RIGHT
-            x: -48
-            y: 14
-            text_color: 0xaaaaaa
-            text_font: font_roboto_24
+# lvgl:
+#   displays:
+#     - pool_display
+#   touchscreens:
+#     - touchscreen_id: pool_touchscreen
+#   on_idle:
+#     timeout: 15sec
+#     then:
+#       - light.turn_off: lcd_backlight
+#       - lvgl.pause:
+#   bg_color: 0x1a1a2e
+#   default_font: font_roboto_24
+#   pages:
+#     - id: main_page
+#       widgets:
+#         - label:
+#             id: lbl_title
+#             text: "Pool Controller"
+#             align: CENTER
+#             text_color: 0xffffff
+#             text_font: font_roboto_24
+#         - label:
+#             id: lbl_wifi
+#             text: "\U000F092B"
+#             align: TOP_RIGHT
+#             x: -10
+#             y: 10
+#             text_color: 0xaaaaaa
+#             text_font: font_mdi_wifi
+#         - label:
+#             id: lbl_datetime
+#             text: "--- --- --  --:-- --"
+#             align: TOP_RIGHT
+#             x: -48
+#             y: 14
+#             text_color: 0xaaaaaa
+#             text_font: font_roboto_24
 
 modbus:
   uart_id: modbus_uart
 
 output:
-  - platform: waveshare_io_ch32v003
-    id: backlight_pwm_output
-    inverted: true
-    power_supply: backlight_enable
+  # - platform: waveshare_io_ch32v003
+  #   id: backlight_pwm_output
+  #   inverted: true
+  #   power_supply: backlight_enable
   - platform: gpio
     id: heater_output
     pin:
@@ -298,32 +304,32 @@ pool_controller:
   #   output: heater_output
   #   temperature_sensor: water_temp
 
-power_supply:
-  - id: backlight_enable
-    pin:
-      waveshare_io_ch32v003: wave_io
-      number: 2
-      mode:
-        output: true
-    enable_time: 10ms
-    keep_on_time: 10s
+# power_supply:
+#   - id: backlight_enable
+#     pin:
+#       waveshare_io_ch32v003: wave_io
+#       number: 2
+#       mode:
+#         output: true
+#     enable_time: 10ms
+#     keep_on_time: 10s
 
-psram:
-  mode: octal
-  speed: 80MHz
+# psram:
+#   mode: octal
+#   speed: 40MHz
 
 sensor:
-  - id: !extend wifi_rssi
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: lbl_wifi
-            text: !lambda |-
-              if (x >= -55) return std::string("\U000F0928");  // 4 bars
-              if (x >= -67) return std::string("\U000F0925");  // 3 bars
-              if (x >= -80) return std::string("\U000F0922");  // 2 bars
-              if (x >= -90) return std::string("\U000F091F");  // 1 bar
-              return std::string("\U000F092B");                // outline
+  # - id: !extend wifi_rssi
+  #   on_value:
+  #     then:
+  #       - lvgl.label.update:
+  #           id: lbl_wifi
+  #           text: !lambda |-
+  #             if (x >= -55) return std::string("\U000F0928");  // 4 bars
+  #             if (x >= -67) return std::string("\U000F0925");  // 3 bars
+  #             if (x >= -80) return std::string("\U000F0922");  // 2 bars
+  #             if (x >= -90) return std::string("\U000F091F");  // 1 bar
+  #             return std::string("\U000F092B");                // outline
   - platform: ezo
     id: orp
     name: Oxidation Reduction Potential
@@ -423,52 +429,52 @@ switch:
     device_class: switch
     restore_mode: RESTORE_DEFAULT_OFF
 
-time:
-  - id: !extend time_source
-    on_time_sync:
-      then:
-        - lvgl.label.update:
-            id: lbl_datetime
-            text: !lambda |-
-              auto t = id(time_source).now();
-              if (!t.is_valid()) return std::string("");
-              return t.strftime("%a %b %d  %I:%M %p");
-    on_time:
-      - seconds: 0
-        then:
-          - lvgl.label.update:
-              id: lbl_datetime
-              text: !lambda |-
-                auto t = id(time_source).now();
-                if (!t.is_valid()) return std::string("");
-                return t.strftime("%a %b %d  %I:%M %p");
-      - seconds: 0
-        minutes: 0
-        hours: 0
-        then:
-          - pzem6l24.reset_energy:
-              id: pzem
-              phase: all
+# time:
+#   - id: !extend time_source
+#     on_time_sync:
+#       then:
+#         - lvgl.label.update:
+#             id: lbl_datetime
+#             text: !lambda |-
+#               auto t = id(time_source).now();
+#               if (!t.is_valid()) return std::string("");
+#               return t.strftime("%a %b %d  %I:%M %p");
+#     on_time:
+#       - seconds: 0
+#         then:
+#           - lvgl.label.update:
+#               id: lbl_datetime
+#               text: !lambda |-
+#                 auto t = id(time_source).now();
+#                 if (!t.is_valid()) return std::string("");
+#                 return t.strftime("%a %b %d  %I:%M %p");
+#       - seconds: 0
+#         minutes: 0
+#         hours: 0
+#         then:
+#           - pzem6l24.reset_energy:
+#               id: pzem
+#               phase: all
 
-touchscreen:
-  - platform: gt911
-    id: pool_touchscreen
-    display: pool_display
-    interrupt_pin:
-      number: GPIO4
-      mode: INPUT_PULLUP
-    reset_pin:
-      waveshare_io_ch32v003: wave_io
-      number: 1
-      mode: OUTPUT
-    on_touch:
-      then:
-        - if:
-            condition:
-              light.is_off: lcd_backlight
-            then:
-              - lvgl.resume:
-              - light.turn_on: lcd_backlight
+# touchscreen:
+#   - platform: gt911
+#     id: pool_touchscreen
+#     display: pool_display
+#     interrupt_pin:
+#       number: GPIO4
+#       mode: INPUT_PULLUP
+#     reset_pin:
+#       waveshare_io_ch32v003: wave_io
+#       number: 1
+#       mode: OUTPUT
+#     on_touch:
+#       then:
+#         - if:
+#             condition:
+#               light.is_off: lcd_backlight
+#             then:
+#               - lvgl.resume:
+#               - light.turn_on: lcd_backlight
 
 uart:
   id: modbus_uart
@@ -476,7 +482,7 @@ uart:
   rx_pin: GPIO44
   baud_rate: 9600
 
-waveshare_io_ch32v003:
-  - id: wave_io
-    address: 0x24
-    i2c_id: i2c_bus
+# waveshare_io_ch32v003:
+#   - id: wave_io
+#     address: 0x24
+#     i2c_id: i2c_bus
