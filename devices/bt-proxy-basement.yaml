@@ -5,9 +5,9 @@ substitutions:
   pwd: !secret bt_proxy_basement_pwd
 
 packages:
-  device_base: !include ./packages/device_base_esp32.yaml
+  device: !include ./packages/device_esp32_wifi.yaml
 
 bluetooth_proxy:
   active: true
   cache_services: true
-  connection_slots: 4
+  connection_slots: 3

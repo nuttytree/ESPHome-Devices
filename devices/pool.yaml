@@ -9,16 +9,23 @@ substitutions:
   log_level: DEBUG
 
 packages:
-  device_base: !include ./packages/device_base_esp32.yaml
+  device: !include ./packages/device_esp32_wifi.yaml
 
 external_components:
   - source:
       type: local
       path: ../components
     components: [pool_controller]
-  - source: github://pr#17849
+  # Pinned to the last pzem6l24 commit before upstream switched reset_energy to
+  # automation.register_apply_action (esphome/esphome#19469, merged 2026-09-23).
+  # That helper landed after the 2026.9 branch cut, so the PR head no longer
+  # validates against any released ESPHome. Unpin once a release carries it.
+  - source:
+      type: git
+      url: https://github.com/esphome/esphome.git
+      ref: 36d39416f0a7cdabb536d5a7434222de462c3e89
     components: [pzem6l24]
-    refresh: 1h
+    refresh: never
 
 # esphome:
 #   on_boot:

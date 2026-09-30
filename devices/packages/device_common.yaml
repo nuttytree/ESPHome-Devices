@@ -1,8 +1,6 @@
 substitutions:
   log_level: none
   log_baud_rate: '115200'
-  wifi_ssid: !secret wifi_ssid
-  wifi_password: !secret wifi_password
   flash_write_interval: 10min
 
 esphome:
@@ -15,14 +13,11 @@ preferences:
   flash_write_interval: ${flash_write_interval}
 
 packages:
-  wifi:             !include wifi/wifi_dhcp.yaml
   api:              !include api/api.yaml
   ota:              !include ota/ota.yaml
   logger:           !include logger/logger.yaml
   status_sensor:    !include binary_sensor/status.yaml
   uptime_sensor:    !include sensor/uptime.yaml
-  wifi_sensor:      !include sensor/wifi.yaml
   restart_button:   !include button/restart.yaml
   version_sensor:   !include text_sensor/version.yaml
-  wifi_info_sensor: !include text_sensor/wifi_info.yaml
   time:             !include time/time.yaml

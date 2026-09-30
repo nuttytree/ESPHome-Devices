@@ -6,7 +6,7 @@ substitutions:
   pwd: !secret emporia_vue2_pwd
 
 packages:
-  device_base: !include ./packages/device_base_esp32.yaml
+  device: !include ./packages/device_esp32_wifi.yaml
 
 api:
   services:

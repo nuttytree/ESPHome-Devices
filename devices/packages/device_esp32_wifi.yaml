@@ -1,0 +1,4 @@
+packages:
+  common: !include device_common.yaml
+  esp32:  !include device_esp32.yaml
+  wifi:   !include device_wifi.yaml

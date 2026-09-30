@@ -1,0 +1,2 @@
+packages:
+  eth_info_sensor: !include text_sensor/ethernet_info.yaml

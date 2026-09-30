@@ -102,7 +102,7 @@ jobs:
           path: |
             ~/.platformio
             ~/.esphome-idf
-          key: build-${{ matrix.platform }}-${{ hashFiles('devices/packages/device_base*.yaml') }}
+          key: build-${{ matrix.platform }}-${{ hashFiles('devices/packages/device_*.yaml') }}
           restore-keys: build-${{ matrix.platform }}-
       - name: Install ESPHome
         run: pip install esphome

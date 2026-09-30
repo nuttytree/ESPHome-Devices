@@ -6,6 +6,3 @@ esp32:
   variant: ${esp32_variant}
   framework:
     type: ${framework_type}
-
-packages:
-  base:   !include device_base.yaml

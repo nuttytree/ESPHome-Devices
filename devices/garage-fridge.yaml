@@ -6,7 +6,7 @@ substitutions:
   log_baud_rate: '0'
 
 packages:
-  device_base: !include ./packages/device_base_esp32.yaml
+  device: !include ./packages/device_esp32_wifi.yaml
 
 esp32:
   cpu_frequency: 160MHZ
