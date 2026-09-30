@@ -19,7 +19,7 @@ packages:
     ref: main
     files: [base_drycontact.yaml]
     refresh: 1s
-  device_base: !include ./packages/device_base_esp8266.yaml
+  device: !include ./packages/device_esp8266_wifi.yaml
 
 button:
   - id: !remove ${id_prefix}_restart

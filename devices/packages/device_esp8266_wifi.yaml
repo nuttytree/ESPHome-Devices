@@ -1,0 +1,4 @@
+packages:
+  common:  !include device_common.yaml
+  esp8266: !include device_esp8266.yaml
+  wifi:    !include device_wifi.yaml

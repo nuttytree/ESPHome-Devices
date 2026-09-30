@@ -9,7 +9,7 @@ substitutions:
   log_level: DEBUG
 
 packages:
-  device_base: !include ./packages/device_base_esp32.yaml
+  device: !include ./packages/device_esp32_wifi.yaml
 
 external_components:
   - source:

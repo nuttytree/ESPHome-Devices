@@ -15,7 +15,7 @@ packages:
     url: https://github.com/esphome-econet/esphome-econet
     ref: main
     file: econet_heatpump_water_heater.yaml
-  device_base: !include ./packages/econet_base.yaml
+  device: !include ./packages/econet.yaml
 
 climate:
   - id: !extend econet_climate

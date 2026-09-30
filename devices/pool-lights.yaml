@@ -6,7 +6,7 @@ substitutions:
   pwd: !secret pool_lights_pwd
 
 packages:
-  device_base: !include ./packages/device_base_esp8266.yaml
+  device: !include ./packages/device_esp8266_wifi.yaml
 
 external_components:
   - source:

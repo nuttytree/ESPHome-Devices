@@ -1,16 +1,14 @@
+substitutions:
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+
 wifi:
   ssid: ${wifi_ssid}
   password: ${wifi_password}
   fast_connect: true
   power_save_mode: none
   min_auth_mode: WPA2
-  manual_ip:
-    static_ip: ${ip_address}
-    subnet: ${ip_subnet}
-    gateway: ${ip_gateway}
   ap:
     ssid: ${device_id}
-    password: ${pwd}
-    ap_timeout: 5min
 
 captive_portal:

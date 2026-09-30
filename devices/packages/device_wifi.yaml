@@ -1,0 +1,4 @@
+packages:
+  wifi:             !include wifi/wifi.yaml
+  wifi_sensor:      !include sensor/wifi.yaml
+  wifi_info_sensor: !include text_sensor/wifi_info.yaml

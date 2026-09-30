@@ -1,5 +1,5 @@
 packages:
-  device_base: !include ./device_base_esp32.yaml
+  device: !include ./device_esp32_wifi.yaml
 
 button:
   - id: !extend restart_esp

@@ -24,7 +24,7 @@ packages:
       hvac-zone-yaml/econet_hvac_zone2.yaml,
       hvac-zone-yaml/econet_hvac_zone3.yaml
     ]
-  device_base: !include ./packages/econet_base.yaml
+  device: !include ./packages/econet.yaml
 
 climate:
   - platform: econet_zone_control
