@@ -3,7 +3,6 @@ substitutions:
   device_name: Main Garage Door
   board: d1_mini
   api_key: !secret main_garage_door_key
-  pwd: !secret main_garage_door_pwd
   flash_write_interval: 5s
 
 packages:

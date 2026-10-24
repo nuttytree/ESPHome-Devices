@@ -2,7 +2,6 @@ substitutions:
   device_id: network-equipment
   device_name: Network Equipment
   api_key: !secret network_equipment_key
-  pwd: !secret network_equipment_pwd
 
 packages:
   device: !include ./packages/topgreener_smart_plug.yaml

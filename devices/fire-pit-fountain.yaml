@@ -3,7 +3,6 @@ substitutions:
   device_name: Fire Pit and Fountain
   board: d1_mini
   api_key: !secret fire_pit_fountain_key
-  pwd: !secret fire_pit_fountain_pwd
 
 packages:
   device: !include ./packages/device_esp8266_wifi.yaml

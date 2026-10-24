@@ -4,7 +4,6 @@ substitutions:
   device_id: pool
   device_name: Pool
   api_key: !secret pool_key
-  pwd: !secret pool_pwd
   esp32_variant: esp32s3
   log_level: DEBUG
 

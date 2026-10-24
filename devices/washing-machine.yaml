@@ -2,7 +2,6 @@ substitutions:
   device_id: washing-machine
   device_name: Washing Machine
   api_key: !secret washing_machine_key
-  pwd: !secret washing_machine_pwd
 
 packages:
   device: !include ./packages/topgreener_smart_plug.yaml

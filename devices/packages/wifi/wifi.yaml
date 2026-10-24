@@ -8,7 +8,3 @@ wifi:
   fast_connect: true
   power_save_mode: none
   min_auth_mode: WPA2
-  ap:
-    ssid: ${device_id}
-
-captive_portal:

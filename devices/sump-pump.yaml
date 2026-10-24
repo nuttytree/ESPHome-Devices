@@ -2,7 +2,6 @@ substitutions:
   device_id: sump-pump
   device_name: Sump Pump
   api_key: !secret sump_pump_key
-  pwd: !secret sump_pump_pwd
 
 packages:
   device: !include ./packages/topgreener_smart_plug.yaml

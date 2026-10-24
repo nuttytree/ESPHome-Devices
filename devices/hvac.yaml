@@ -2,7 +2,6 @@ substitutions:
   device_id: hvac
   device_name: HVAC
   api_key: !secret hvac_key
-  pwd: !secret hvac_pwd
   zone1name: Main Floor
   zone2name: Upstairs
   zone3name: Basement

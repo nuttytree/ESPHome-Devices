@@ -2,7 +2,6 @@ substitutions:
   device_id: basement-tv
   device_name: Basement TV
   api_key: !secret basement_tv_key
-  pwd: !secret basement_tv_pwd
 
 packages:
   device: !include ./packages/topgreener_smart_plug.yaml

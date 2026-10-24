@@ -3,7 +3,6 @@ substitutions:
   device_name: Master Bed
   board: nodemcuv2
   api_key: !secret master_bed_key
-  pwd: !secret master_bed_pwd
 
 packages:
   device: !include ./packages/device_esp8266_wifi.yaml
