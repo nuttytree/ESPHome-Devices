@@ -34,9 +34,6 @@ Schedule-based control for a pool's primary circulation pump, an auxiliary clean
 ### Power Cycle Pool Light
 A light component for LED pool lights that advance to the next color each time power is briefly cut, exposing each color as a selectable "effect" in Home Assistant. Built for my [TREO LED Pool Lights](https://www.srsmith.com/en-us/products/pool-lighting/treo-led-pool-light/), but the colors, reset sequence, and timings are configurable so it should work with Moov, Pentair IntelliBrite/GloBrite/MicroBrite, J&J ColorSplash, Jandy WaterColors, and similar lights. Details: [components/power_cycle_pool_light/README.md](./components/power_cycle_pool_light/README.md).
 
-### PZEM-6L24 Three-Phase Energy Monitor
-A native ESPHome component for the PZEM-6L24 three-phase AC energy meter (voltage/current/power/energy per phase over Modbus RTU). Used by my [Pool](./docs/pool/README.md) controller to monitor the pump and cleaner. Details: [components/pzem6l24/README.md](./components/pzem6l24/README.md).
-
 ### Bed Sensor
 Detects per-side bed occupancy using resistive pressure sensors multiplexed onto a single ADC input. Used by [Master Bed](./docs/master-bed/README.md). Details: [components/bed_sensor/README.md](./components/bed_sensor/README.md).
 
@@ -64,7 +61,7 @@ A [M5Stack ATOMIC RS485 Base](https://shop.m5stack.com/products/atomic-rs485-bas
 A [NodeMCU](https://www.amazon.com/gp/product/B010N1SPRK) under the mattress that detects per-side occupancy using a pair of Force Sensitive Resistors and the custom [bed_sensor](./components/bed_sensor/README.md) component. Full write-up: [docs/master-bed](./docs/master-bed/README.md).
 
 ### [Pool](./devices/pool.yaml)
-A [Waveshare ESP32-S3 7" Touch LCD B](https://www.waveshare.com/product/esp32-s3-lcd-7b.htm) running the custom [Pool Controller](./components/pool_controller/README.md) and [PZEM-6L24](./components/pzem6l24/README.md) components to manage pump scheduling, water chemistry, and (eventually) heat/fill/drain. Full write-up: [docs/pool](./docs/pool/README.md).
+A [Waveshare ESP32-S3 7" Touch LCD B](https://www.waveshare.com/product/esp32-s3-lcd-7b.htm) running the custom [Pool Controller](./components/pool_controller/README.md) component to manage pump scheduling, water chemistry, and (eventually) heat/fill/drain. Full write-up: [docs/pool](./docs/pool/README.md).
 
 ### [Water Heater](./devices/water-heater.yaml)
 A [M5Stack ATOMIC RS485 Base](https://shop.m5stack.com/products/atomic-rs485-base) with an ESP32 connected to a Rheem hybrid water heater managed through the [ESPHome Econet](https://github.com/esphome-econet/esphome-econet) component. The custom [High Temp Water Heater](./components/high_temp_water_heater/README.md) component sits in front of it so I can set any target temperature I want (e.g. 140°F during peak electric rate hours) while the physical water heater setting itself stays fixed at 150°F — the physical control panel only lets you adjust it to values above 140°F.

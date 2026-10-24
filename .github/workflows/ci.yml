@@ -81,7 +81,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - device: pool             # esp32s3 / esp-idf: pool_controller, pzem6l24
+          - device: pool             # esp32s3 / esp-idf: pool_controller
             platform: esp32
           - device: water-heater     # esp32 / esp-idf: high_temp_water_heater
             platform: esp32
