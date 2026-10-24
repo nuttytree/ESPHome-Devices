@@ -3,7 +3,6 @@ substitutions:
   device_name: Second Garage Door
   board: d1_mini
   api_key: !secret second_garage_door_key
-  pwd: !secret second_garage_door_pwd
   id_prefix: second_garage_door
   uart_tx_pin: D1
   uart_rx_pin: D2
@@ -27,6 +26,7 @@ button:
 
 ota:
   - id: !remove ${id_prefix}_ratgdo_ota
+  - id: !remove ${id_prefix}_ratgdo_ota_ws
 
 text_sensor:
   - id: !remove ${id_prefix}_firmware_version

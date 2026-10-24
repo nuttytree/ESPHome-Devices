@@ -2,7 +2,6 @@ substitutions:
   device_id: water-heater
   device_name: Water Heater
   api_key: !secret water_heater_key
-  pwd: !secret water_heater_pwd
 
 external_components:
   - source:

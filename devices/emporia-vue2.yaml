@@ -3,14 +3,13 @@ substitutions:
   device_name: Emporia Vue2 Power Monitor
   board: esp32dev
   api_key: !secret emporia_vue2_key
-  pwd: !secret emporia_vue2_pwd
 
 packages:
   device: !include ./packages/device_esp32_wifi.yaml
 
 api:
-  services:
-    - service: play_rtttl
+  actions:
+    - action: play_rtttl
       variables:
         song_str: string
       then:

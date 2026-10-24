@@ -3,7 +3,6 @@ substitutions:
   device_name: Basement Bathroom Shower Light and Heater
   board: esp01_1m
   api_key: !secret basement_bathroom_shower_light_heat_key
-  pwd: !secret basement_bathroom_shower_light_heat_pwd
 
 packages:
   device: !include ./packages/device_esp8266_wifi.yaml

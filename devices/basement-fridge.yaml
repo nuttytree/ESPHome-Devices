@@ -2,7 +2,6 @@ substitutions:
   device_id: basement-fridge
   device_name: Basement Fridge
   api_key: !secret basement_fridge_key
-  pwd: !secret basement_fridge_pwd
 
 packages:
   device: !include ./packages/topgreener_smart_plug.yaml

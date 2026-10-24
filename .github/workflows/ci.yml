@@ -77,11 +77,15 @@ jobs:
     env:
       # Cache the ESP-IDF install rather than re-downloading it every run.
       ESPHOME_ESP_IDF_PREFIX: ~/.esphome-idf
+      # 2026.10 builds with a precompiled header by default. clang-tidy replays the
+      # build's flags, but clang can't read GCC's PCH and rejects the build's, so build
+      # without one.
+      ESPHOME_PCH_ENABLE: "0"
     strategy:
       fail-fast: false
       matrix:
         include:
-          - device: pool             # esp32s3 / esp-idf: pool_controller, pzem6l24
+          - device: pool             # esp32s3 / esp-idf: pool_controller
             platform: esp32
           - device: water-heater     # esp32 / esp-idf: high_temp_water_heater
             platform: esp32
