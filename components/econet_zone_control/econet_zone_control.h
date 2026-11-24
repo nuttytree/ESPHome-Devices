@@ -19,6 +19,8 @@ struct FanModeEntry {
   uint8_t id;
 };
 
+class EcoNetZoneControl;
+
 struct EconetZone {
   int8_t request_mod;
   uint32_t src_adr;
@@ -30,6 +32,7 @@ struct EconetZone {
   climate::ClimateMode cached_mode{climate::CLIMATE_MODE_OFF};
   int16_t cached_fan_mode{-1};  // -1 = not yet received
   int16_t cached_fan_mode_no_schedule{-1};
+  EcoNetZoneControl *parent{nullptr};  ///< Set in setup(); lets listeners capture one pointer.
 };
 
 class EcoNetZoneControl : public climate::Climate, public Component, public econet::EconetClient {

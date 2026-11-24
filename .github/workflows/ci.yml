@@ -36,11 +36,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      # Deliberately unpinned: the point of this job is to catch configs that
-      # break against the current ESPHome release. Pin here if you need to hold
-      # the repo at a specific version.
+      # Normally unpinned, to catch configs that break against the current
+      # ESPHome release. Held at 2026.10.x (matching the Device Builder
+      # container) until a 2026.11.x release ships esphome/esphome#22786: on
+      # 2026.11.0 the default boot_log_level (WARN) is rejected as more verbose
+      # than `level: NONE`. Keep the compile job's pin below in step.
       - name: Install ESPHome
-        run: pip install esphome
+        run: pip install "esphome~=2026.10.0"
       - name: Report ESPHome version
         run: esphome version
       # devices/secrets.yaml is gitignored, so CI generates a placeholder one.
@@ -108,8 +110,9 @@ jobs:
             ~/.esphome-idf
           key: build-${{ matrix.platform }}-${{ hashFiles('devices/packages/device_*.yaml') }}
           restore-keys: build-${{ matrix.platform }}-
+      # Pinned to match the config job above.
       - name: Install ESPHome
-        run: pip install esphome
+        run: pip install "esphome~=2026.10.0"
       - name: Generate placeholder secrets
         run: python scripts/generate_ci_secrets.py
       - name: Compile ${{ matrix.device }}
