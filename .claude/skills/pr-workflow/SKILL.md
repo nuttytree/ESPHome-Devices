@@ -9,16 +9,20 @@ allowed-tools: Read, Bash, Glob, Grep
 This is the PR workflow for **this repo**: a personal ESPHome device-config and
 custom-component repo, default branch `master`.
 
-> **There is a second, unrelated `pr-workflow` skill in the local
-> `C:\Source\Repos\esphome` checkout.** That one describes contributing to
-> *upstream ESPHome core*: base on `upstream/dev`, fill in
-> `.github/PULL_REQUEST_TEMPLATE.md`, prefix the title with `[component]`,
-> `gh pr create --repo esphome/esphome --base dev`. **All of that is wrong
-> here.** It only appears as an available skill because that checkout is
-> configured as an additional working directory for IntelliSense. It and
-> `C:\Source\Repos\esphome.io` are read-only reference checkouts of other
-> people's projects —
-> never push to them or open PRs against them.
+> **There are two other, unrelated `pr-workflow` skills, one in each local
+> reference checkout.** The one in `C:\Source\Repos\esphome` (may show as
+> `esphome:pr-workflow`) describes contributing to *upstream ESPHome core*:
+> base on `upstream/dev`, fill in `.github/PULL_REQUEST_TEMPLATE.md`, prefix
+> the title with `[component]`, `gh pr create --repo esphome/esphome --base dev`.
+> The one in `C:\Source\Repos\esphome.io` (may show as `esphome.io:pr-workflow`)
+> describes contributing to the *docs site*: base on upstream, `gh pr create
+> --repo esphome/esphome.io --base current` (or `next`). **All of that is
+> wrong here.** They only appear as available skills because those checkouts
+> are configured as additional working directories. Both are read-only
+> reference checkouts of other people's projects — never push to them or
+> open PRs against them. If a `pr-workflow` skill mentions `upstream`, a PR
+> template, a `[component]` title prefix, or `--repo esphome/...`, it's the
+> wrong one.
 
 ## Related commands
 
