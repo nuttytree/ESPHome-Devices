@@ -87,6 +87,52 @@ Similarly, don't kill a compile during its managed-component download: a partial
 
 To compile-check a component without disturbing the container's build caches, copy the device YAML to a throwaway `device_id` with a local `build_path`, compile that copy, then delete both the scratch YAML and its build directory. Keep the copy inside `devices/` so its relative `!include ./packages/...` and `path: ../components` still resolve. A full IDF build takes roughly 10–15 minutes. Note that `esphome config` validates schema and lambdas' *syntax* but does not compile lambda C++ — only a real compile catches errors inside a `lambda:` block.
 
+### Device logs and the Device Builder MCP server
+
+The devices sit on a VLAN this machine can't reach, so `esphome logs` and the API from here
+don't work. The Device Builder dashboard (ESPHome 2026.10+) can reach them, and two things
+talk to it. Both authenticate with `ESPHOME_MCP_BASIC`, a user-scope env var holding base64 of
+`user:password` (a process started before it was set won't see it; restart VS Code fully).
+
+- **MCP server** — `.mcp.json` registers `esphome` at `<dashboard>/api/mcp`, which loads as
+  `mcp__esphome__*` tools. It covers devices (`list_devices`: online state, IP, deployed
+  version, pending changes), config read/write/validate, compile/install and their job output
+  (`get_job`), the component catalog and automations. It has **no log tools**. `install` flashes
+  a real device and `update_config` rewrites the dashboard's copy of a config, so don't call
+  either unless asked; the repo, not the dashboard, is the source of truth for configs.
+- **Live logs** — use `scripts/device_logs.py`, a client for the dashboard's websocket
+  (`/ws`, command `devices/logs`). Nothing else exposes logs.
+
+```
+pipx run scripts/device_logs.py pool                          # 30 s, colour stripped
+pipx run scripts/device_logs.py pool -t 120 -g 'pump|flow'    # longer, regex-filtered
+pipx run scripts/device_logs.py pool -t 15 --no-states        # hide sensor state lines
+```
+
+`pipx run` reads the script's inline dependency block (`websockets`). The dashboard URL comes
+from `.mcp.json` unless `ESPHOME_DASHBOARD_URL` is set. The device name is the yaml name in
+`devices/` (`list_devices` shows them).
+
+When developing a component, to capture what a device does:
+
+1. Flash it first. Logs come from the *deployed* firmware, not the repo: `list_devices` shows
+   `deployed_version`/`deployed_config_hash` against `expected_config_hash` and
+   `has_pending_changes`, so check them before drawing conclusions. The user builds and flashes
+   from the dashboard; ask them to when needed.
+2. Capture a window long enough to cover the behaviour. A dump of every component's config is
+   printed on connect, but boot logs only appear if the capture starts around a reboot. Use `-g`
+   to keep output small, e.g. `-g '\[W\]|\[E\]'` for warnings and errors, or the component's log
+   tag (`-g 'pump_flow'`) for its own lines. If the user has to trigger the behaviour (press a
+   button, run the pump), start the capture in the background first and tell them to go.
+3. A device with logger `baud_rate: 0` (many ESP8266 configs) has no serial logging, but the
+   API log stream used here still works. The level is whatever the deployed `logger:` allows,
+   so raise it to `DEBUG`/`VERBOSE` in the device yaml and reflash if lines are missing.
+
+The websocket protocol is internal to Device Builder (written against 1.25.0), not a
+documented API. If the script stops working after an upgrade, read the new frontend bundle
+(`<dashboard>/app.*.js`, search `devices/logs`) for changed command names. The dashboard
+sends colour as the literal text `\033[..m`, which the script strips.
+
 ## Git workflow
 
 The `no-commit-to-branch` pre-commit hook blocks commits directly on `master`. All work happens on a feature branch and lands via PR (see recent history: `Merge pull request #77`, etc.). Use the `pr-workflow` skill when asked to open a PR for this repo.
@@ -117,9 +163,9 @@ Components are consumed either from disk (`external_components: - source: {type:
 
 **Version compatibility tags**: git tags like `2026.7.0` mark commits confirmed compatible with that ESPHome version. `scripts/tag_esphome_version.py` runs as a `post-commit` pre-commit hook (see `default_install_hook_types` / the `tag-esphome-version` local hook in `.pre-commit-config.yaml`) and automates this: it reads the local, gitignored `devices/.esphome/.device-builder-devices.json` (Device Builder state), and if every device yaml in `devices/` has a `deployed_version` whose `deployed_config_hash` matches `expected_config_hash`, it tags HEAD with the lowest such version — unless a tag at or above it already exists. It never pushes the tag; push explicitly (`git push origin <tag>`) or rely on `git config push.followTags true` so a normal `git push` carries it along. Because it's a post-commit hook it can't block a commit — if devices aren't fully represented/up to date yet, it just prints why it skipped.
 
-**Sibling `dev_esphome/` directory** (outside this repo, listed as an additional working directory) is a full checkout of upstream ESPHome core, wired in purely for editor IntelliSense (`python.analysis.extraPaths` / `C_Cpp.default.includePath` in `.vscode/settings.json`, `PYTHONPATH` in `.env`). It is not part of this project — don't make changes there as part of tasks against this repo.
+**Local `esphome` checkout** (`C:\Source\Repos\esphome`, outside this repo, listed as an additional working directory) is a full checkout of upstream ESPHome core, wired in purely for editor IntelliSense. The wiring lives in the local `C:\Source\Repos\ESPHome Development.code-workspace` (`python.analysis.extraPaths` / `C_Cpp.default.includePath`), not in this repo: this repo sits on the NAS share and the checkouts on `C:`, so no relative path connects them, and an absolute one doesn't belong in committed settings. It is not part of this project — don't make changes there as part of tasks against this repo.
 
-**Sibling `esphome.io/` directory** (outside this repo, also listed as an additional working directory) is a clone of the [esphome/esphome.io](https://github.com/esphome/esphome.io) documentation site (the Astro-based source for the public esphome.io docs), with a `fork` remote at `nuttytree/esphome.io` alongside `origin`. Like `dev_esphome/`, it's a separate project checked out here for reference/IntelliSense — not part of this repo, so don't make changes there as part of tasks against this repo unless explicitly asked to work on the docs site itself.
+**Local `esphome.io` checkout** (`C:\Source\Repos\esphome.io`, outside this repo, also listed as an additional working directory) is a clone of the [esphome/esphome.io](https://github.com/esphome/esphome.io) documentation site (the Astro-based source for the public esphome.io docs), with a `fork` remote at `nuttytree/esphome.io` alongside `origin`. Like the `esphome` checkout, it's a separate project checked out here for reference/IntelliSense — not part of this repo, so don't make changes there as part of tasks against this repo unless explicitly asked to work on the docs site itself.
 
 **Device Builder state files** in `devices/` (`.device-builder.json`, `.device-builder-preferences.json`, `.device-builder-peer-link-key.bin`) are machine-generated local state for the ESPHome dashboard/device-builder tool (device MAC addresses, firmware job history, UI prefs) — not meant to be hand-edited.
 

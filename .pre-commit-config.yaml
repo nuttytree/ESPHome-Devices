@@ -63,6 +63,8 @@ repos:
         # components are linted against the current release.
         additional_dependencies:
           - esphome
+          # scripts/device_logs.py
+          - websockets
   - repo: local
     hooks:
       - id: tag-esphome-version
