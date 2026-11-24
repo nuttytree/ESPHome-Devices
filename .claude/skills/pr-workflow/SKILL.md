@@ -9,13 +9,15 @@ allowed-tools: Read, Bash, Glob, Grep
 This is the PR workflow for **this repo**: a personal ESPHome device-config and
 custom-component repo, default branch `master`.
 
-> **There is a second, unrelated `pr-workflow` skill in the sibling `dev_esphome/`
-> checkout.** That one describes contributing to *upstream ESPHome core*: base on
-> `upstream/dev`, fill in `.github/PULL_REQUEST_TEMPLATE.md`, prefix the title with
-> `[component]`, `gh pr create --repo esphome/esphome --base dev`. **All of that is
-> wrong here.** It only appears as an available skill because `dev_esphome/` is
-> configured as an additional working directory for IntelliSense. `dev_esphome/`
-> and `esphome.io/` are read-only reference checkouts of other people's projects —
+> **There is a second, unrelated `pr-workflow` skill in the local
+> `C:\Source\Repos\esphome` checkout.** That one describes contributing to
+> *upstream ESPHome core*: base on `upstream/dev`, fill in
+> `.github/PULL_REQUEST_TEMPLATE.md`, prefix the title with `[component]`,
+> `gh pr create --repo esphome/esphome --base dev`. **All of that is wrong
+> here.** It only appears as an available skill because that checkout is
+> configured as an additional working directory for IntelliSense. It and
+> `C:\Source\Repos\esphome.io` are read-only reference checkouts of other
+> people's projects —
 > never push to them or open PRs against them.
 
 ## Related commands

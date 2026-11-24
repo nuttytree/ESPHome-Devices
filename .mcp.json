@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "esphome": {
+      "type": "http",
+      "url": "https://esphome.nuttytree.us/api/mcp",
+      "headers": {
+        "Authorization": "Basic ${ESPHOME_MCP_BASIC}"
+      }
+    }
+  }
+}
