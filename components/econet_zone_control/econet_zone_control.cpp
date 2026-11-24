@@ -32,19 +32,21 @@ void EcoNetZoneControl::setup() {
   // Register per-zone listeners
   for (auto &zone_cfg : this->zones_) {
     EconetZone *zp = &zone_cfg;
+    // The listeners capture only zp, so Callback::create stores them inline rather than on the heap.
+    zp->parent = this;
 
     if (this->mode_id_ != nullptr && *this->mode_id_) {
       this->parent_->register_listener(
           this->mode_id_, zone_cfg.request_mod, false,
-          [this, zp](const econet::EconetDatapoint &dp) {
-            auto it = std::find_if(this->modes_.begin(), this->modes_.end(),
+          [zp](const econet::EconetDatapoint &dp) {
+            auto it = std::find_if(zp->parent->modes_.begin(), zp->parent->modes_.end(),
                                    [&](const ModeEntry &m) { return m.id == dp.value_enum; });
-            if (it == this->modes_.end()) {
+            if (it == zp->parent->modes_.end()) {
               ESP_LOGW(TAG, "Zone src_adr=0x%08X unknown mode enum %u", zp->src_adr, dp.value_enum);
               return;
             }
             zp->cached_mode = it->mode;
-            this->update_zones_();
+            zp->parent->update_zones_();
           },
           false, zone_cfg.src_adr);
     }
@@ -52,11 +54,11 @@ void EcoNetZoneControl::setup() {
     if (this->current_temperature_id_ != nullptr && *this->current_temperature_id_) {
       this->parent_->register_listener(
           this->current_temperature_id_, zone_cfg.request_mod, false,
-          [this, zp](const econet::EconetDatapoint &dp) {
+          [zp](const econet::EconetDatapoint &dp) {
             zp->cached_temperature = fahrenheit_to_celsius(dp.value_float);
             ESP_LOGD(TAG, "Zone src_adr=0x%08X current_temperature=%.1f°C (%.1f°F)", zp->src_adr,
                      zp->cached_temperature, dp.value_float);
-            this->update_zones_();
+            zp->parent->update_zones_();
           },
           false, zone_cfg.src_adr);
     }
@@ -64,10 +66,10 @@ void EcoNetZoneControl::setup() {
     if (this->target_temperature_low_id_ != nullptr && *this->target_temperature_low_id_) {
       this->parent_->register_listener(
           this->target_temperature_low_id_, zone_cfg.request_mod, false,
-          [this, zp](const econet::EconetDatapoint &dp) {
+          [zp](const econet::EconetDatapoint &dp) {
             zp->cached_target_low_f = dp.value_float;
             ESP_LOGD(TAG, "Zone src_adr=0x%08X target_temperature_low=%.1f°F", zp->src_adr, dp.value_float);
-            this->update_zones_();
+            zp->parent->update_zones_();
           },
           false, zone_cfg.src_adr);
     }
@@ -75,10 +77,10 @@ void EcoNetZoneControl::setup() {
     if (this->target_temperature_high_id_ != nullptr && *this->target_temperature_high_id_) {
       this->parent_->register_listener(
           this->target_temperature_high_id_, zone_cfg.request_mod, false,
-          [this, zp](const econet::EconetDatapoint &dp) {
+          [zp](const econet::EconetDatapoint &dp) {
             zp->cached_target_high_f = dp.value_float;
             ESP_LOGD(TAG, "Zone src_adr=0x%08X target_temperature_high=%.1f°F", zp->src_adr, dp.value_float);
-            this->update_zones_();
+            zp->parent->update_zones_();
           },
           false, zone_cfg.src_adr);
     }
@@ -86,10 +88,10 @@ void EcoNetZoneControl::setup() {
     if (this->current_humidity_id_ != nullptr && *this->current_humidity_id_) {
       this->parent_->register_listener(
           this->current_humidity_id_, zone_cfg.request_mod, false,
-          [this, zp](const econet::EconetDatapoint &dp) {
+          [zp](const econet::EconetDatapoint &dp) {
             zp->cached_humidity = dp.value_float;
             ESP_LOGD(TAG, "Zone src_adr=0x%08X current_humidity=%.1f%%", zp->src_adr, zp->cached_humidity);
-            this->update_zones_();
+            zp->parent->update_zones_();
           },
           false, zone_cfg.src_adr);
     }
@@ -97,10 +99,10 @@ void EcoNetZoneControl::setup() {
     if (this->fan_mode_id_ != nullptr && *this->fan_mode_id_) {
       this->parent_->register_listener(
           this->fan_mode_id_, zone_cfg.request_mod, false,
-          [this, zp](const econet::EconetDatapoint &dp) {
+          [zp](const econet::EconetDatapoint &dp) {
             ESP_LOGD(TAG, "Zone src_adr=0x%08X fan_mode reported as enum %u", zp->src_adr, dp.value_enum);
             zp->cached_fan_mode = dp.value_enum;
-            this->update_zones_();
+            zp->parent->update_zones_();
           },
           false, zone_cfg.src_adr);
     }
@@ -108,10 +110,10 @@ void EcoNetZoneControl::setup() {
     if (this->fan_mode_no_schedule_id_ != nullptr && *this->fan_mode_no_schedule_id_) {
       this->parent_->register_listener(
           this->fan_mode_no_schedule_id_, zone_cfg.request_mod, false,
-          [this, zp](const econet::EconetDatapoint &dp) {
+          [zp](const econet::EconetDatapoint &dp) {
             ESP_LOGD(TAG, "Zone src_adr=0x%08X fan_mode_no_schedule reported as enum %u", zp->src_adr, dp.value_enum);
             zp->cached_fan_mode_no_schedule = dp.value_enum;
-            this->update_zones_();
+            zp->parent->update_zones_();
           },
           false, zone_cfg.src_adr);
     }
